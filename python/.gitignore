@@ -1,0 +1,7 @@
+build
+lib
+test/lib
+test/report
+dist
+**/*.pyc
+
