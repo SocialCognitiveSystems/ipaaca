@@ -1,2 +1,12 @@
+java/build
+java/lib
+java/test/lib
+java/test/report
+java/dist
+java/privateprops
+java/.project
+java/.classpath
+.project
+.classpath
 **/.*.swp
 
