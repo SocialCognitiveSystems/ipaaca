@@ -35,8 +35,10 @@ import javax.swing.JOptionPane;
  */
 public final class Info
 {
-    private Info(){}
-    
+    private Info()
+    {
+    }
+
     private static Package pack = new Info().getClass().getPackage();
     public final static String packageName = pack.getName();
 
@@ -52,33 +54,27 @@ public final class Info
         buf.append("\n");
         if (pack.getSpecificationTitle() != null)
         {
-            buf.append("Specification-Title: " + pack.getSpecificationTitle()
-                    + "\n");
+            buf.append("Specification-Title: " + pack.getSpecificationTitle() + "\n");
         }
         if (pack.getSpecificationVersion() != null)
         {
-            buf.append("Specification-Version: "
-                    + pack.getSpecificationVersion() + "\n");
+            buf.append("Specification-Version: " + pack.getSpecificationVersion() + "\n");
         }
         if (pack.getSpecificationVendor() != null)
         {
-            buf.append("Specification-Vendor: " + pack.getSpecificationVendor()
-                    + "\n");
+            buf.append("Specification-Vendor: " + pack.getSpecificationVendor() + "\n");
         }
         if (pack.getImplementationTitle() != null)
         {
-            buf.append("Implementation-Title: " + pack.getImplementationTitle()
-                    + "\n");
+            buf.append("Implementation-Title: " + pack.getImplementationTitle() + "\n");
         }
         if (pack.getImplementationVersion() != null)
         {
-            buf.append("Implementation-Version: "
-                    + pack.getImplementationVersion() + "\n");
+            buf.append("Implementation-Version: " + pack.getImplementationVersion() + "\n");
         }
         if (pack.getImplementationVendor() != null)
         {
-            buf.append("Implementation-Vendor: "
-                    + pack.getImplementationVendor() + "\n");
+            buf.append("Implementation-Vendor: " + pack.getImplementationVendor() + "\n");
         }
         return buf.toString();
     }
@@ -90,15 +86,11 @@ public final class Info
      */
     public static void requireVersion(String requiredVersion)
     {
-        if (pack.getSpecificationVersion() == null)
-            return; // no check possible, so assume ok
-        if (pack.isCompatibleWith(requiredVersion))
-            return;
-        String msg = "Package " + packageName + " Version "
-                + pack.getSpecificationVersion()
-                + " does not meet the required version " + requiredVersion;
-        JOptionPane.showMessageDialog(null, msg, "Package Info",
-                JOptionPane.PLAIN_MESSAGE);
+        if (pack.getSpecificationVersion() == null) return; // no check possible, so assume ok
+        if (pack.isCompatibleWith(requiredVersion)) return;
+        String msg = "Package " + packageName + " Version " + pack.getSpecificationVersion() + " does not meet the required version "
+                + requiredVersion;
+        JOptionPane.showMessageDialog(null, msg, "Package Info", JOptionPane.PLAIN_MESSAGE);
         throw new RuntimeException(msg);
     }
 
@@ -126,8 +118,7 @@ public final class Info
     public static boolean isCompatibleWith(String desiredVersion)
     {
         String specificationVersion = pack.getSpecificationVersion();
-        if (specificationVersion == null)
-            return true; // no spec version available, so assume ok
+        if (specificationVersion == null) return true; // no spec version available, so assume ok
         String[] desiredNums = desiredVersion.split("[.]");
         String[] specificationNums = specificationVersion.split("[.]");
         int desired, specified;
@@ -148,19 +139,15 @@ public final class Info
                     specified = 0;
                 }
 
-                if (desired < specified)
-                    return true;
-                if (desired > specified)
-                    return false;
+                if (desired < specified) return true;
+                if (desired > specified) return false;
             }
             return true;
         }
         catch (NumberFormatException e)
         {
-            System.out
-                    .println(packageName
-                            + ".Info.isCompatibelWith method: illegal version numbers: "
-                            + desiredVersion + " / " + specificationVersion);
+            System.out.println(packageName + ".Info.isCompatibelWith method: illegal version numbers: " + desiredVersion + " / "
+                    + specificationVersion);
             return false;
         }
     }
@@ -170,8 +157,7 @@ public final class Info
      */
     public static void main(String[] arg)
     {
-        JOptionPane.showMessageDialog(null, Info.manifestInfo(),
-                "Package Info", JOptionPane.PLAIN_MESSAGE);
+        JOptionPane.showMessageDialog(null, Info.manifestInfo(), "Package Info", JOptionPane.PLAIN_MESSAGE);
     }
 
 }
