@@ -1,10 +1,10 @@
 Manifest-Version: 1.0
-Main-Class:
+Main-Class:  ipaaca.Info
 
-Name: hmi/bml/
+Name: ipaaca
 Specification-Title:    ipaaca
 Specification-Version:  0.1
-Specification-Vendor:
+Specification-Vendor:   ipaaca
 Implementation-Title:   ipaaca
 Implementation-Version: November 23 2011  07:07 PM
-Implementation-Vendor:
+Implementation-Vendor:  ipaaca
