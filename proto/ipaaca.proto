@@ -5,6 +5,11 @@ message IntMessage {
 	required sint32 value = 1;
 }
 
+message LinkSet {
+	required string type = 1;
+	repeated string targets = 2;
+}
+
 message PayloadItem {
 	required string key = 1;
 	required string value = 2;
@@ -27,7 +32,8 @@ message IU {
 	required AccessMode access_mode = 7 [default = PUSH];
 	required bool read_only = 8 [default = false];
 	repeated PayloadItem payload = 9;
-};
+	repeated LinkSet links = 10;
+}
 
 message IUPayloadUpdate {
 	required string uid = 1;
@@ -36,17 +42,29 @@ message IUPayloadUpdate {
 	repeated string keys_to_remove = 4;
 	required bool is_delta = 5 [default = false];
 	required string writer_name = 6;
-};
+}
 
 message IURetraction {
 	required string uid = 1;
 	required uint32 revision = 2;
-};
+}
 
 message IUCommission {
 	required string uid = 1;
 	required uint32 revision = 2;
 	required string writer_name = 3;
-};
+}
+
+message IUConnection {
+	required string source = 1;
+	required string target = 2;
+	required string type = 3;
+}
+
+message IUDisconnection {
+	required string source = 1;
+	required string target = 2;
+	required string type = 3;
+}
 
 
