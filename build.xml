@@ -1,0 +1,26 @@
+<project name="ipaaca" default="build" basedir=".">
+  <target name="build">
+    <subant target="build" genericantfile="build.xml">
+      <fileset dir="." includes="*/build.xml"/>
+    </subant>
+  </target>
+
+  <target name="clean">
+    <subant target="clean" genericantfile="build.xml">
+      <fileset dir="." includes="*/build.xml"/>
+    </subant>
+  </target>
+
+  <target name="compile">
+    <subant target="compile" genericantfile="build.xml">
+      <fileset dir="." includes="*/build.xml"/>
+    </subant>
+  </target>
+
+  <target name="minorrelease">
+    <subant target="compile" genericantfile="build.xml">
+      <fileset dir="." includes="*/build.xml"/>
+    </subant>
+  </target>
+
+</project>
