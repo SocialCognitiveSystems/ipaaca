@@ -55,16 +55,13 @@ message IUCommission {
 	required string writer_name = 3;
 }
 
-message IUConnection {
-	required string source = 1;
-	required string target = 2;
-	required string type = 3;
-}
-
-message IUDisconnection {
-	required string source = 1;
-	required string target = 2;
-	required string type = 3;
+message IULinkUpdate {
+	required string uid = 1;
+	required uint32 revision = 2;
+	repeated LinkSet new_links = 3;
+	repeated LinkSet links_to_remove = 4;
+	required bool is_delta = 5 [default = false];
+	required string writer_name = 6;
 }
 
 
