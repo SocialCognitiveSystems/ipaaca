@@ -4,6 +4,7 @@ import ipaaca.Ipaaca.IUCommission;
 import ipaaca.Ipaaca.IULinkUpdate;
 import ipaaca.Ipaaca.IUPayloadUpdate;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -267,6 +268,9 @@ public class InputBuffer extends Buffer{
         return iuStore.get(iuid);
     }
 	
-	
+	public Collection<RemotePushIU> getIUs()
+	{
+	    return iuStore.values();
+	}
 
 }
