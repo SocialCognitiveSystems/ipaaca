@@ -81,8 +81,7 @@ public class IuConverterTest
                 .setOwnerName("owner")
                 .setAccessMode(AccessMode.PUSH)
                 .setReadOnly(false)
-                .setCategory(CATEGORY)
-                .setType("IU")
+                .setCategory(CATEGORY)                
                 .addAllPayload(payload)
                 .build();
         

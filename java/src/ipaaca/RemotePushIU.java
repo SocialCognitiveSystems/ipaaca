@@ -1,16 +1,23 @@
 package ipaaca;
 
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.collect.SetMultimap;
 
 import rsb.RSBException;
 import rsb.patterns.RemoteServer;
 import ipaaca.Ipaaca;
 import ipaaca.Ipaaca.IUCommission;
+import ipaaca.Ipaaca.IULinkUpdate;
 import ipaaca.Ipaaca.IUPayloadUpdate;
+import ipaaca.Ipaaca.LinkSet;
 import ipaaca.Ipaaca.PayloadItem;
 
 /**
@@ -72,7 +79,7 @@ public class RemotePushIU extends AbstractIU
         int newRevision;
         try
         {
-            newRevision = (Integer)server.call("updatePayload", update);
+            newRevision = (Integer) server.call("updatePayload", update);
         }
         catch (RSBException e)
         {
@@ -123,7 +130,7 @@ public class RemotePushIU extends AbstractIU
             int newRevision;
             try
             {
-                newRevision = (Integer)server.call("commit", iuc);
+                newRevision = (Integer) server.call("commit", iuc);
             }
             catch (RSBException e)
             {
@@ -212,14 +219,14 @@ public class RemotePushIU extends AbstractIU
         {
             throw new IUReadOnlyException(this);
         }
-        
+
         IUPayloadUpdate iuu = IUPayloadUpdate.newBuilder().setRevision(getRevision()).setIsDelta(false).setUid(getUid())
                 .addAllNewItems(newItems).setWriterName(getBuffer() != null ? getBuffer().getUniqueName() : "").build();
         RemoteServer server = inputBuffer.getRemoteServer(this);
         int newRevision;
         try
         {
-            newRevision = (Integer)server.call("updatePayload", iuu);
+            newRevision = (Integer) server.call("updatePayload", iuu);
         }
         catch (RSBException e)
         {
@@ -269,12 +276,39 @@ public class RemotePushIU extends AbstractIU
         }
     }
 
+    public void applyLinkUpdate(IULinkUpdate update)
+    {
+        revision = update.getRevision();
+        if (update.getIsDelta())
+        {
+            for (LinkSet ls : update.getLinksToRemoveList())
+            {
+                for (String removeValue : ls.getTargetsList())
+                {
+                    links.remove(ls.getType(), removeValue);
+                }
+            }
+            for (LinkSet ls : update.getNewLinksList())
+            {
+                links.putAll(ls.getType(), ls.getTargetsList());
+            }
+        }
+        else
+        {
+            links.clear();
+            for (LinkSet ls : update.getNewLinksList())
+            {
+                links.putAll(ls.getType(), ls.getTargetsList());
+            }
+        }
+    }
+
     @Override
     void handlePayloadSetting(List<PayloadItem> newPayload, String writerName)
     {
-                
+
     }
-    
+
     // def _apply_commission(self):
     // """Apply commission to the IU"""
     // self._committed = True
@@ -300,7 +334,67 @@ public class RemotePushIU extends AbstractIU
         int newRevision;
         try
         {
-            newRevision = (Integer)server.call("updatePayload", update);
+            newRevision = (Integer) server.call("updatePayload", update);
+        }
+        catch (RSBException e)
+        {
+            throw new RuntimeException(e);
+        }
+        if (newRevision == 0)
+        {
+            throw new IUUpdateFailedException(this);
+        }
+        setRevision(newRevision);
+    }
+
+    // def _modify_payload(self, payload, is_delta=True, new_items={}, keys_to_remove=[], writer_name=None):
+    // """Modify the payload: add or remove item from this payload remotely and send update."""
+    // if self.committed:
+    // raise IUCommittedError(self)
+    // if self.read_only:
+    // raise IUReadOnlyError(self)
+    // requested_update = IUPayloadUpdate(
+    // uid=self.uid,
+    // revision=self.revision,
+    // is_delta=is_delta,
+    // writer_name=self.buffer.unique_name,
+    // new_items=new_items,
+    // keys_to_remove=keys_to_remove)
+    // remote_server = self.buffer._get_remote_server(self)
+    // new_revision = remote_server.updatePayload(requested_update)
+    // if new_revision == 0:
+    // raise IUUpdateFailedError(self)
+    // else:
+    // self._revision = new_revision
+    @Override
+    public void modifyLinks(boolean isDelta, SetMultimap<String, String> linksToAdd, SetMultimap<String, String> linksToRemove, String writerName)
+    {
+        if (isCommitted())
+        {
+            throw new IUCommittedException(this);
+        }
+        if (isReadOnly())
+        {
+            throw new IUReadOnlyException(this);
+        }
+        RemoteServer server = inputBuffer.getRemoteServer(this);
+        Set<LinkSet> removeLinkSet = new HashSet<LinkSet>();
+        for (Entry<String, Collection<String>> entry : linksToRemove.asMap().entrySet())
+        {
+            removeLinkSet.add(LinkSet.newBuilder().setType(entry.getKey()).addAllTargets(entry.getValue()).build());
+        }
+        Set<LinkSet> newLinkSet = new HashSet<LinkSet>();
+        for (Entry<String, Collection<String>> entry : linksToAdd.asMap().entrySet())
+        {
+            newLinkSet.add(LinkSet.newBuilder().setType(entry.getKey()).addAllTargets(entry.getValue()).build());
+        }
+
+        IULinkUpdate update = IULinkUpdate.newBuilder().addAllLinksToRemove(removeLinkSet).addAllNewLinks(newLinkSet).setIsDelta(isDelta)
+                .setWriterName(getBuffer() != null ? getBuffer().getUniqueName() : "").setUid(getUid()).setRevision(getRevision()).build();
+        int newRevision;
+        try
+        {
+            newRevision = (Integer) server.call("updateLinks", update);
         }
         catch (RSBException e)
         {

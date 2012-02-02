@@ -52,11 +52,11 @@ public class IUConverter implements Converter<ByteBuffer>
                 .setUid(iua.getUid())
                 .setRevision(iua.getRevision())
                 .setCategory(iua.getCategory())
-                .setType("")
                 .setOwnerName(iua.getOwnerName())
                 .setCommitted(iua.isCommitted())
                 .setAccessMode(IU.AccessMode.PUSH) //TODO for other access modes (also in Python version)
                 .setReadOnly(iua.isReadOnly())
+                .setPayloadType("MAP")
                 .addAllPayload(payloadItems)
                 .build();
         return new WireContents<ByteBuffer>(ByteBuffer.wrap(iu.toByteArray()),"ipaaca-remotepushiu");        

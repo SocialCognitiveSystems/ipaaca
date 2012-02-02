@@ -9,7 +9,9 @@ import rsb.patterns.LocalServer;
 
 import ipaaca.Ipaaca;
 import ipaaca.Ipaaca.IUCommission;
+import ipaaca.Ipaaca.IULinkUpdate;
 import ipaaca.Ipaaca.IUPayloadUpdate;
+import ipaaca.Ipaaca.LinkSet;
 import ipaaca.Ipaaca.PayloadItem;
 
 import java.util.HashMap;
@@ -17,6 +19,9 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.SetMultimap;
 
 /**
  * An OutputBuffer that holds local IUs.
@@ -59,6 +64,7 @@ public class OutputBuffer extends Buffer{
 		server = Factory.getInstance().createLocalServer(uniqueName);
 		try {
 			server.addMethod("updatePayload", new RemoteUpdatePayload());
+			server.addMethod("updateLinks", new RemoteUpdateLinks());
 			server.addMethod("commit", new RemoteCommit());
 			server.activate();
 		} catch (InitializeException e) {
@@ -78,6 +84,17 @@ public class OutputBuffer extends Buffer{
         }
 		
 	}
+	
+	private final class RemoteUpdateLinks implements DataCallback<Integer,IULinkUpdate>
+    {
+        @Override
+        public Integer invoke(IULinkUpdate data) throws Throwable
+        {
+            logger.debug("remoteUpdateLinks");
+            return remoteUpdateLinks(data);            
+        }
+        
+    }
 	
 	private final class RemoteCommit implements DataCallback<Integer,IUCommission>
 	{
@@ -110,6 +127,7 @@ public class OutputBuffer extends Buffer{
 //		iu._set_payload(update.new_items, writer_name=update.writer_name)
 //	self.call_iu_event_handlers(update.uid, local=True, event_type=IUEventType.UPDATED, category=iu.category)
 //	return iu.revision
+	
 	/**
 	 * Apply a remotely requested update to one of the stored IUs.
 	 * @return 0 if not updated, IU version number otherwise
@@ -148,6 +166,56 @@ public class OutputBuffer extends Buffer{
 		callIuEventHandlers(update.getUid(), true, IUEventType.UPDATED, iu.getCategory());
 		return iu.revision;
 	}
+	
+	
+	
+	
+	/**
+     * Apply a remotely requested update to one of the stored IUs.
+     * @return 0 if not updated, IU version number otherwise
+     */
+    int remoteUpdateLinks(IULinkUpdate update)
+    {
+        if (!iuStore.containsKey(update.getUid()))
+        {
+            logger.warn("Remote InBuffer tried to spuriously write non-existent IU {}",update.getUid());
+            return 0;
+        }
+        
+        AbstractIU iu = iuStore.get(update.getUid());
+        if(update.getRevision()!=0 && update.getRevision() != iu.getRevision())
+        {
+            //(0 means "do not pay attention to the revision number" -> "force update")
+            logger.warn("Remote write operation failed because request was out of date; IU {}",update.getUid());
+            return 0;
+        }       
+        if(update.getIsDelta())
+        {
+            SetMultimap<String, String> newLinks = HashMultimap.create();
+            for(LinkSet ls:update.getNewLinksList())
+            {
+                newLinks.putAll(ls.getType(),ls.getTargetsList());
+            }
+            
+            SetMultimap<String, String> removeLinks = HashMultimap.create();
+            for(LinkSet ls:update.getLinksToRemoveList())
+            {
+                removeLinks.putAll(ls.getType(),ls.getTargetsList());
+            }
+            iu.modifyLinks(newLinks, removeLinks);
+        }
+        else
+        {
+            SetMultimap<String, String> newLinks = HashMultimap.create();
+            for(LinkSet ls:update.getNewLinksList())
+            {
+                newLinks.putAll(ls.getType(),ls.getTargetsList());
+            }
+            iu.setLinks(newLinks);            
+        }
+        callIuEventHandlers(update.getUid(), true, IUEventType.LINKSUPDATED, iu.getCategory());
+        return iu.revision;
+    }
 	
 //	
 //	def _generate_iu_uid(self):
@@ -361,6 +429,16 @@ public class OutputBuffer extends Buffer{
 			throw new RuntimeException(e);
 		}
 	}
+	
+	public void sendIULinkUpdate(AbstractIU iu, IULinkUpdate update)
+    {
+        Informer<Object> informer = getInformer(iu.getCategory());
+        try {
+            informer.send(update);
+        } catch (RSBException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     @Override
     public AbstractIU getIU(String iuid)

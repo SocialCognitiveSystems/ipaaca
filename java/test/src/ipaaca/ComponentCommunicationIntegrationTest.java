@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.Set;
 
+import static org.hamcrest.collection.IsIterableContainingInAnyOrder.*;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -242,5 +243,90 @@ public class ComponentCommunicationIntegrationTest
         
         assertNull(iuIn.getPayload().get("key1"));
         assertNull(localIU.getPayload().get("key1"));
+    }
+    
+    @Test
+    public void testSetLinksLocal() throws InterruptedException
+    {
+        Thread.sleep(200);
+        AbstractIU iuIn = inBuffer.getIU(localIU.getUid());
+        localIU.setLinks("SAME_LEVEL",ImmutableSet.of("iu5","iu6"));        
+        Thread.sleep(200);
+        assertThat(localIU.getLinks("SAME_LEVEL"),containsInAnyOrder("iu5","iu6"));
+        assertThat(iuIn.getLinks("SAME_LEVEL"),containsInAnyOrder("iu5","iu6"));
+    }
+    
+    @Test
+    public void testSetLinksRemote() throws InterruptedException
+    {
+        Thread.sleep(200);
+        AbstractIU iuIn = inBuffer.getIU(localIU.getUid());
+        iuIn.setLinks("SAME_LEVEL",ImmutableSet.of("iu5","iu6"));        
+        Thread.sleep(200);
+        assertThat(localIU.getLinks("SAME_LEVEL"),containsInAnyOrder("iu5","iu6"));
+        assertThat(iuIn.getLinks("SAME_LEVEL"),containsInAnyOrder("iu5","iu6"));
+    }
+    
+    @Test
+    public void testSetLinksRemoteOverwrite() throws InterruptedException
+    {
+        Thread.sleep(200);
+        AbstractIU iuIn = inBuffer.getIU(localIU.getUid());
+        localIU.setLinks("SAME_LEVEL",ImmutableSet.of("iu5","iu6"));        
+        Thread.sleep(200);
+        assertThat(localIU.getLinks("SAME_LEVEL"),containsInAnyOrder("iu5","iu6"));
+        assertThat(iuIn.getLinks("SAME_LEVEL"),containsInAnyOrder("iu5","iu6"));
+        
+        iuIn.setLinks("SAME_LEVEL",ImmutableSet.of("iu7","iu8"));
+        Thread.sleep(200);
+        assertThat(localIU.getLinks("SAME_LEVEL"),containsInAnyOrder("iu7","iu8"));
+        assertThat(iuIn.getLinks("SAME_LEVEL"),containsInAnyOrder("iu7","iu8"));
+    }
+    
+    @Test
+    public void testAddLinksLocal() throws InterruptedException
+    {
+        Thread.sleep(200);
+        AbstractIU iuIn = inBuffer.getIU(localIU.getUid());
+        localIU.setLinks("SAME_LEVEL",ImmutableSet.of("iu4"));
+        localIU.addLinks("SAME_LEVEL",ImmutableSet.of("iu5","iu6"));        
+        Thread.sleep(200);
+        assertThat(localIU.getLinks("SAME_LEVEL"),containsInAnyOrder("iu4","iu5","iu6"));
+        assertThat(iuIn.getLinks("SAME_LEVEL"),containsInAnyOrder("iu4","iu5","iu6"));
+    }
+    
+    @Test
+    public void testAddLinksRemote() throws InterruptedException
+    {
+        Thread.sleep(200);
+        AbstractIU iuIn = inBuffer.getIU(localIU.getUid());
+        iuIn.addLinks("SAME_LEVEL",ImmutableSet.of("iu5","iu6"));        
+        Thread.sleep(200);
+        assertThat(localIU.getLinks("SAME_LEVEL"),containsInAnyOrder("iu5","iu6"));
+        assertThat(iuIn.getLinks("SAME_LEVEL"),containsInAnyOrder("iu5","iu6"));
+    }
+    
+    @Test
+    public void testRemoveLinksLocal() throws InterruptedException
+    {
+        Thread.sleep(200);   
+        AbstractIU iuIn = inBuffer.getIU(localIU.getUid());
+        localIU.setLinks("SAME_LEVEL",ImmutableSet.of("iu5","iu6","iu7"));
+        localIU.removeLinks("SAME_LEVEL", ImmutableSet.of("iu5","iu6"));
+        Thread.sleep(200);
+        assertThat(localIU.getLinks("SAME_LEVEL"),containsInAnyOrder("iu7"));
+        assertThat(iuIn.getLinks("SAME_LEVEL"),containsInAnyOrder("iu7"));
+    }
+    
+    @Test
+    public void testRemoveLinksRemote() throws InterruptedException
+    {
+        Thread.sleep(200);   
+        AbstractIU iuIn = inBuffer.getIU(localIU.getUid());
+        iuIn.setLinks("SAME_LEVEL",ImmutableSet.of("iu5","iu6","iu7"));
+        iuIn.removeLinks("SAME_LEVEL", ImmutableSet.of("iu5","iu6"));
+        Thread.sleep(200);
+        assertThat(localIU.getLinks("SAME_LEVEL"),containsInAnyOrder("iu7"));
+        assertThat(iuIn.getLinks("SAME_LEVEL"),containsInAnyOrder("iu7"));
     }
 }

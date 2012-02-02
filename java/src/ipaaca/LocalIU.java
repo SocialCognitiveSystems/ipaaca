@@ -1,8 +1,16 @@
 package ipaaca;
 
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map.Entry;
+import java.util.Set;
 
+import com.google.common.collect.SetMultimap;
+
+import ipaaca.Ipaaca.IULinkUpdate;
 import ipaaca.Ipaaca.IUPayloadUpdate;
+import ipaaca.Ipaaca.LinkSet;
 import ipaaca.Ipaaca.PayloadItem;
 
 public class LocalIU extends AbstractIU
@@ -81,6 +89,67 @@ public class LocalIU extends AbstractIU
         return payload;
     }
 
+    // if self.committed:
+    // raise IUCommittedError(self)
+    // with self.revision_lock:
+    // # modify links locally
+    // self._increase_revision_number()
+    // if self.is_published:
+    // # send update to remote holders
+    // self.buffer._send_iu_link_update(
+    // self,
+    // revision=self.revision,
+    // is_delta=is_delta,
+    // new_links=new_links,
+    // links_to_remove=links_to_remove,
+    // writer_name=self.owner_name if writer_name is None else writer_name)
+    @Override
+    void modifyLinks(boolean isDelta, SetMultimap<String, String> linksToAdd, SetMultimap<String, String> linksToRemove, String writerName)
+    {
+        if (isCommitted())
+        {
+            throw new IUCommittedException(this);
+        }
+        synchronized (revisionLock)
+        {
+            increaseRevisionNumber();
+            if(isPublished())
+            {
+                String wName = null;
+                if (getBuffer() != null)
+                {
+                    wName = getBuffer().getUniqueName();
+                }
+                if (writerName != null)
+                {
+                    wName = writerName;
+                }
+                if (getBuffer() == null)
+                {
+                    wName = null;
+                }
+                Set<LinkSet> addSet = new HashSet<LinkSet>();                
+                for(Entry<String, Collection<String>> entry :linksToAdd.asMap().entrySet())
+                {
+                    addSet.add(LinkSet.newBuilder().setType(entry.getKey()).addAllTargets(entry.getValue()).build());
+                }
+                Set<LinkSet> removeSet = new HashSet<LinkSet>();                
+                for(Entry<String, Collection<String>> entry :linksToRemove.asMap().entrySet())
+                {
+                    removeSet.add(LinkSet.newBuilder().setType(entry.getKey()).addAllTargets(entry.getValue()).build());
+                }
+                outputBuffer.sendIULinkUpdate(this,IULinkUpdate.newBuilder()
+                        .setUid(getUid())
+                        .setRevision(getRevision())
+                        .setWriterName(wName)
+                        .setIsDelta(isDelta)
+                        .addAllNewLinks(addSet)
+                        .addAllLinksToRemove(removeSet)
+                        .build());
+            }
+        }
+    }
+
     public void setPayload(List<PayloadItem> payloadItems, String writerName)
     {
         synchronized (revisionLock)
@@ -105,7 +174,7 @@ public class LocalIU extends AbstractIU
                 {
                     wName = null;
                 }
-                payload.set(payloadItems, wName);                
+                payload.set(payloadItems, wName);
             }
         }
     }
@@ -148,27 +217,22 @@ public class LocalIU extends AbstractIU
     @Override
     void removeFromPayload(Object key, String writer)
     {
-        synchronized(getRevisionLock())
+        synchronized (getRevisionLock())
         {
-            if(isCommitted())
+            if (isCommitted())
             {
                 throw new IUCommittedException(this);
             }
             increaseRevisionNumber();
-            if(isPublished())
+            if (isPublished())
             {
-                //send update to remote holders
-                IUPayloadUpdate update = IUPayloadUpdate.newBuilder()
-                        .setUid(getUid())
-                        .setRevision(getRevision())
-                        .setIsDelta(true)
-                        .setWriterName(writer==null?getOwnerName():writer)
-                        .addKeysToRemove((String)key)
-                        .build();                       
+                // send update to remote holders
+                IUPayloadUpdate update = IUPayloadUpdate.newBuilder().setUid(getUid()).setRevision(getRevision()).setIsDelta(true)
+                        .setWriterName(writer == null ? getOwnerName() : writer).addKeysToRemove((String) key).build();
                 getOutputBuffer().sendIUPayloadUpdate(this, update);
-            }            
+            }
         }
-        
+
     }
 
     @Override
@@ -181,4 +245,5 @@ public class LocalIU extends AbstractIU
             getOutputBuffer().sendIUPayloadUpdate(this, update);
         }
     }
+
 }

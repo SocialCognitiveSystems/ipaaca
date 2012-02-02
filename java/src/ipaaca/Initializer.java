@@ -1,6 +1,7 @@
 package ipaaca;
 
 import ipaaca.Ipaaca.IUCommission;
+import ipaaca.Ipaaca.IULinkUpdate;
 import ipaaca.Ipaaca.IUPayloadUpdate;
 import rsb.converter.ConverterSignature;
 import rsb.converter.DefaultConverterRepository;
@@ -28,6 +29,8 @@ public final class Initializer {
 		  .addConverter(new ProtocolBufferConverter<IUCommission>(IUCommission.getDefaultInstance()));
 	    DefaultConverterRepository.getDefaultConverterRepository()
             .addConverter(new ProtocolBufferConverter<IUPayloadUpdate>(IUPayloadUpdate.getDefaultInstance()));
+	    DefaultConverterRepository.getDefaultConverterRepository()
+            .addConverter(new ProtocolBufferConverter<IULinkUpdate>(IULinkUpdate.getDefaultInstance()));
 	    DefaultConverterRepository.getDefaultConverterRepository().addConverter(
 	            new IUConverter(new ConverterSignature("ipaaca-remotepushiu", RemotePushIU.class)));
 	    DefaultConverterRepository.getDefaultConverterRepository().addConverter(

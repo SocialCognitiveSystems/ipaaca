@@ -1,6 +1,7 @@
 package ipaaca;
 
 import ipaaca.Ipaaca.IUCommission;
+import ipaaca.Ipaaca.IULinkUpdate;
 import ipaaca.Ipaaca.IUPayloadUpdate;
 
 import java.util.HashMap;
@@ -197,7 +198,24 @@ public class InputBuffer extends Buffer{
 		}
 		else 
 		{
-			if (event.getData() instanceof IUPayloadUpdate)
+		    if (event.getData() instanceof IULinkUpdate)
+            {
+		        IULinkUpdate iuLinkUpdate = (IULinkUpdate)event.getData();
+		        if(iuLinkUpdate.getWriterName().equals(this.getUniqueName()))
+                {
+                    //Discard updates that originate from this buffer
+                    return;
+                }
+		        if(!iuStore.containsKey(iuLinkUpdate.getUid()))
+                {
+                    logger.warn("Link update message for IU which we did not fully receive before.");
+                    return;
+                }
+		        RemotePushIU iu = this.iuStore.get(iuLinkUpdate.getUid());
+                iu.applyLinkUpdate(iuLinkUpdate);
+                callIuEventHandlers(iu.getUid(), false, IUEventType.LINKSUPDATED, iu.category);
+            }
+		    if (event.getData() instanceof IUPayloadUpdate)
 			{
 				IUPayloadUpdate iuUpdate = (IUPayloadUpdate)event.getData();
 				logger.debug("handleIUEvents invoked with an IUPayloadUpdate: {}", iuUpdate);                
