@@ -215,7 +215,7 @@ class IUInterface(object): #{{{
 	def _replace_links(self, links):
 		'''Just wipe and replace our links set, do not send an update here'''
 		'''Note: Also used for remotely enforced links updates.'''
-		self._links = {}
+		self._links = collections.defaultdict(set)
 		for type in links.keys(): self._links[type] |= set(links[type])
 		
 	def add_links(self, type, targets, writer_name=None):
@@ -239,7 +239,7 @@ class IUInterface(object): #{{{
 		'''Attempt to set (replace) links if the conditions are met
 		and send an update message. Then call the local setter.'''
 		self._modify_links(links=self, is_delta=False, new_links=links, links_to_remove={}, writer_name=writer_name)
-		self._replace_links( links=new_links )
+		self._replace_links( links=links )
 	def get_links(self, type):
 		return set(self._links[type])
 	def get_all_links(self):
