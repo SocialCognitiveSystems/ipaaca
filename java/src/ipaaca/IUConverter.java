@@ -1,9 +1,12 @@
 package ipaaca;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map.Entry;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.SetMultimap;
 import com.google.protobuf.InvalidProtocolBufferException;
 
 import rsb.converter.ConversionException;
@@ -12,6 +15,7 @@ import rsb.converter.ConverterSignature;
 import rsb.converter.UserData;
 import rsb.converter.WireContents;
 import ipaaca.Ipaaca.IU;
+import ipaaca.Ipaaca.LinkSet;
 import ipaaca.Ipaaca.PayloadItem;
 
 /**
@@ -48,6 +52,12 @@ public class IUConverter implements Converter<ByteBuffer>
                     .build());
         }
         
+        List<LinkSet> links = new ArrayList<LinkSet>();
+        for (Entry<String, Collection<String>> entry:iua.getAllLinks().asMap().entrySet())
+        {
+            links.add(LinkSet.newBuilder().setType(entry.getKey()).addAllTargets(entry.getValue()).build());
+        }
+        
         IU iu = IU.newBuilder()
                 .setUid(iua.getUid())
                 .setRevision(iua.getRevision())
@@ -58,6 +68,7 @@ public class IUConverter implements Converter<ByteBuffer>
                 .setReadOnly(iua.isReadOnly())
                 .setPayloadType("MAP")
                 .addAllPayload(payloadItems)
+                .addAllLinks(links)
                 .build();
         return new WireContents<ByteBuffer>(ByteBuffer.wrap(iu.toByteArray()),"ipaaca-remotepushiu");        
     }
@@ -83,7 +94,13 @@ public class IUConverter implements Converter<ByteBuffer>
             iuout.setOwnerName(iu.getOwnerName());
             iuout.setRevision(iu.getRevision());
             iuout.setReadOnly(iu.getReadOnly());            
-            iuout.payload = new Payload(iuout,iu.getPayloadList());       
+            iuout.payload = new Payload(iuout,iu.getPayloadList());            
+            SetMultimap<String, String> links = HashMultimap.create();
+            for(LinkSet ls: iu.getLinksList())
+            {
+                links.putAll(ls.getType(),ls.getTargetsList());
+            }
+            iuout.setLinksLocally(links);
             return new UserData<RemotePushIU>(iuout, RemotePushIU.class);            
         }
         else

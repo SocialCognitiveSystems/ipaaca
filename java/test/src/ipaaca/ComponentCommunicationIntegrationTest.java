@@ -109,6 +109,7 @@ public class ComponentCommunicationIntegrationTest
         localIU = new LocalIU();
         localIU.setCategory(CATEGORY);
         localIU.getPayload().put("key1", "item1");
+        localIU.addLinks("INIT", ImmutableSet.of("init1","init2"));
         outBuffer.add(localIU);
     }
     
@@ -126,6 +127,7 @@ public class ComponentCommunicationIntegrationTest
         AbstractIU iuIn = inBuffer.getIU(localIU.getUid());
         assertNotNull(iuIn);
         assertEqualIU(iuIn, localIU);
+        assertThat(localIU.getLinks("INIT"),containsInAnyOrder("init1","init2"));
         assertEquals(1,component2EventHandler.getNumberOfAddEvents(iuIn.getUid()));
         assertEquals(0,component1EventHandler.getNumberOfAddEvents(localIU.getUid()));
     }
