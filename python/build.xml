@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="IpaacaPython"  default="run">
+   <import file="../../soashared/ant/build.xml" />
+   <target name="-pre-compilation">
+     <echo message="Compiling protobuf file" />
+     <exec executable="protoc">
+        <arg value="--proto_path=../proto" />
+        <arg value="../proto/ipaaca.proto" />
+        <arg value="--python_out=build/" />
+     </exec>
+   </target>
+</project>
+
