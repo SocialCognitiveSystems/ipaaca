@@ -1,4 +1,10 @@
 <project name="ipaaca" default="build" basedir=".">
+  <target name="resolve">
+    <subant target="resolve" genericantfile="build.xml">
+      <fileset dir="." includes="*/build.xml"/>
+    </subant>
+  </target>
+
   <target name="build">
     <subant target="build" genericantfile="build.xml">
       <fileset dir="." includes="*/build.xml"/>

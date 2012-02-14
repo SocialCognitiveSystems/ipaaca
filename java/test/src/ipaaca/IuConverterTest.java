@@ -7,6 +7,7 @@ import java.util.List;
 import ipaaca.Ipaaca;
 import ipaaca.Ipaaca.IU;
 import ipaaca.Ipaaca.IU.AccessMode;
+import ipaaca.Ipaaca.LinkSet;
 import ipaaca.Ipaaca.PayloadItem;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
@@ -15,6 +16,7 @@ import static org.mockito.Mockito.*;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.protobuf.InvalidProtocolBufferException;
 
 import rsb.converter.ConversionException;
@@ -52,6 +54,8 @@ public class IuConverterTest
         rpIU.getPayload().enforcedSetItem("key1", "value1");
         rpIU.getPayload().enforcedSetItem("key2", "value2");
         rpIU.getPayload().enforcedSetItem("key3", "value3");
+        rpIU.setLinksLocally("SAME_LEVEL",ImmutableSet.of("sibling1","sibling2"));
+        rpIU.setLinksLocally("GROUNDED_IN",ImmutableSet.of("parent1","parent2"));
                 
         WireContents<ByteBuffer> wiu = converter.serialize(RemotePushIU.class,rpIU);
         IU iu = IU.newBuilder().mergeFrom(wiu.getSerialization().array()).build();
@@ -73,7 +77,20 @@ public class IuConverterTest
         List<PayloadItem> payload = new ArrayList<PayloadItem>();
         payload.add(createPayloadItem("key1","value1"));
         payload.add(createPayloadItem("key2","value2"));
-        payload.add(createPayloadItem("key3","value3"));        
+        payload.add(createPayloadItem("key3","value3"));
+        List<LinkSet> links = new ArrayList<LinkSet>();
+        links.add(
+                LinkSet.newBuilder()
+                .addAllTargets(ImmutableSet.of("sibling1","sibling2"))
+                .setType("SAME_LEVEL")
+                .build()
+                );
+        links.add(
+                LinkSet.newBuilder()
+                .addAllTargets(ImmutableSet.of("parent1","parent2"))
+                .setType("GROUNDED_IN")
+                .build()
+                );
         Ipaaca.IU iu = Ipaaca.IU.newBuilder()
                 .setUid("uid1")
                 .setRevision(1)
@@ -83,6 +100,8 @@ public class IuConverterTest
                 .setReadOnly(false)
                 .setCategory(CATEGORY)                
                 .addAllPayload(payload)
+                .addAllLinks(links)
+                .setPayloadType("")
                 .build();
         
         UserData<?> data = converter.deserialize("", ByteBuffer.wrap(iu.toByteArray()));

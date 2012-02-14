@@ -32,11 +32,28 @@ public abstract class AbstractIU
     protected SetMultimap<String, String> links = HashMultimap.create();
     private final SetMultimap<String, String> EMPTYLINKS = HashMultimap.create();
 
+    public SetMultimap<String, String> getAllLinks()
+    {
+        return links;
+    }
+    
     public Set<String> getLinks(String type)
     {
         return links.get(type);
     }
 
+    public void setLinksLocally(SetMultimap<String, String> l)
+    {
+        links.clear();
+        links.putAll(l);
+    }
+    
+    public void setLinksLocally(String type, Set<String> values)
+    {
+        links.removeAll(type);
+        links.putAll(type, values);        
+    }
+    
     /**
      * Replace all links
      */
