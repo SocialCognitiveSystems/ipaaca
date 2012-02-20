@@ -22,7 +22,7 @@ public class TextPrinter
     }
     
     private static final String CATEGORY = "TEXT";
-    private static final double RATE = 1;
+    private static final double RATE = 0.5;
     private UpdateThread updateThread;
     
     public TextPrinter()
@@ -94,7 +94,7 @@ public class TextPrinter
                 
                 try
                 {
-                    Thread.sleep(100);
+                    Thread.sleep(200);
                 }
                 catch (InterruptedException e)
                 {
@@ -111,7 +111,7 @@ public class TextPrinter
         
         
         OutputBuffer outBuffer = new OutputBuffer("componentX");
-        String[] inputString = {"h","e","l","l","o"," ","w","o","r","l","d","!s"};
+        String[] inputString = {"h","e","l","l","o"," ","w","o","r","l","d","!"};
         LocalIU predIU = null;        
         for(String str:inputString)
         {
