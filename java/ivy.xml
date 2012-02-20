@@ -1,5 +1,5 @@
 <ivy-module version="2.0">
-   <info organisation="Herwin" module="scrapbook"/>
+   <info organisation="ipaaca" module="ipaaca"/>
    <configurations>
       <include file="${ivy.settings.dir}/configurations.xml"/>
    </configurations>
