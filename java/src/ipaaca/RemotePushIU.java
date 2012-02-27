@@ -367,7 +367,7 @@ public class RemotePushIU extends AbstractIU
     // else:
     // self._revision = new_revision
     @Override
-    public void modifyLinks(boolean isDelta, SetMultimap<String, String> linksToAdd, SetMultimap<String, String> linksToRemove, String writerName)
+    void modifyLinks(boolean isDelta, SetMultimap<String, String> linksToAdd, SetMultimap<String, String> linksToRemove, String writerName)
     {
         if (isCommitted())
         {

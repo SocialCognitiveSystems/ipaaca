@@ -28,6 +28,20 @@ class IpaacaIUStoreTestCase(unittest.TestCase):
 		self.assertIn(self.sensor_iu.uid, self.ob.iu_store)
 		self.assertEqual(len(self.ob.iu_store), 1)
 
+class IpaacaPayloadTestCase(unittest.TestCase):
+	def setUp(self):
+		self.ib = ipaaca.InputBuffer('TestIn', ['sensorcategory', 'decisioncategory'])
+		self.ob = ipaaca.OutputBuffer('TestOut')
+		self.sensor_iu = ipaaca.IU('sensorcategory')
+		self.sensor_iu.payload = {'data': 'sensordata'}
+		self.ob.add(self.sensor_iu)
+		
+	def testPayloadContent(self):
+		time.sleep(0.1)ipaac		
+nimp[
+		iu_received = self.ib.iu_store.get(self.sensor_iu.uid)
+		self.assertEqual(iu_received.payload["data"], 'sensordata')
+
 class IpaacaLinksTestCase(unittest.TestCase):
 	def setUp(self):
 		self.ib = ipaaca.InputBuffer('TestIn', ['sensorcategory', 'decisioncategory'])

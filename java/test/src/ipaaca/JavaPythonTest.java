@@ -2,6 +2,8 @@ package ipaaca;
 
 import static org.junit.Assert.assertEquals;
 
+import ipaaca.Ipaaca.IU;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -30,21 +32,10 @@ public class JavaPythonTest {
         inBuffer = new InputBuffer("javaside", categories);
     }
     
-	@Ignore
-	@Test
-	public void test() throws IOException, InterruptedException {
-		
-		String pypr = 
-		"import sys\n" +
-		"sys.path.append('../python/build/')\n" +
-		"import ipaaca, time\n" +
-		"ob = ipaaca.OutputBuffer('pythonside')\n" + 
-		"iu = ipaaca.IU('JavaPythonTest')\n" +
-		"iu.payload = {'data':'Hello from Python!'}\n" +
-		"time.sleep(0.1)\n" +
-		"ob.add(iu)";
-		Process p = Runtime.getRuntime().exec(new String[]{"python","-c", pypr});
-		InputStream in = p.getInputStream();
+	private void printRuntimeErrors(Process p) throws IOException
+	{
+	    
+        InputStream in = p.getInputStream();
         BufferedInputStream buf = new BufferedInputStream(in);
         InputStreamReader inread = new InputStreamReader(buf);
         BufferedReader bufferedreader = new BufferedReader(inread);
@@ -76,9 +67,27 @@ public class JavaPythonTest {
         {
             System.out.println(line);
         }
+	}
+	
+	@Test
+	public void test() throws IOException, InterruptedException {
+		
+		String pypr = 
+		"import sys\n" +
+		"sys.path.append('/homes/hvanwelbergen/git_pool/ipaaca/python/build/')\n" +
+		"import ipaaca, time\n" +
+		"ob = ipaaca.OutputBuffer('pythonside')\n" + 
+		"iu = ipaaca.IU('JavaPythonTest')\n" +
+		"iu.payload = {'data':'Hello from Python!'}\n" +
+		"time.sleep(0.1)\n" +
+		"ob.add(iu)";
+		Process p = Runtime.getRuntime().exec(new String[]{"python","-c", pypr});
+		printRuntimeErrors(p);
 		
 		Thread.sleep(200);
 		assertEquals(1, inBuffer.getIUs().size());
+		AbstractIU iu = inBuffer.getIUs().iterator().next();
+		assertEquals("Hello from Python!",iu.getPayload().get("data"));
 	}
 	
 	

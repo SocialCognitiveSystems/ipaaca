@@ -320,6 +320,7 @@ class IU(IUInterface):#{{{
 			raise IUCommittedError(self)
 		with self.revision_lock:
 			# set item locally
+			# FIXME: Is it actually set locally?
 			self._increase_revision_number()
 			if self.is_published:
 				# send update to remote holders

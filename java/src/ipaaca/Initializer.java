@@ -32,9 +32,9 @@ public final class Initializer {
 	    DefaultConverterRepository.getDefaultConverterRepository()
             .addConverter(new ProtocolBufferConverter<IULinkUpdate>(IULinkUpdate.getDefaultInstance()));
 	    DefaultConverterRepository.getDefaultConverterRepository().addConverter(
-	            new IUConverter(new ConverterSignature("ipaaca-remotepushiu", RemotePushIU.class)));
-	    DefaultConverterRepository.getDefaultConverterRepository().addConverter(
-                new IUConverter(new ConverterSignature("ipaaca-localiu", LocalIU.class)));
+	            new IUConverter(new ConverterSignature("ipaaca-iu", RemotePushIU.class)));
+	    //DefaultConverterRepository.getDefaultConverterRepository().addConverter(
+        //        new IUConverter(new ConverterSignature("ipaaca-localiu", LocalIU.class)));
 	    	    
 	}
 }

@@ -70,7 +70,7 @@ public class IUConverter implements Converter<ByteBuffer>
                 .addAllPayload(payloadItems)
                 .addAllLinks(links)
                 .build();
-        return new WireContents<ByteBuffer>(ByteBuffer.wrap(iu.toByteArray()),"ipaaca-remotepushiu");        
+        return new WireContents<ByteBuffer>(ByteBuffer.wrap(iu.toByteArray()),"ipaaca-iu");        
     }
 
     @Override
