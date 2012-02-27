@@ -37,8 +37,7 @@ class IpaacaPayloadTestCase(unittest.TestCase):
 		self.ob.add(self.sensor_iu)
 		
 	def testPayloadContent(self):
-		time.sleep(0.1)ipaac		
-nimp[
+		time.sleep(0.1)
 		iu_received = self.ib.iu_store.get(self.sensor_iu.uid)
 		self.assertEqual(iu_received.payload["data"], 'sensordata')
 

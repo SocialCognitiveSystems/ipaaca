@@ -2,8 +2,6 @@ package ipaaca;
 
 import static org.junit.Assert.assertEquals;
 
-import ipaaca.Ipaaca.IU;
-
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -12,7 +10,6 @@ import java.io.InputStreamReader;
 import java.util.Set;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.google.common.collect.ImmutableSet;
