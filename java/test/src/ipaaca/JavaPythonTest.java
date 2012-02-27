@@ -71,8 +71,8 @@ public class JavaPythonTest {
 		
 		String pypr = 
 		"import sys\n" +
-		"sys.path.append('../python/build/')\n" +
-		"sys.path.append('../python/lib/')\n" +
+		"sys.path.insert(0, '../python/build/')\n" +
+		"sys.path.insert(0, '../python/lib/')\n" +
 		"import ipaaca, time\n" +
 		"ob = ipaaca.OutputBuffer('pythonside')\n" + 
 		"iu = ipaaca.IU('JavaPythonTest')\n" +
