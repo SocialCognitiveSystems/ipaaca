@@ -1,5 +1,5 @@
 <ivy-module version="2.0">
-   <info organisation="HMI" module="HmiAnimationDemoTest"/>
+   <info organisation="ipaaca" module="IpaacaTest"/>
    <dependencies >
       <dependency org="junit" name="junit"  rev="latest.release" />
       <dependency org="hamcrest" name="hamcrest-all"       rev="latest.release"  />
