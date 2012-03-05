@@ -1,5 +1,4 @@
 package ipaaca;
-import static org.junit.Assert.*;
 import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;

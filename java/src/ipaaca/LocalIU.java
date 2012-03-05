@@ -74,7 +74,10 @@ public class LocalIU extends AbstractIU
             {
                 increaseRevisionNumber();
                 committed = true;
-                outputBuffer.sendIUCommission(this, writerName);
+                if(outputBuffer!=null)
+                {    
+                    outputBuffer.sendIUCommission(this, writerName);                
+                }
             }
         }
     }

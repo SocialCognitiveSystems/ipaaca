@@ -1,10 +1,12 @@
 <ivy-module version="2.0">
-   <info organisation="Herwin" module="scrapbook"/>
+   <info organisation="ipaaca" module="ipaaca"/>
    <configurations>
       <include file="${ivy.settings.dir}/configurations.xml"/>
    </configurations>
    <dependencies>
       <dependency org="slf4j"   name="slf4j-api"              rev="latest.release"  />
       <dependency org="google"  name="guava"                  rev="latest.release"  />
+      <dependency org="google"  name="protobuf-java"                  rev="latest.release"  />
+      <dependency org="rsb"  name="rsb"                  rev="latest.release"  />
    </dependencies>
 </ivy-module>

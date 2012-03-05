@@ -320,6 +320,7 @@ class IU(IUInterface):#{{{
 			raise IUCommittedError(self)
 		with self.revision_lock:
 			# set item locally
+			# FIXME: Is it actually set locally?
 			self._increase_revision_number()
 			if self.is_published:
 				# send update to remote holders
@@ -341,7 +342,8 @@ class IU(IUInterface):#{{{
 			if not self._committed:
 				self._increase_revision_number()
 				self._committed = True
-				self.buffer._send_iu_commission(self, writer_name=writer_name)
+				if self.buffer is not None:
+					self.buffer._send_iu_commission(self, writer_name=writer_name)
 	
 	def commit(self):
 		"""Commit to this IU."""

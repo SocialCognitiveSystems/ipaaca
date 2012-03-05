@@ -27,14 +27,15 @@ public final class Initializer {
 	    DefaultConverterRepository.getDefaultConverterRepository().addConverter(new IntConverter());
 	    DefaultConverterRepository.getDefaultConverterRepository()
 		  .addConverter(new ProtocolBufferConverter<IUCommission>(IUCommission.getDefaultInstance()));
-	    DefaultConverterRepository.getDefaultConverterRepository()
-            .addConverter(new ProtocolBufferConverter<IUPayloadUpdate>(IUPayloadUpdate.getDefaultInstance()));
-	    DefaultConverterRepository.getDefaultConverterRepository()
-            .addConverter(new ProtocolBufferConverter<IULinkUpdate>(IULinkUpdate.getDefaultInstance()));
+	    
 	    DefaultConverterRepository.getDefaultConverterRepository().addConverter(
-	            new IUConverter(new ConverterSignature("ipaaca-remotepushiu", RemotePushIU.class)));
+	            new IUConverter(new ConverterSignature("ipaaca-iu", RemotePushIU.class)));
 	    DefaultConverterRepository.getDefaultConverterRepository().addConverter(
                 new IUConverter(new ConverterSignature("ipaaca-localiu", LocalIU.class)));
+	    DefaultConverterRepository.getDefaultConverterRepository().addConverter(
+                new PayloadConverter());
+	    DefaultConverterRepository.getDefaultConverterRepository().addConverter(
+                new LinkUpdateConverter());
 	    	    
 	}
 }

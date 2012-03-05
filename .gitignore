@@ -6,6 +6,7 @@ java/dist
 java/privateprops
 java/.project
 java/.classpath
+*.pyc
 .project
 .classpath
 **/.*.swp
