@@ -109,8 +109,7 @@ public class ComponentCommunicationIntegrationTest
         localIU = new LocalIU();
         localIU.setCategory(CATEGORY);
         localIU.getPayload().put("key1", "item1");
-        localIU.addLinks("INIT", ImmutableSet.of("init1","init2"));
-        outBuffer.add(localIU);
+        localIU.addLinks("INIT", ImmutableSet.of("init1","init2"));        
     }
     
     @After
@@ -123,6 +122,7 @@ public class ComponentCommunicationIntegrationTest
     @Test
     public void testAddedIU() throws InterruptedException
     {
+        outBuffer.add(localIU);
         Thread.sleep(200);        
         AbstractIU iuIn = inBuffer.getIU(localIU.getUid());
         assertNotNull(iuIn);
@@ -130,11 +130,12 @@ public class ComponentCommunicationIntegrationTest
         assertThat(localIU.getLinks("INIT"),containsInAnyOrder("init1","init2"));
         assertEquals(1,component2EventHandler.getNumberOfAddEvents(iuIn.getUid()));
         assertEquals(0,component1EventHandler.getNumberOfAddEvents(localIU.getUid()));
-    }
+    }    
     
     @Test
     public void testIUCommit() throws InterruptedException
     {
+        outBuffer.add(localIU);
         localIU.commit();
         Thread.sleep(200);
         AbstractIU iuIn = inBuffer.getIU(localIU.getUid());
@@ -144,8 +145,21 @@ public class ComponentCommunicationIntegrationTest
     }
     
     @Test
+    public void testIUCommitBeforePublish() throws InterruptedException
+    {
+        localIU.commit();
+        outBuffer.add(localIU);        
+        Thread.sleep(200);
+        AbstractIU iuIn = inBuffer.getIU(localIU.getUid());
+        assertTrue(iuIn.isCommitted());
+        assertEquals(0,component1EventHandler.getNumberOfCommitEvents(localIU.getUid()));
+        assertEquals(0,component2EventHandler.getNumberOfCommitEvents(iuIn.getUid()));        
+    }
+    
+    @Test
     public void testIUCommitFromInputBuffer() throws InterruptedException
     {
+        outBuffer.add(localIU);
         Thread.sleep(200);
         AbstractIU iuIn = inBuffer.getIU(localIU.getUid());
         
@@ -160,6 +174,7 @@ public class ComponentCommunicationIntegrationTest
     @Test
     public void testIUUpdate() throws InterruptedException
     {
+        outBuffer.add(localIU);
         Thread.sleep(200);        
         AbstractIU iuIn = inBuffer.getIU(localIU.getUid());
         assertNull(iuIn.getPayload().get("key2"));
@@ -174,6 +189,7 @@ public class ComponentCommunicationIntegrationTest
     @Test
     public void testSetPayload() throws InterruptedException
     {
+        outBuffer.add(localIU);
         Thread.sleep(200);        
         AbstractIU iuIn = inBuffer.getIU(localIU.getUid());
         
@@ -191,6 +207,7 @@ public class ComponentCommunicationIntegrationTest
     @Test
     public void testSetPayloadRemote() throws InterruptedException
     {
+        outBuffer.add(localIU);
         Thread.sleep(200);        
         AbstractIU iuIn = inBuffer.getIU(localIU.getUid());
         
@@ -208,6 +225,7 @@ public class ComponentCommunicationIntegrationTest
     @Test
     public void testIUUpdateFromInputBuffer() throws InterruptedException
     {
+        outBuffer.add(localIU);
         Thread.sleep(200);        
         AbstractIU iuIn = inBuffer.getIU(localIU.getUid());
         
@@ -222,6 +240,7 @@ public class ComponentCommunicationIntegrationTest
     @Test
     public void testIUpdateRemove() throws InterruptedException
     {   
+        outBuffer.add(localIU);
         Thread.sleep(200);    
         AbstractIU iuIn = inBuffer.getIU(localIU.getUid());
         assertEquals("item1",iuIn.getPayload().get("key1"));
@@ -236,6 +255,7 @@ public class ComponentCommunicationIntegrationTest
     @Test
     public void testIUpdateRemoveFromInputBuffer() throws InterruptedException
     {   
+        outBuffer.add(localIU);
         Thread.sleep(200);    
         AbstractIU iuIn = inBuffer.getIU(localIU.getUid());
         assertEquals("item1",iuIn.getPayload().get("key1"));
@@ -250,6 +270,7 @@ public class ComponentCommunicationIntegrationTest
     @Test
     public void testSetLinksLocal() throws InterruptedException
     {
+        outBuffer.add(localIU);
         Thread.sleep(200);
         AbstractIU iuIn = inBuffer.getIU(localIU.getUid());
         localIU.setLinks("SAME_LEVEL",ImmutableSet.of("iu5","iu6"));        
@@ -261,6 +282,7 @@ public class ComponentCommunicationIntegrationTest
     @Test
     public void testSetLinksRemote() throws InterruptedException
     {
+        outBuffer.add(localIU);
         Thread.sleep(200);
         AbstractIU iuIn = inBuffer.getIU(localIU.getUid());
         iuIn.setLinks("SAME_LEVEL",ImmutableSet.of("iu5","iu6"));        
@@ -272,6 +294,7 @@ public class ComponentCommunicationIntegrationTest
     @Test
     public void testSetLinksRemoteOverwrite() throws InterruptedException
     {
+        outBuffer.add(localIU);
         Thread.sleep(200);
         AbstractIU iuIn = inBuffer.getIU(localIU.getUid());
         localIU.setLinks("SAME_LEVEL",ImmutableSet.of("iu5","iu6"));        
@@ -288,6 +311,7 @@ public class ComponentCommunicationIntegrationTest
     @Test
     public void testAddLinksLocal() throws InterruptedException
     {
+        outBuffer.add(localIU);
         Thread.sleep(200);
         AbstractIU iuIn = inBuffer.getIU(localIU.getUid());
         localIU.setLinks("SAME_LEVEL",ImmutableSet.of("iu4"));
@@ -300,6 +324,7 @@ public class ComponentCommunicationIntegrationTest
     @Test
     public void testAddLinksRemote() throws InterruptedException
     {
+        outBuffer.add(localIU);
         Thread.sleep(200);
         AbstractIU iuIn = inBuffer.getIU(localIU.getUid());
         iuIn.addLinks("SAME_LEVEL",ImmutableSet.of("iu5","iu6"));        
@@ -311,6 +336,7 @@ public class ComponentCommunicationIntegrationTest
     @Test
     public void testRemoveLinksLocal() throws InterruptedException
     {
+        outBuffer.add(localIU);
         Thread.sleep(200);   
         AbstractIU iuIn = inBuffer.getIU(localIU.getUid());
         localIU.setLinks("SAME_LEVEL",ImmutableSet.of("iu5","iu6","iu7"));
@@ -323,6 +349,7 @@ public class ComponentCommunicationIntegrationTest
     @Test
     public void testRemoveLinksRemote() throws InterruptedException
     {
+        outBuffer.add(localIU);
         Thread.sleep(200);   
         AbstractIU iuIn = inBuffer.getIU(localIU.getUid());
         iuIn.setLinks("SAME_LEVEL",ImmutableSet.of("iu5","iu6","iu7"));
@@ -331,4 +358,6 @@ public class ComponentCommunicationIntegrationTest
         assertThat(localIU.getLinks("SAME_LEVEL"),containsInAnyOrder("iu7"));
         assertThat(iuIn.getLinks("SAME_LEVEL"),containsInAnyOrder("iu7"));
     }
+    
+    
 }

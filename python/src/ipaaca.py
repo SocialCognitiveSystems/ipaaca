@@ -342,7 +342,8 @@ class IU(IUInterface):#{{{
 			if not self._committed:
 				self._increase_revision_number()
 				self._committed = True
-				self.buffer._send_iu_commission(self, writer_name=writer_name)
+				if self.buffer is not None:
+					self.buffer._send_iu_commission(self, writer_name=writer_name)
 	
 	def commit(self):
 		"""Commit to this IU."""
