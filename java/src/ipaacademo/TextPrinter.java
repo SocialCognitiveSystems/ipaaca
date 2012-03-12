@@ -1,13 +1,13 @@
 package ipaacademo;
 
+import java.util.EnumSet;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.Set;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 
-import ipaaca.AbstractIU;
-import ipaaca.Initializer;
-import ipaaca.InputBuffer;
-import ipaaca.LocalIU;
-import ipaaca.OutputBuffer;
-import ipaaca.RemotePushIU;
+import ipaaca.*;
 
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -16,6 +16,23 @@ import com.google.common.collect.ImmutableSet;
 
 public class TextPrinter
 {
+    
+    private static final class MyEventHandler implements HandlerFunctor
+    {
+        @Override
+        public void handle(AbstractIU iu, IUEventType type, boolean local)
+        {
+            switch(type)
+            {
+            case ADDED:  System.out.println("IU added "+iu.getPayload());  break;
+            case COMMITTED: System.out.println("IU committed");  break;
+            case UPDATED: System.out.println("IU updated "+iu.getPayload()); break;
+            case LINKSUPDATED: System.out.println("IU links updated"); break;
+            }            
+        }
+        
+    }
+    
     static
     {
         Initializer.initializeIpaacaRsb();
@@ -53,16 +70,25 @@ public class TextPrinter
         {
             this.inBuffer = inBuffer;
             this.label = label;
+        
+            EnumSet<IUEventType> types = EnumSet.of(IUEventType.ADDED,IUEventType.COMMITTED,IUEventType.UPDATED,IUEventType.LINKSUPDATED);
+            Set<String> categories = new ImmutableSet.Builder<String>().add(CATEGORY).build();
+            MyEventHandler printingEventHandler;    
+            printingEventHandler = new MyEventHandler();
+            this.inBuffer.registerHandler(new IUEventHandler(printingEventHandler,types,categories));
         }
         
         @Override
         public void run()
         {
             long startTime = System.currentTimeMillis();
+            long nextTime = System.currentTimeMillis();
+            //long lastNewLetterTime = System.currentTimeMillis();
             while(true)
             {
-                double duration = (System.currentTimeMillis()-startTime)/1000d;
-                
+                //double duration = (System.currentTimeMillis()-startTime)/1000d;
+                long currentTime = System.currentTimeMillis();
+
                 RemotePushIU iuFirst = null;
                 for (RemotePushIU iu : inBuffer.getIUs())
                 {
@@ -72,26 +98,64 @@ public class TextPrinter
                         break;
                     }
                 }
-                
-                int numChars = (int)(duration/RATE);
-                
-                AbstractIU iu = iuFirst;
-                String str = "";
-                for(int i=0;i<numChars;i++)
-                {
-                    str += iu.getPayload().get("CONTENT");
-                    Set<String> successor = iu.getLinks("SUCCESSOR");
-                    if(successor!=null && !successor.isEmpty())
-                    {
-                        iu = inBuffer.getIU(successor.iterator().next());
-                    }
-                    else
-                    {
-                        break;
-                    }
+                if (iuFirst==null) {
+                    startTime = System.currentTimeMillis();
+                    continue;
                 }
-                label.setText(str);
-                
+                //int numChars = (int)(duration/RATE);
+
+                if (currentTime >= nextTime) {
+                    AbstractIU iu = iuFirst;
+                    String str = "";
+                    int i = 0;
+                    boolean first_new_element = true;
+                    do {
+                        if (iu.getPayload().get("STATE") != null || first_new_element) {
+                            str += "<font color=\"#000000\">";
+                            str += iu.getPayload().get("CONTENT");
+                            str += "</font>";
+                            if (iu.getPayload().get("STATE") == null) {
+                                iu.getPayload().put("STATE", "REALIZED");
+                                first_new_element = false;
+                                nextTime = currentTime + (int)(1000.0*RATE);
+                            }
+                        } else {
+                            str += "<font color=\"#909090\">";
+                            str += iu.getPayload().get("CONTENT");
+                            str += "</font>";
+                            //lastNewLetterTime = System.currentTimeMillis();
+                        }
+                        Set<String> successor = iu.getLinks("SUCCESSOR");
+                        if(successor!=null && !successor.isEmpty())
+                        {
+                            iu = inBuffer.getIU(successor.iterator().next());
+                        }
+                        i++;
+                    } while(! iu.getLinks("SUCCESSOR").isEmpty());
+                    if (iu.getPayload().get("STATE") != null || first_new_element) {
+                    //if (i<numChars) {
+                        str += "<font color=\"#000000\">";
+                        str += iu.getPayload().get("CONTENT");
+                        str += "</font>";
+                        if (iu.getPayload().get("STATE") == null) {
+                            iu.getPayload().put("STATE", "REALIZED");
+                            first_new_element = false;
+                            nextTime = currentTime + (int)(RATE*1000.0);
+                        }
+                    } else {
+                        str += "<font color=\"#909090\">";
+                        str += iu.getPayload().get("CONTENT");
+                        str += "</font>";
+                        //lastNewLetterTime = System.currentTimeMillis();
+                    }
+
+                    str = "<html>"+str+"</html>";
+                    //System.out.println(str);
+                    label.setText(str);
+                } else {
+                    // just wait until we can print some more
+                }
+
                 try
                 {
                     Thread.sleep(200);
@@ -111,7 +175,7 @@ public class TextPrinter
         
         
         OutputBuffer outBuffer = new OutputBuffer("componentX");
-        String[] inputString = {"h","e","l","l","o"," ","w","o","r","l","d","!"};
+        /*String[] inputString = {"h","e","l","l","o"," ","w","o","r","l","d","!"};
         LocalIU predIU = null;        
         for(String str:inputString)
         {
@@ -125,7 +189,8 @@ public class TextPrinter
                 predIU.setLinks("SUCCESSOR",ImmutableSet.of(localIU.getUid()));
             }
             predIU = localIU;
-        }
+        }*/
+
         tp.start();        
     }
 }
