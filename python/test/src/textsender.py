@@ -46,7 +46,9 @@ class TextSender(object):
 
 	
 	def inbuffer_handle_iu_event(self, iu, event_type, local):
-		if event_type == "ADDED": # and iu.category == RECV_CATEGORY:
+		if event_type == "LINKSUPDATED":
+			print "links updated"
+		elif event_type == "ADDED": # and iu.category == RECV_CATEGORY:
 			print("Received new word: "+iu.payload['WORD'])
 			sender.publish_text_to_print(iu.payload['WORD'], parent_iu_uid=iu.uid)
 		elif event_type == "RETRACTED":

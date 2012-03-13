@@ -24,7 +24,7 @@ public class TextPrinter
         {
             switch(type)
             {
-            case ADDED:  System.out.println("IU added "+iu.getPayload());  break;
+            case ADDED:  System.out.println("IU added "+iu.getPayload().get("CONTENT"));  break;
             case COMMITTED: System.out.println("IU committed");  break;
             case UPDATED: System.out.println("IU updated "+iu.getPayload()); break;
             case LINKSUPDATED: System.out.println("IU links updated"); break;
@@ -103,21 +103,22 @@ public class TextPrinter
                     continue;
                 }
                 //int numChars = (int)(duration/RATE);
-
+                boolean first_new_element = true;
                 if (currentTime >= nextTime) {
                     AbstractIU iu = iuFirst;
                     String str = "";
-                    int i = 0;
-                    boolean first_new_element = true;
                     do {
-                        if (iu.getPayload().get("STATE") != null || first_new_element) {
+                        //System.out.println(iu.getPayload().get("CONTENT"));
+                        String st = iu.getPayload().get("STATE");
+                        System.out.println("State "+st);
+                        if ((st != null) || first_new_element) {
                             str += "<font color=\"#000000\">";
                             str += iu.getPayload().get("CONTENT");
                             str += "</font>";
-                            if (iu.getPayload().get("STATE") == null) {
+                            if (st == null) {
+                                System.out.println("Setting state to REALIZED");
                                 iu.getPayload().put("STATE", "REALIZED");
                                 first_new_element = false;
-                                nextTime = currentTime + (int)(1000.0*RATE);
                             }
                         } else {
                             str += "<font color=\"#909090\">";
@@ -129,18 +130,23 @@ public class TextPrinter
                         if(successor!=null && !successor.isEmpty())
                         {
                             iu = inBuffer.getIU(successor.iterator().next());
+                        } else {
                         }
-                        i++;
                     } while(! iu.getLinks("SUCCESSOR").isEmpty());
-                    if (iu.getPayload().get("STATE") != null || first_new_element) {
-                    //if (i<numChars) {
+                    String st = iu.getPayload().get("STATE");
+                    System.out.println("State "+st);
+                    if ((st != null) || first_new_element) {
                         str += "<font color=\"#000000\">";
                         str += iu.getPayload().get("CONTENT");
                         str += "</font>";
-                        if (iu.getPayload().get("STATE") == null) {
+                        //if (iu.getPayload().get("STATE") == null) {
+                        //    iu.getPayload().put("STATE", "REALIZED");
+                        //    new_elements = true;
+                        //}
+                        if (st == null) {
+                            System.out.println("Setting state to REALIZED");
                             iu.getPayload().put("STATE", "REALIZED");
                             first_new_element = false;
-                            nextTime = currentTime + (int)(RATE*1000.0);
                         }
                     } else {
                         str += "<font color=\"#909090\">";
@@ -148,12 +154,17 @@ public class TextPrinter
                         str += "</font>";
                         //lastNewLetterTime = System.currentTimeMillis();
                     }
+                    if (! first_new_element) {
+                        nextTime = currentTime + (int)(RATE*1000.0);
+                        System.out.println("New target time: "+nextTime+" (current "+currentTime+")");
+                    }
 
                     str = "<html>"+str+"</html>";
                     //System.out.println(str);
                     label.setText(str);
                 } else {
                     // just wait until we can print some more
+                    System.out.println("wait");
                 }
 
                 try

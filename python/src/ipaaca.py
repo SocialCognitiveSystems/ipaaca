@@ -15,6 +15,8 @@ import rsb.converter
 
 import ipaaca_pb2
 
+OMIT_REVISION_CHECKS = True
+
 # IDEAS
 #  We should think about relaying the update event (or at least the
 #  affected keys in the payload / links) to the event handlers!
@@ -964,7 +966,7 @@ class OutputBuffer(Buffer):
 			return 0
 		iu = self._iu_store[update.uid]
 		with iu.revision_lock:
-			if (update.revision != 0) and (update.revision != iu.revision):
+			if not OMIT_REVISION_CHECKS and (update.revision != 0) and (update.revision != iu.revision):
 				# (0 means "do not pay attention to the revision number" -> "force update")
 				logger.warning("Remote write operation failed because request was out of date; IU "+str(update.uid))
 				return 0
@@ -982,7 +984,7 @@ class OutputBuffer(Buffer):
 			return 0
 		iu = self._iu_store[update.uid]
 		with iu.revision_lock:
-			if (update.revision != 0) and (update.revision != iu.revision):
+			if not OMIT_REVISION_CHECKS and (update.revision != 0) and (update.revision != iu.revision):
 				# (0 means "do not pay attention to the revision number" -> "force update")
 				logger.warning("Remote write operation failed because request was out of date; IU "+str(update.uid))
 				return 0
@@ -1004,7 +1006,7 @@ class OutputBuffer(Buffer):
 			return 0
 		iu = self._iu_store[iu_commission.uid]
 		with iu.revision_lock:
-			if (iu_commission.revision != 0) and (iu_commission.revision != iu.revision):
+			if not OMIT_REVISION_CHECKS and (iu_commission.revision != 0) and (iu_commission.revision != iu.revision):
 				# (0 means "do not pay attention to the revision number" -> "force update")
 				logger.warning("Remote write operation failed because request was out of date; IU "+str(iu_commission.uid))
 				return 0
