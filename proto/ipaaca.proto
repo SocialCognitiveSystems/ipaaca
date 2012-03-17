@@ -1,5 +1,5 @@
 
-package ipaaca;
+package ipaaca.protobuf;
 
 message IntMessage {
 	required sint32 value = 1;
