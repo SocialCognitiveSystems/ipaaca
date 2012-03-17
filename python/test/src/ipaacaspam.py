@@ -6,6 +6,43 @@ import unittest
 
 import ipaaca
 
+class Ponger(object):
+	def __init__(self):
+		self.count = 0
+		self.last_time = 0
+		self.ib = ipaaca.InputBuffer('PingIn', ['ping'])
+		self.ib.register_handler(self.handle_iu_event)
+	
+	def handle_iu_event(self, iu, event_type, local):
+		if event_type=='UPDATED':
+			iu.payload['ack'] = 'ack'
+	
+	def run(self):
+		while True:
+			time.sleep(1)
+
+class Pinger(object):
+	def __init__(self):
+		self.ob = ipaaca.OutputBuffer('PingOut')
+		self.iu = ipaaca.IU('ping')
+		self.iu.payload = {'data':'0'}
+		self.ob.add(self.iu)
+		self.ob.register_handler(self.handle_iu_event)
+		self.counter = 0
+		self.last_time = time.time()
+	
+	def handle_iu_event(self, iu, event_type, local):
+		print "Round-trip time:", 1000.0*(time.time()-self.last_time),"msec"
+	
+	def run(self):
+		print "Sending a ping every second ..."
+		while True:
+			time.sleep(1.0)
+			self.counter += 1
+			self.last_time=time.time()
+			self.iu.payload['data'] = str(self.counter)
+			self.last_time=time.time()
+	
 class Receiver(object):
 	def __init__(self):
 		self.count = 0
@@ -51,11 +88,18 @@ class Sender(object):
 	
 if __name__ == '__main__':
 	if len(sys.argv)<2:
-		print "specify either 'sender' or 'receiver' as an argument"
-		print "   for the sender, you can additionally specify a delay (in 1/s)"
-		print "   between 1 and 10000 please (=> 1 sec ... 0.0001 sec) [default: 1000 => 0.001 sec]"
+		print "Stress test: specify either 'sender' or 'receiver' as an argument"
+		print "    for the sender, you can additionally specify a delay (in 1/s)"
+		print "    between 1 and 10000 please (=> 1 sec ... 0.0001 sec) [default: 1000 => 0.001 sec]"
+		print "Ping test: specify either 'ping' or 'pong' as an argument"
 		sys.exit(1)
-	if sys.argv[1] == 'receiver':
+	if sys.argv[1] == 'ping':
+		r = Pinger()
+		r.run()
+	elif sys.argv[1] == 'pong':
+		r = Ponger()
+		r.run()
+	elif sys.argv[1] == 'receiver':
 		r = Receiver()
 		r.run()
 	elif sys.argv[1] == 'sender':
@@ -70,7 +114,7 @@ if __name__ == '__main__':
 		s = Sender(send_frequency=freq)
 		s.run()
 	else:
-		print "specify either 'sender' or 'receiver' as an argument"
+		print "specify either 'sender', 'receiver', 'ping' or 'pong' as an argument"
 		sys.exit(1)
 
 
