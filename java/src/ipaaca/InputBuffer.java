@@ -1,8 +1,8 @@
 package ipaaca;
 
-import ipaaca.Ipaaca.IUCommission;
-import ipaaca.Ipaaca.IULinkUpdate;
-import ipaaca.Ipaaca.IUPayloadUpdate;
+import ipaaca.protobuf.Ipaaca.IUCommission;
+import ipaaca.protobuf.Ipaaca.IULinkUpdate;
+import ipaaca.protobuf.Ipaaca.IUPayloadUpdate;
 
 import java.util.Collection;
 import java.util.HashMap;

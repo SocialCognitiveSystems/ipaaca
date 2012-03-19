@@ -1,0 +1,337 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<BugCollection version="1.3.9" sequence="0" timestamp="1331224756097" analysisTimestamp="1331224757021" release="">
+  <Project projectName="">
+    <Jar>/homes/hvanwelbergen/git_pool/ipaaca/java/build</Jar>
+    <SrcDir>/homes/hvanwelbergen/git_pool/ipaaca/java/src</SrcDir>
+    <SrcDir>/homes/hvanwelbergen/git_pool/ipaaca/java/test/src</SrcDir>
+  </Project>
+  <BugInstance type="CN_IMPLEMENTS_CLONE_BUT_NOT_CLONEABLE" priority="1" abbrev="CN" category="BAD_PRACTICE">
+    <Class classname="ipaaca.Ipaaca$IU$Builder">
+      <SourceLine classname="ipaaca.Ipaaca$IU$Builder" start="1" end="3024" sourcefile="Ipaaca.java" sourcepath="ipaaca/Ipaaca.java"/>
+    </Class>
+    <Method classname="ipaaca.Ipaaca$IU$Builder" name="clone" signature="()Lcom/google/protobuf/GeneratedMessage$Builder;" isStatic="false">
+      <SourceLine classname="ipaaca.Ipaaca$IU$Builder" start="1" end="1" startBytecode="0" endBytecode="36" sourcefile="Ipaaca.java" sourcepath="ipaaca/Ipaaca.java"/>
+    </Method>
+  </BugInstance>
+  <BugInstance type="CN_IMPLEMENTS_CLONE_BUT_NOT_CLONEABLE" priority="1" abbrev="CN" category="BAD_PRACTICE">
+    <Class classname="ipaaca.Ipaaca$IUCommission$Builder">
+      <SourceLine classname="ipaaca.Ipaaca$IUCommission$Builder" start="1" end="5034" sourcefile="Ipaaca.java" sourcepath="ipaaca/Ipaaca.java"/>
+    </Class>
+    <Method classname="ipaaca.Ipaaca$IUCommission$Builder" name="clone" signature="()Lcom/google/protobuf/GeneratedMessage$Builder;" isStatic="false">
+      <SourceLine classname="ipaaca.Ipaaca$IUCommission$Builder" start="1" end="1" startBytecode="0" endBytecode="36" sourcefile="Ipaaca.java" sourcepath="ipaaca/Ipaaca.java"/>
+    </Method>
+  </BugInstance>
+  <BugInstance type="CN_IMPLEMENTS_CLONE_BUT_NOT_CLONEABLE" priority="1" abbrev="CN" category="BAD_PRACTICE">
+    <Class classname="ipaaca.Ipaaca$IULinkUpdate$Builder">
+      <SourceLine classname="ipaaca.Ipaaca$IULinkUpdate$Builder" start="1" end="6219" sourcefile="Ipaaca.java" sourcepath="ipaaca/Ipaaca.java"/>
+    </Class>
+    <Method classname="ipaaca.Ipaaca$IULinkUpdate$Builder" name="clone" signature="()Lcom/google/protobuf/GeneratedMessage$Builder;" isStatic="false">
+      <SourceLine classname="ipaaca.Ipaaca$IULinkUpdate$Builder" start="1" end="1" startBytecode="0" endBytecode="36" sourcefile="Ipaaca.java" sourcepath="ipaaca/Ipaaca.java"/>
+    </Method>
+  </BugInstance>
+  <BugInstance type="CN_IMPLEMENTS_CLONE_BUT_NOT_CLONEABLE" priority="1" abbrev="CN" category="BAD_PRACTICE">
+    <Class classname="ipaaca.Ipaaca$IUPayloadUpdate$Builder">
+      <SourceLine classname="ipaaca.Ipaaca$IUPayloadUpdate$Builder" start="1" end="4036" sourcefile="Ipaaca.java" sourcepath="ipaaca/Ipaaca.java"/>
+    </Class>
+    <Method classname="ipaaca.Ipaaca$IUPayloadUpdate$Builder" name="clone" signature="()Lcom/google/protobuf/GeneratedMessage$Builder;" isStatic="false">
+      <SourceLine classname="ipaaca.Ipaaca$IUPayloadUpdate$Builder" start="1" end="1" startBytecode="0" endBytecode="36" sourcefile="Ipaaca.java" sourcepath="ipaaca/Ipaaca.java"/>
+    </Method>
+  </BugInstance>
+  <BugInstance type="CN_IMPLEMENTS_CLONE_BUT_NOT_CLONEABLE" priority="1" abbrev="CN" category="BAD_PRACTICE">
+    <Class classname="ipaaca.Ipaaca$IURetraction$Builder">
+      <SourceLine classname="ipaaca.Ipaaca$IURetraction$Builder" start="1" end="4483" sourcefile="Ipaaca.java" sourcepath="ipaaca/Ipaaca.java"/>
+    </Class>
+    <Method classname="ipaaca.Ipaaca$IURetraction$Builder" name="clone" signature="()Lcom/google/protobuf/GeneratedMessage$Builder;" isStatic="false">
+      <SourceLine classname="ipaaca.Ipaaca$IURetraction$Builder" start="1" end="1" startBytecode="0" endBytecode="36" sourcefile="Ipaaca.java" sourcepath="ipaaca/Ipaaca.java"/>
+    </Method>
+  </BugInstance>
+  <BugInstance type="CN_IMPLEMENTS_CLONE_BUT_NOT_CLONEABLE" priority="1" abbrev="CN" category="BAD_PRACTICE">
+    <Class classname="ipaaca.Ipaaca$IntMessage$Builder">
+      <SourceLine classname="ipaaca.Ipaaca$IntMessage$Builder" start="1" end="343" sourcefile="Ipaaca.java" sourcepath="ipaaca/Ipaaca.java"/>
+    </Class>
+    <Method classname="ipaaca.Ipaaca$IntMessage$Builder" name="clone" signature="()Lcom/google/protobuf/GeneratedMessage$Builder;" isStatic="false">
+      <SourceLine classname="ipaaca.Ipaaca$IntMessage$Builder" start="1" end="1" startBytecode="0" endBytecode="36" sourcefile="Ipaaca.java" sourcepath="ipaaca/Ipaaca.java"/>
+    </Method>
+  </BugInstance>
+  <BugInstance type="CN_IMPLEMENTS_CLONE_BUT_NOT_CLONEABLE" priority="1" abbrev="CN" category="BAD_PRACTICE">
+    <Class classname="ipaaca.Ipaaca$LinkSet$Builder">
+      <SourceLine classname="ipaaca.Ipaaca$LinkSet$Builder" start="1" end="838" sourcefile="Ipaaca.java" sourcepath="ipaaca/Ipaaca.java"/>
+    </Class>
+    <Method classname="ipaaca.Ipaaca$LinkSet$Builder" name="clone" signature="()Lcom/google/protobuf/GeneratedMessage$Builder;" isStatic="false">
+      <SourceLine classname="ipaaca.Ipaaca$LinkSet$Builder" start="1" end="1" startBytecode="0" endBytecode="36" sourcefile="Ipaaca.java" sourcepath="ipaaca/Ipaaca.java"/>
+    </Method>
+  </BugInstance>
+  <BugInstance type="CN_IMPLEMENTS_CLONE_BUT_NOT_CLONEABLE" priority="1" abbrev="CN" category="BAD_PRACTICE">
+    <Class classname="ipaaca.Ipaaca$PayloadItem$Builder">
+      <SourceLine classname="ipaaca.Ipaaca$PayloadItem$Builder" start="1" end="1425" sourcefile="Ipaaca.java" sourcepath="ipaaca/Ipaaca.java"/>
+    </Class>
+    <Method classname="ipaaca.Ipaaca$PayloadItem$Builder" name="clone" signature="()Lcom/google/protobuf/GeneratedMessage$Builder;" isStatic="false">
+      <SourceLine classname="ipaaca.Ipaaca$PayloadItem$Builder" start="1" end="1" startBytecode="0" endBytecode="36" sourcefile="Ipaaca.java" sourcepath="ipaaca/Ipaaca.java"/>
+    </Method>
+  </BugInstance>
+  <BugInstance type="OS_OPEN_STREAM" priority="2" abbrev="OS" category="BAD_PRACTICE">
+    <Class classname="ipaaca.JavaPythonTest">
+      <SourceLine classname="ipaaca.JavaPythonTest" start="18" end="186" sourcefile="JavaPythonTest.java" sourcepath="ipaaca/JavaPythonTest.java"/>
+    </Class>
+    <Method classname="ipaaca.JavaPythonTest" name="printRuntimeErrors" signature="(Ljava/lang/Process;)V" isStatic="false">
+      <SourceLine classname="ipaaca.JavaPythonTest" start="43" end="75" startBytecode="0" endBytecode="72" sourcefile="JavaPythonTest.java" sourcepath="ipaaca/JavaPythonTest.java"/>
+    </Method>
+    <Type descriptor="Ljava/io/Reader;" role="TYPE_CLOSEIT">
+      <SourceLine classname="java.io.Reader" start="49" end="232" sourcefile="Reader.java" sourcepath="java/io/Reader.java"/>
+    </Type>
+    <SourceLine classname="ipaaca.JavaPythonTest" start="46" end="46" startBytecode="24" endBytecode="24" sourcefile="JavaPythonTest.java" sourcepath="ipaaca/JavaPythonTest.java"/>
+    <SourceLine classname="ipaaca.JavaPythonTest" start="69" end="69" startBytecode="126" endBytecode="126" sourcefile="JavaPythonTest.java" sourcepath="ipaaca/JavaPythonTest.java" role="SOURCE_LINE_ANOTHER_INSTANCE"/>
+  </BugInstance>
+  <BugInstance type="NP_NULL_PARAM_DEREF" priority="2" abbrev="NP" category="CORRECTNESS">
+    <Class classname="ipaaca.LocalIU">
+      <SourceLine classname="ipaaca.LocalIU" start="23" end="250" sourcefile="LocalIU.java" sourcepath="ipaaca/LocalIU.java"/>
+    </Class>
+    <Method classname="ipaaca.LocalIU" name="modifyLinks" signature="(ZLcom/google/common/collect/SetMultimap;Lcom/google/common/collect/SetMultimap;Ljava/lang/String;)V" isStatic="false">
+      <SourceLine classname="ipaaca.LocalIU" start="112" end="154" startBytecode="0" endBytecode="771" sourcefile="LocalIU.java" sourcepath="ipaaca/LocalIU.java"/>
+    </Method>
+    <Method classname="ipaaca.Ipaaca$IULinkUpdate$Builder" name="setWriterName" signature="(Ljava/lang/String;)Lipaaca/Ipaaca$IULinkUpdate$Builder;" isStatic="false" role="METHOD_CALLED">
+      <SourceLine classname="ipaaca.Ipaaca$IULinkUpdate$Builder" start="6201" end="6207" startBytecode="0" endBytecode="114" sourcefile="Ipaaca.java" sourcepath="ipaaca/Ipaaca.java"/>
+    </Method>
+    <Int value="1" role="INT_MAYBE_NULL_ARG"/>
+    <LocalVariable name="?" register="-1" pc="281" role="LOCAL_VARIABLE_UNKNOWN"/>
+    <SourceLine classname="ipaaca.LocalIU" start="147" end="147" startBytecode="281" endBytecode="281" sourcefile="LocalIU.java" sourcepath="ipaaca/LocalIU.java" role="SOURCE_LINE_INVOKED"/>
+    <SourceLine classname="ipaaca.LocalIU" start="132" end="132" startBytecode="71" endBytecode="71" sourcefile="LocalIU.java" sourcepath="ipaaca/LocalIU.java" role="SOURCE_LINE_KNOWN_NULL"/>
+    <Property name="edu.umd.cs.findbugs.detect.NullDerefProperty.LONG_RANGE_NULL_SOURCE" value="true"/>
+  </BugInstance>
+  <BugInstance type="SBSC_USE_STRINGBUFFER_CONCATENATION" priority="2" abbrev="SBSC" category="PERFORMANCE">
+    <Class classname="ipaacademo.TextPrinter$UpdateThread">
+      <SourceLine classname="ipaacademo.TextPrinter$UpdateThread" start="52" end="101" sourcefile="TextPrinter.java" sourcepath="ipaacademo/TextPrinter.java"/>
+    </Class>
+    <Method classname="ipaacademo.TextPrinter$UpdateThread" name="run" signature="()V" isStatic="false">
+      <SourceLine classname="ipaacademo.TextPrinter$UpdateThread" start="61" end="62" startBytecode="0" endBytecode="559" sourcefile="TextPrinter.java" sourcepath="ipaacademo/TextPrinter.java"/>
+    </Method>
+    <SourceLine classname="ipaacademo.TextPrinter$UpdateThread" start="82" end="82" startBytecode="101" endBytecode="101" sourcefile="TextPrinter.java" sourcepath="ipaacademo/TextPrinter.java"/>
+  </BugInstance>
+  <Errors errors="0" missingClasses="72">
+    <MissingClass>com.google.common.collect.HashMultimap</MissingClass>
+    <MissingClass>com.google.common.collect.ImmutableMap</MissingClass>
+    <MissingClass>com.google.common.collect.ImmutableSet</MissingClass>
+    <MissingClass>com.google.common.collect.ImmutableSet$Builder</MissingClass>
+    <MissingClass>com.google.common.collect.Multimap</MissingClass>
+    <MissingClass>com.google.common.collect.SetMultimap</MissingClass>
+    <MissingClass>com.google.protobuf.AbstractMessage</MissingClass>
+    <MissingClass>com.google.protobuf.AbstractMessage$Builder</MissingClass>
+    <MissingClass>com.google.protobuf.ByteString</MissingClass>
+    <MissingClass>com.google.protobuf.CodedInputStream</MissingClass>
+    <MissingClass>com.google.protobuf.CodedOutputStream</MissingClass>
+    <MissingClass>com.google.protobuf.Descriptors</MissingClass>
+    <MissingClass>com.google.protobuf.Descriptors$Descriptor</MissingClass>
+    <MissingClass>com.google.protobuf.Descriptors$EnumDescriptor</MissingClass>
+    <MissingClass>com.google.protobuf.Descriptors$EnumValueDescriptor</MissingClass>
+    <MissingClass>com.google.protobuf.Descriptors$FileDescriptor</MissingClass>
+    <MissingClass>com.google.protobuf.Descriptors$FileDescriptor$InternalDescriptorAssigner</MissingClass>
+    <MissingClass>com.google.protobuf.ExtensionRegistryLite</MissingClass>
+    <MissingClass>com.google.protobuf.GeneratedMessage</MissingClass>
+    <MissingClass>com.google.protobuf.GeneratedMessage$Builder</MissingClass>
+    <MissingClass>com.google.protobuf.GeneratedMessage$BuilderParent</MissingClass>
+    <MissingClass>com.google.protobuf.GeneratedMessage$FieldAccessorTable</MissingClass>
+    <MissingClass>com.google.protobuf.Internal</MissingClass>
+    <MissingClass>com.google.protobuf.Internal$EnumLite</MissingClass>
+    <MissingClass>com.google.protobuf.Internal$EnumLiteMap</MissingClass>
+    <MissingClass>com.google.protobuf.InvalidProtocolBufferException</MissingClass>
+    <MissingClass>com.google.protobuf.LazyStringArrayList</MissingClass>
+    <MissingClass>com.google.protobuf.LazyStringList</MissingClass>
+    <MissingClass>com.google.protobuf.Message</MissingClass>
+    <MissingClass>com.google.protobuf.Message$Builder</MissingClass>
+    <MissingClass>com.google.protobuf.MessageLite</MissingClass>
+    <MissingClass>com.google.protobuf.MessageLite$Builder</MissingClass>
+    <MissingClass>com.google.protobuf.MessageOrBuilder</MissingClass>
+    <MissingClass>com.google.protobuf.ProtocolMessageEnum</MissingClass>
+    <MissingClass>com.google.protobuf.RepeatedFieldBuilder</MissingClass>
+    <MissingClass>com.google.protobuf.UninitializedMessageException</MissingClass>
+    <MissingClass>com.google.protobuf.UnknownFieldSet</MissingClass>
+    <MissingClass>com.google.protobuf.UnknownFieldSet$Builder</MissingClass>
+    <MissingClass>com.google.protobuf.UnmodifiableLazyStringList</MissingClass>
+    <MissingClass>org.hamcrest.Matcher</MissingClass>
+    <MissingClass>org.hamcrest.MatcherAssert</MissingClass>
+    <MissingClass>org.hamcrest.Matchers</MissingClass>
+    <MissingClass>org.hamcrest.collection.IsIterableContainingInAnyOrder</MissingClass>
+    <MissingClass>org.junit.After</MissingClass>
+    <MissingClass>org.junit.Assert</MissingClass>
+    <MissingClass>org.junit.Before</MissingClass>
+    <MissingClass>org.junit.Test</MissingClass>
+    <MissingClass>org.mockito.Matchers</MissingClass>
+    <MissingClass>org.mockito.Mockito</MissingClass>
+    <MissingClass>org.mockito.stubbing.OngoingStubbing</MissingClass>
+    <MissingClass>org.mockito.verification.VerificationMode</MissingClass>
+    <MissingClass>org.slf4j.Logger</MissingClass>
+    <MissingClass>org.slf4j.LoggerFactory</MissingClass>
+    <MissingClass>rsb.Event</MissingClass>
+    <MissingClass>rsb.Factory</MissingClass>
+    <MissingClass>rsb.Handler</MissingClass>
+    <MissingClass>rsb.Informer</MissingClass>
+    <MissingClass>rsb.InitializeException</MissingClass>
+    <MissingClass>rsb.Listener</MissingClass>
+    <MissingClass>rsb.RSBException</MissingClass>
+    <MissingClass>rsb.Scope</MissingClass>
+    <MissingClass>rsb.converter.ConversionException</MissingClass>
+    <MissingClass>rsb.converter.Converter</MissingClass>
+    <MissingClass>rsb.converter.ConverterRepository</MissingClass>
+    <MissingClass>rsb.converter.ConverterSignature</MissingClass>
+    <MissingClass>rsb.converter.DefaultConverterRepository</MissingClass>
+    <MissingClass>rsb.converter.ProtocolBufferConverter</MissingClass>
+    <MissingClass>rsb.converter.UserData</MissingClass>
+    <MissingClass>rsb.converter.WireContents</MissingClass>
+    <MissingClass>rsb.patterns.DataCallback</MissingClass>
+    <MissingClass>rsb.patterns.LocalServer</MissingClass>
+    <MissingClass>rsb.patterns.RemoteServer</MissingClass>
+  </Errors>
+  <FindBugsSummary timestamp="Thu, 8 Mar 2012 17:39:16 +0100" total_classes="64" referenced_classes="159" total_bugs="11" total_size="6091" num_packages="2" vm_version="19.1-b02" cpu_seconds="25.20" clock_seconds="8.59" peak_mbytes="216.40" alloc_mbytes="455.12" gc_seconds="0.50" priority_2="3" priority_1="8">
+    <PackageStats package="ipaaca" total_bugs="10" total_types="61" total_size="6002" priority_2="2" priority_1="8">
+      <ClassStats class="ipaaca.AbstractIU" sourceFile="AbstractIU.java" interface="false" size="115" bugs="0"/>
+      <ClassStats class="ipaaca.Buffer" sourceFile="Buffer.java" interface="false" size="24" bugs="0"/>
+      <ClassStats class="ipaaca.ComponentCommunicationIntegrationTest" sourceFile="ComponentCommunicationIntegrationTest.java" interface="false" size="205" bugs="0"/>
+      <ClassStats class="ipaaca.ComponentCommunicationIntegrationTest$MyEventHandler" sourceFile="ComponentCommunicationIntegrationTest.java" interface="false" size="37" bugs="0"/>
+      <ClassStats class="ipaaca.HandlerFunctor" sourceFile="HandlerFunctor.java" interface="true" size="2" bugs="0"/>
+      <ClassStats class="ipaaca.IUAccessMode" sourceFile="IUAccessMode.java" interface="false" size="12" bugs="0"/>
+      <ClassStats class="ipaaca.IUCommittedException" sourceFile="IUCommittedException.java" interface="false" size="9" bugs="0"/>
+      <ClassStats class="ipaaca.IUConverter" sourceFile="IUConverter.java" interface="false" size="53" bugs="0"/>
+      <ClassStats class="ipaaca.IUEventHandler" sourceFile="IUEventHandler.java" interface="false" size="17" bugs="0"/>
+      <ClassStats class="ipaaca.IUEventType" sourceFile="IUEventType.java" interface="false" size="15" bugs="0"/>
+      <ClassStats class="ipaaca.IUPublishedException" sourceFile="IUPublishedException.java" interface="false" size="9" bugs="0"/>
+      <ClassStats class="ipaaca.IUReadOnlyException" sourceFile="IUReadOnlyException.java" interface="false" size="9" bugs="0"/>
+      <ClassStats class="ipaaca.IUStore" sourceFile="IUStore.java" interface="false" size="4" bugs="0"/>
+      <ClassStats class="ipaaca.IUTestUtil" sourceFile="IUTestUtil.java" interface="false" size="48" bugs="0"/>
+      <ClassStats class="ipaaca.IUUpdateFailedException" sourceFile="IUUpdateFailedException.java" interface="false" size="9" bugs="0"/>
+      <ClassStats class="ipaaca.Info" sourceFile="Info.java" interface="false" size="58" bugs="0"/>
+      <ClassStats class="ipaaca.Initializer" sourceFile="Initializer.java" interface="false" size="16" bugs="0"/>
+      <ClassStats class="ipaaca.InputBuffer" sourceFile="InputBuffer.java" interface="false" size="99" bugs="0"/>
+      <ClassStats class="ipaaca.InputBuffer$InputHandler" sourceFile="InputBuffer.java" interface="false" size="7" bugs="0"/>
+      <ClassStats class="ipaaca.InputBufferTest" sourceFile="InputBufferTest.java" interface="false" size="29" bugs="0"/>
+      <ClassStats class="ipaaca.IntConverter" sourceFile="IntConverter.java" interface="false" size="18" bugs="0"/>
+      <ClassStats class="ipaaca.Ipaaca" sourceFile="Ipaaca.java" interface="false" size="85" bugs="0"/>
+      <ClassStats class="ipaaca.Ipaaca$1" sourceFile="Ipaaca.java" interface="false" size="71" bugs="0"/>
+      <ClassStats class="ipaaca.Ipaaca$IU" sourceFile="Ipaaca.java" interface="false" size="349" bugs="0"/>
+      <ClassStats class="ipaaca.Ipaaca$IU$AccessMode" sourceFile="Ipaaca.java" interface="false" size="50" bugs="0"/>
+      <ClassStats class="ipaaca.Ipaaca$IU$AccessMode$1" sourceFile="Ipaaca.java" interface="false" size="7" bugs="0"/>
+      <ClassStats class="ipaaca.Ipaaca$IU$Builder" sourceFile="Ipaaca.java" interface="false" size="676" bugs="1" priority_1="1"/>
+      <ClassStats class="ipaaca.Ipaaca$IUCommission" sourceFile="Ipaaca.java" interface="false" size="182" bugs="0"/>
+      <ClassStats class="ipaaca.Ipaaca$IUCommission$Builder" sourceFile="Ipaaca.java" interface="false" size="202" bugs="1" priority_1="1"/>
+      <ClassStats class="ipaaca.Ipaaca$IUCommissionOrBuilder" sourceFile="Ipaaca.java" interface="true" size="7" bugs="0"/>
+      <ClassStats class="ipaaca.Ipaaca$IULinkUpdate" sourceFile="Ipaaca.java" interface="false" size="249" bugs="0"/>
+      <ClassStats class="ipaaca.Ipaaca$IULinkUpdate$Builder" sourceFile="Ipaaca.java" interface="false" size="535" bugs="1" priority_1="1"/>
+      <ClassStats class="ipaaca.Ipaaca$IULinkUpdateOrBuilder" sourceFile="Ipaaca.java" interface="true" size="19" bugs="0"/>
+      <ClassStats class="ipaaca.Ipaaca$IUOrBuilder" sourceFile="Ipaaca.java" interface="true" size="27" bugs="0"/>
+      <ClassStats class="ipaaca.Ipaaca$IUPayloadUpdate" sourceFile="Ipaaca.java" interface="false" size="244" bugs="0"/>
+      <ClassStats class="ipaaca.Ipaaca$IUPayloadUpdate$Builder" sourceFile="Ipaaca.java" interface="false" size="441" bugs="1" priority_1="1"/>
+      <ClassStats class="ipaaca.Ipaaca$IUPayloadUpdateOrBuilder" sourceFile="Ipaaca.java" interface="true" size="17" bugs="0"/>
+      <ClassStats class="ipaaca.Ipaaca$IURetraction" sourceFile="Ipaaca.java" interface="false" size="149" bugs="0"/>
+      <ClassStats class="ipaaca.Ipaaca$IURetraction$Builder" sourceFile="Ipaaca.java" interface="false" size="162" bugs="1" priority_1="1"/>
+      <ClassStats class="ipaaca.Ipaaca$IURetractionOrBuilder" sourceFile="Ipaaca.java" interface="true" size="5" bugs="0"/>
+      <ClassStats class="ipaaca.Ipaaca$IntMessage" sourceFile="Ipaaca.java" interface="false" size="116" bugs="0"/>
+      <ClassStats class="ipaaca.Ipaaca$IntMessage$Builder" sourceFile="Ipaaca.java" interface="false" size="122" bugs="1" priority_1="1"/>
+      <ClassStats class="ipaaca.Ipaaca$IntMessageOrBuilder" sourceFile="Ipaaca.java" interface="true" size="3" bugs="0"/>
+      <ClassStats class="ipaaca.Ipaaca$LinkSet" sourceFile="Ipaaca.java" interface="false" size="152" bugs="0"/>
+      <ClassStats class="ipaaca.Ipaaca$LinkSet$Builder" sourceFile="Ipaaca.java" interface="false" size="194" bugs="1" priority_1="1"/>
+      <ClassStats class="ipaaca.Ipaaca$LinkSetOrBuilder" sourceFile="Ipaaca.java" interface="true" size="6" bugs="0"/>
+      <ClassStats class="ipaaca.Ipaaca$PayloadItem" sourceFile="Ipaaca.java" interface="false" size="198" bugs="0"/>
+      <ClassStats class="ipaaca.Ipaaca$PayloadItem$Builder" sourceFile="Ipaaca.java" interface="false" size="215" bugs="1" priority_1="1"/>
+      <ClassStats class="ipaaca.Ipaaca$PayloadItemOrBuilder" sourceFile="Ipaaca.java" interface="true" size="7" bugs="0"/>
+      <ClassStats class="ipaaca.IuConverterTest" sourceFile="IuConverterTest.java" interface="false" size="69" bugs="0"/>
+      <ClassStats class="ipaaca.JavaPythonTest" sourceFile="JavaPythonTest.java" interface="false" size="81" bugs="1" priority_2="1"/>
+      <ClassStats class="ipaaca.LinkUpdateConverter" sourceFile="LinkUpdateConverter.java" interface="false" size="16" bugs="0"/>
+      <ClassStats class="ipaaca.LocalIU" sourceFile="LocalIU.java" interface="false" size="113" bugs="1" priority_2="1"/>
+      <ClassStats class="ipaaca.LocalIUTest" sourceFile="LocalIUTest.java" interface="false" size="29" bugs="0"/>
+      <ClassStats class="ipaaca.OutputBuffer" sourceFile="OutputBuffer.java" interface="false" size="140" bugs="0"/>
+      <ClassStats class="ipaaca.OutputBuffer$RemoteCommit" sourceFile="OutputBuffer.java" interface="false" size="10" bugs="0"/>
+      <ClassStats class="ipaaca.OutputBuffer$RemoteUpdateLinks" sourceFile="OutputBuffer.java" interface="false" size="10" bugs="0"/>
+      <ClassStats class="ipaaca.OutputBuffer$RemoteUpdatePayload" sourceFile="OutputBuffer.java" interface="false" size="10" bugs="0"/>
+      <ClassStats class="ipaaca.Payload" sourceFile="Payload.java" interface="false" size="79" bugs="0"/>
+      <ClassStats class="ipaaca.PayloadConverter" sourceFile="PayloadConverter.java" interface="false" size="16" bugs="0"/>
+      <ClassStats class="ipaaca.RemotePushIU" sourceFile="RemotePushIU.java" interface="false" size="144" bugs="0"/>
+    </PackageStats>
+    <PackageStats package="ipaacademo" total_bugs="1" total_types="3" total_size="89" priority_2="1">
+      <ClassStats class="ipaacademo.PythonCall" sourceFile="PythonCall.java" interface="false" size="23" bugs="0"/>
+      <ClassStats class="ipaacademo.TextPrinter" sourceFile="TextPrinter.java" interface="false" size="37" bugs="0"/>
+      <ClassStats class="ipaacademo.TextPrinter$UpdateThread" sourceFile="TextPrinter.java" interface="false" size="29" bugs="1" priority_2="1"/>
+    </PackageStats>
+    <FindBugsProfile>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.FindUncalledPrivateMethods" totalMilliseconds="11" invocations="64" avgMicrosecondsPerInvocation="175" maxMicrosecondsPerInvocation="1115" standardDeviationMircosecondsPerInvocation="219"/>
+      <ClassProfile name="edu.umd.cs.findbugs.classfile.engine.bcel.ConstantPoolGenFactory" totalMilliseconds="12" invocations="64" avgMicrosecondsPerInvocation="187" maxMicrosecondsPerInvocation="3262" standardDeviationMircosecondsPerInvocation="403"/>
+      <ClassProfile name="edu.umd.cs.findbugs.util.TopologicalSort" totalMilliseconds="12" invocations="65" avgMicrosecondsPerInvocation="190" maxMicrosecondsPerInvocation="2175" standardDeviationMircosecondsPerInvocation="315"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.SerializableIdiom" totalMilliseconds="12" invocations="64" avgMicrosecondsPerInvocation="193" maxMicrosecondsPerInvocation="1797" standardDeviationMircosecondsPerInvocation="249"/>
+      <ClassProfile name="edu.umd.cs.findbugs.classfile.engine.bcel.LoadedFieldSetFactory" totalMilliseconds="13" invocations="1268" avgMicrosecondsPerInvocation="10" maxMicrosecondsPerInvocation="431" standardDeviationMircosecondsPerInvocation="18"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.FindUnsatisfiedObligation" totalMilliseconds="13" invocations="64" avgMicrosecondsPerInvocation="211" maxMicrosecondsPerInvocation="2332" standardDeviationMircosecondsPerInvocation="428"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.FindSelfComparison2" totalMilliseconds="13" invocations="64" avgMicrosecondsPerInvocation="217" maxMicrosecondsPerInvocation="1786" standardDeviationMircosecondsPerInvocation="321"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.FindReturnRef" totalMilliseconds="15" invocations="64" avgMicrosecondsPerInvocation="247" maxMicrosecondsPerInvocation="1829" standardDeviationMircosecondsPerInvocation="350"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.AppendingToAnObjectOutputStream" totalMilliseconds="16" invocations="64" avgMicrosecondsPerInvocation="251" maxMicrosecondsPerInvocation="1707" standardDeviationMircosecondsPerInvocation="326"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.NumberConstructor" totalMilliseconds="16" invocations="64" avgMicrosecondsPerInvocation="252" maxMicrosecondsPerInvocation="1655" standardDeviationMircosecondsPerInvocation="317"/>
+      <ClassProfile name="edu.umd.cs.findbugs.NonReportingDetectorToDetector2Adapter" totalMilliseconds="16" invocations="2195" avgMicrosecondsPerInvocation="7" maxMicrosecondsPerInvocation="56" standardDeviationMircosecondsPerInvocation="2"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.FindFloatEquality" totalMilliseconds="16" invocations="64" avgMicrosecondsPerInvocation="256" maxMicrosecondsPerInvocation="1695" standardDeviationMircosecondsPerInvocation="322"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.FindFieldSelfAssignment" totalMilliseconds="16" invocations="64" avgMicrosecondsPerInvocation="259" maxMicrosecondsPerInvocation="1684" standardDeviationMircosecondsPerInvocation="330"/>
+      <ClassProfile name="edu.umd.cs.findbugs.classfile.engine.bcel.ReverseDepthFirstSearchFactory" totalMilliseconds="16" invocations="1123" avgMicrosecondsPerInvocation="14" maxMicrosecondsPerInvocation="536" standardDeviationMircosecondsPerInvocation="26"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.SynchronizingOnContentsOfFieldToProtectField" totalMilliseconds="17" invocations="64" avgMicrosecondsPerInvocation="269" maxMicrosecondsPerInvocation="1713" standardDeviationMircosecondsPerInvocation="341"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.BadResultSetAccess" totalMilliseconds="17" invocations="64" avgMicrosecondsPerInvocation="271" maxMicrosecondsPerInvocation="1683" standardDeviationMircosecondsPerInvocation="330"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.SynchronizationOnSharedBuiltinConstant" totalMilliseconds="17" invocations="64" avgMicrosecondsPerInvocation="275" maxMicrosecondsPerInvocation="1738" standardDeviationMircosecondsPerInvocation="336"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.FormatStringChecker" totalMilliseconds="17" invocations="64" avgMicrosecondsPerInvocation="278" maxMicrosecondsPerInvocation="1765" standardDeviationMircosecondsPerInvocation="355"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.ReadOfInstanceFieldInMethodInvokedByConstructorInSuperclass" totalMilliseconds="17" invocations="64" avgMicrosecondsPerInvocation="278" maxMicrosecondsPerInvocation="1929" standardDeviationMircosecondsPerInvocation="409"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.BadSyntaxForRegularExpression" totalMilliseconds="17" invocations="64" avgMicrosecondsPerInvocation="280" maxMicrosecondsPerInvocation="1826" standardDeviationMircosecondsPerInvocation="358"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.CrossSiteScripting" totalMilliseconds="18" invocations="64" avgMicrosecondsPerInvocation="284" maxMicrosecondsPerInvocation="1873" standardDeviationMircosecondsPerInvocation="361"/>
+      <ClassProfile name="edu.umd.cs.findbugs.classfile.engine.bcel.ObligationDataflowFactory" totalMilliseconds="18" invocations="447" avgMicrosecondsPerInvocation="41" maxMicrosecondsPerInvocation="3665" standardDeviationMircosecondsPerInvocation="173"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.FindBadForLoop" totalMilliseconds="18" invocations="64" avgMicrosecondsPerInvocation="293" maxMicrosecondsPerInvocation="1830" standardDeviationMircosecondsPerInvocation="371"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.DumbMethodInvocations" totalMilliseconds="18" invocations="64" avgMicrosecondsPerInvocation="294" maxMicrosecondsPerInvocation="2837" standardDeviationMircosecondsPerInvocation="500"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.InfiniteRecursiveLoop" totalMilliseconds="19" invocations="64" avgMicrosecondsPerInvocation="298" maxMicrosecondsPerInvocation="1836" standardDeviationMircosecondsPerInvocation="390"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.LostLoggerDueToWeakReference" totalMilliseconds="19" invocations="64" avgMicrosecondsPerInvocation="309" maxMicrosecondsPerInvocation="1930" standardDeviationMircosecondsPerInvocation="394"/>
+      <ClassProfile name="edu.umd.cs.findbugs.classfile.engine.bcel.DepthFirstSearchFactory" totalMilliseconds="20" invocations="1520" avgMicrosecondsPerInvocation="13" maxMicrosecondsPerInvocation="553" standardDeviationMircosecondsPerInvocation="23"/>
+      <ClassProfile name="edu.umd.cs.findbugs.DetectorToDetector2Adapter" totalMilliseconds="20" invocations="7135" avgMicrosecondsPerInvocation="2" maxMicrosecondsPerInvocation="64" standardDeviationMircosecondsPerInvocation="2"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.FindUnrelatedTypesInGenericContainer" totalMilliseconds="20" invocations="64" avgMicrosecondsPerInvocation="326" maxMicrosecondsPerInvocation="2813" standardDeviationMircosecondsPerInvocation="505"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.FindNonShortCircuit" totalMilliseconds="21" invocations="64" avgMicrosecondsPerInvocation="328" maxMicrosecondsPerInvocation="2172" standardDeviationMircosecondsPerInvocation="430"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.StreamResourceTracker" totalMilliseconds="21" invocations="21" avgMicrosecondsPerInvocation="1008" maxMicrosecondsPerInvocation="1622" standardDeviationMircosecondsPerInvocation="187"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.FindHEmismatch" totalMilliseconds="23" invocations="64" avgMicrosecondsPerInvocation="362" maxMicrosecondsPerInvocation="3891" standardDeviationMircosecondsPerInvocation="557"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.MethodReturnCheck" totalMilliseconds="23" invocations="64" avgMicrosecondsPerInvocation="368" maxMicrosecondsPerInvocation="2568" standardDeviationMircosecondsPerInvocation="482"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.InfiniteLoop" totalMilliseconds="23" invocations="64" avgMicrosecondsPerInvocation="371" maxMicrosecondsPerInvocation="2247" standardDeviationMircosecondsPerInvocation="481"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.RepeatedConditionals" totalMilliseconds="24" invocations="64" avgMicrosecondsPerInvocation="378" maxMicrosecondsPerInvocation="2526" standardDeviationMircosecondsPerInvocation="501"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.FindBadCast2" totalMilliseconds="25" invocations="64" avgMicrosecondsPerInvocation="393" maxMicrosecondsPerInvocation="2348" standardDeviationMircosecondsPerInvocation="542"/>
+      <ClassProfile name="edu.umd.cs.findbugs.classfile.impl.ZipCodeBaseFactory" totalMilliseconds="25" invocations="14" avgMicrosecondsPerInvocation="1806" maxMicrosecondsPerInvocation="23482" standardDeviationMircosecondsPerInvocation="6013"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.RuntimeExceptionCapture" totalMilliseconds="27" invocations="64" avgMicrosecondsPerInvocation="424" maxMicrosecondsPerInvocation="2570" standardDeviationMircosecondsPerInvocation="532"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.FindSelfComparison" totalMilliseconds="27" invocations="64" avgMicrosecondsPerInvocation="431" maxMicrosecondsPerInvocation="2891" standardDeviationMircosecondsPerInvocation="585"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.DuplicateBranches" totalMilliseconds="28" invocations="64" avgMicrosecondsPerInvocation="444" maxMicrosecondsPerInvocation="5597" standardDeviationMircosecondsPerInvocation="1014"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.FindSqlInjection" totalMilliseconds="28" invocations="64" avgMicrosecondsPerInvocation="444" maxMicrosecondsPerInvocation="3234" standardDeviationMircosecondsPerInvocation="600"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.FindPuzzlers" totalMilliseconds="32" invocations="64" avgMicrosecondsPerInvocation="503" maxMicrosecondsPerInvocation="3050" standardDeviationMircosecondsPerInvocation="647"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.FindDeadLocalStores" totalMilliseconds="35" invocations="64" avgMicrosecondsPerInvocation="551" maxMicrosecondsPerInvocation="3275" standardDeviationMircosecondsPerInvocation="698"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.FindNullDeref" totalMilliseconds="36" invocations="64" avgMicrosecondsPerInvocation="566" maxMicrosecondsPerInvocation="4243" standardDeviationMircosecondsPerInvocation="876"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.ReflectiveClasses" totalMilliseconds="36" invocations="159" avgMicrosecondsPerInvocation="229" maxMicrosecondsPerInvocation="5220" standardDeviationMircosecondsPerInvocation="583"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.UnreadFields" totalMilliseconds="43" invocations="64" avgMicrosecondsPerInvocation="676" maxMicrosecondsPerInvocation="4082" standardDeviationMircosecondsPerInvocation="868"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.DumbMethods" totalMilliseconds="47" invocations="64" avgMicrosecondsPerInvocation="734" maxMicrosecondsPerInvocation="4420" standardDeviationMircosecondsPerInvocation="944"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.FindNullDeref$CheckCallSitesAndReturnInstructions" totalMilliseconds="50" invocations="1065" avgMicrosecondsPerInvocation="46" maxMicrosecondsPerInvocation="1213" standardDeviationMircosecondsPerInvocation="84"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.FindRefComparison" totalMilliseconds="50" invocations="64" avgMicrosecondsPerInvocation="787" maxMicrosecondsPerInvocation="6427" standardDeviationMircosecondsPerInvocation="1137"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.SwitchFallthrough" totalMilliseconds="54" invocations="64" avgMicrosecondsPerInvocation="854" maxMicrosecondsPerInvocation="20855" standardDeviationMircosecondsPerInvocation="2625"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.NoteNonnullReturnValues" totalMilliseconds="55" invocations="64" avgMicrosecondsPerInvocation="870" maxMicrosecondsPerInvocation="5691" standardDeviationMircosecondsPerInvocation="1289"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.LoadOfKnownNullValue" totalMilliseconds="59" invocations="64" avgMicrosecondsPerInvocation="923" maxMicrosecondsPerInvocation="9619" standardDeviationMircosecondsPerInvocation="1598"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.EqualsOperandShouldHaveClassCompatibleWithThis" totalMilliseconds="64" invocations="159" avgMicrosecondsPerInvocation="407" maxMicrosecondsPerInvocation="3116" standardDeviationMircosecondsPerInvocation="582"/>
+      <ClassProfile name="edu.umd.cs.findbugs.classfile.engine.ClassDataAnalysisEngine" totalMilliseconds="65" invocations="821" avgMicrosecondsPerInvocation="79" maxMicrosecondsPerInvocation="679" standardDeviationMircosecondsPerInvocation="70"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.FindInconsistentSync2" totalMilliseconds="71" invocations="64" avgMicrosecondsPerInvocation="1109" maxMicrosecondsPerInvocation="10523" standardDeviationMircosecondsPerInvocation="1891"/>
+      <ClassProfile name="edu.umd.cs.findbugs.ba.npe.TypeQualifierNullnessAnnotationDatabase" totalMilliseconds="81" invocations="15796" avgMicrosecondsPerInvocation="5" maxMicrosecondsPerInvocation="2014" standardDeviationMircosecondsPerInvocation="20"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.CalledMethods" totalMilliseconds="82" invocations="159" avgMicrosecondsPerInvocation="521" maxMicrosecondsPerInvocation="7484" standardDeviationMircosecondsPerInvocation="1035"/>
+      <ClassProfile name="edu.umd.cs.findbugs.classfile.engine.bcel.JavaClassAnalysisEngine" totalMilliseconds="84" invocations="217" avgMicrosecondsPerInvocation="391" maxMicrosecondsPerInvocation="13488" standardDeviationMircosecondsPerInvocation="1185"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.BuildObligationPolicyDatabase" totalMilliseconds="87" invocations="159" avgMicrosecondsPerInvocation="549" maxMicrosecondsPerInvocation="7707" standardDeviationMircosecondsPerInvocation="891"/>
+      <ClassProfile name="edu.umd.cs.findbugs.classfile.engine.bcel.LiveLocalStoreDataflowFactory" totalMilliseconds="118" invocations="937" avgMicrosecondsPerInvocation="126" maxMicrosecondsPerInvocation="1817" standardDeviationMircosecondsPerInvocation="195"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.OverridingEqualsNotSymmetrical" totalMilliseconds="123" invocations="159" avgMicrosecondsPerInvocation="778" maxMicrosecondsPerInvocation="8332" standardDeviationMircosecondsPerInvocation="1247"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.FindOpenStream" totalMilliseconds="149" invocations="64" avgMicrosecondsPerInvocation="2330" maxMicrosecondsPerInvocation="20396" standardDeviationMircosecondsPerInvocation="4456"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.NoteDirectlyRelevantTypeQualifiers" totalMilliseconds="160" invocations="159" avgMicrosecondsPerInvocation="1010" maxMicrosecondsPerInvocation="15855" standardDeviationMircosecondsPerInvocation="2000"/>
+      <ClassProfile name="edu.umd.cs.findbugs.ba.obl.ObligationAnalysis" totalMilliseconds="164" invocations="447" avgMicrosecondsPerInvocation="369" maxMicrosecondsPerInvocation="6575" standardDeviationMircosecondsPerInvocation="639"/>
+      <ClassProfile name="edu.umd.cs.findbugs.classfile.engine.bcel.ConstantDataflowFactory" totalMilliseconds="185" invocations="1268" avgMicrosecondsPerInvocation="146" maxMicrosecondsPerInvocation="2776" standardDeviationMircosecondsPerInvocation="244"/>
+      <ClassProfile name="edu.umd.cs.findbugs.classfile.engine.bcel.MethodGenFactory" totalMilliseconds="189" invocations="1360" avgMicrosecondsPerInvocation="139" maxMicrosecondsPerInvocation="30907" standardDeviationMircosecondsPerInvocation="856"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.FindNullDerefsInvolvingNonShortCircuitEvaluation" totalMilliseconds="193" invocations="64" avgMicrosecondsPerInvocation="3028" maxMicrosecondsPerInvocation="178315" standardDeviationMircosecondsPerInvocation="22086"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.URLProblems" totalMilliseconds="224" invocations="64" avgMicrosecondsPerInvocation="3503" maxMicrosecondsPerInvocation="174969" standardDeviationMircosecondsPerInvocation="21632"/>
+      <ClassProfile name="edu.umd.cs.findbugs.classfile.engine.bcel.CFGFactory" totalMilliseconds="255" invocations="1268" avgMicrosecondsPerInvocation="201" maxMicrosecondsPerInvocation="9257" standardDeviationMircosecondsPerInvocation="369"/>
+      <ClassProfile name="edu.umd.cs.findbugs.classfile.engine.ClassInfoAnalysisEngine" totalMilliseconds="258" invocations="819" avgMicrosecondsPerInvocation="315" maxMicrosecondsPerInvocation="11229" standardDeviationMircosecondsPerInvocation="840"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.FieldItemSummary" totalMilliseconds="293" invocations="159" avgMicrosecondsPerInvocation="1844" maxMicrosecondsPerInvocation="23120" standardDeviationMircosecondsPerInvocation="3301"/>
+      <ClassProfile name="edu.umd.cs.findbugs.OpcodeStack$JumpInfoFactory" totalMilliseconds="324" invocations="4560" avgMicrosecondsPerInvocation="71" maxMicrosecondsPerInvocation="2589" standardDeviationMircosecondsPerInvocation="131"/>
+      <ClassProfile name="edu.umd.cs.findbugs.detect.FindRefComparison$SpecialTypeAnalysis" totalMilliseconds="345" invocations="916" avgMicrosecondsPerInvocation="377" maxMicrosecondsPerInvocation="6276" standardDeviationMircosecondsPerInvocation="568"/>
+      <ClassProfile name="edu.umd.cs.findbugs.classfile.engine.bcel.TypeDataflowFactory" totalMilliseconds="488" invocations="1271" avgMicrosecondsPerInvocation="384" maxMicrosecondsPerInvocation="16954" standardDeviationMircosecondsPerInvocation="759"/>
+      <ClassProfile name="edu.umd.cs.findbugs.ba.npe.NullDerefAndRedundantComparisonFinder" totalMilliseconds="496" invocations="1065" avgMicrosecondsPerInvocation="466" maxMicrosecondsPerInvocation="37192" standardDeviationMircosecondsPerInvocation="1442"/>
+      <ClassProfile name="edu.umd.cs.findbugs.classfile.engine.bcel.ValueNumberDataflowFactory" totalMilliseconds="562" invocations="1523" avgMicrosecondsPerInvocation="369" maxMicrosecondsPerInvocation="10377" standardDeviationMircosecondsPerInvocation="684"/>
+      <ClassProfile name="edu.umd.cs.findbugs.classfile.engine.bcel.IsNullValueDataflowFactory" totalMilliseconds="573" invocations="1268" avgMicrosecondsPerInvocation="452" maxMicrosecondsPerInvocation="10290" standardDeviationMircosecondsPerInvocation="809"/>
+      <ClassProfile name="edu.umd.cs.findbugs.classfile.engine.bcel.UnconditionalValueDerefDataflowFactory" totalMilliseconds="659" invocations="1123" avgMicrosecondsPerInvocation="586" maxMicrosecondsPerInvocation="40507" standardDeviationMircosecondsPerInvocation="1915"/>
+    </FindBugsProfile>
+  </FindBugsSummary>
+  <ClassFeatures></ClassFeatures>
+  <History></History>
+</BugCollection>

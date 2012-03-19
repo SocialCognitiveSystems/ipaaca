@@ -3,9 +3,9 @@ import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInA
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import ipaaca.Ipaaca.IU;
-import ipaaca.Ipaaca.LinkSet;
-import ipaaca.Ipaaca.PayloadItem;
+import ipaaca.protobuf.Ipaaca.IU;
+import ipaaca.protobuf.Ipaaca.LinkSet;
+import ipaaca.protobuf.Ipaaca.PayloadItem;
 
 import java.util.Collection;
 import java.util.List;

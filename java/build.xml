@@ -1,4 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="IpaacaJava"  default="run">
    <import file="../../soashared/ant/build.xml" />
+
+   <target name="-pre-compilation">
+     <echo message="Compiling protobuf file" />
+     <mkdir dir="generatedsrc"/>
+     <exec executable="protoc">
+        <arg value="--proto_path=../proto" />
+        <arg value="../proto/ipaaca.proto" />
+        <arg value="--java_out=generatedsrc/" />
+     </exec>
+   </target>
 </project>

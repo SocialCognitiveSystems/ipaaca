@@ -1,5 +1,12 @@
 package ipaaca;
 
+import ipaaca.protobuf.Ipaaca;
+import ipaaca.protobuf.Ipaaca.IUCommission;
+import ipaaca.protobuf.Ipaaca.IULinkUpdate;
+import ipaaca.protobuf.Ipaaca.IUPayloadUpdate;
+import ipaaca.protobuf.Ipaaca.LinkSet;
+import ipaaca.protobuf.Ipaaca.PayloadItem;
+
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -13,12 +20,6 @@ import com.google.common.collect.SetMultimap;
 
 import rsb.RSBException;
 import rsb.patterns.RemoteServer;
-import ipaaca.Ipaaca;
-import ipaaca.Ipaaca.IUCommission;
-import ipaaca.Ipaaca.IULinkUpdate;
-import ipaaca.Ipaaca.IUPayloadUpdate;
-import ipaaca.Ipaaca.LinkSet;
-import ipaaca.Ipaaca.PayloadItem;
 
 /**
  * A remote IU with access mode 'PUSH'.

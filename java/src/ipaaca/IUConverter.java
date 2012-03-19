@@ -1,4 +1,8 @@
 package ipaaca;
+import ipaaca.protobuf.Ipaaca.IU;
+import ipaaca.protobuf.Ipaaca.LinkSet;
+import ipaaca.protobuf.Ipaaca.PayloadItem;
+
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -14,9 +18,6 @@ import rsb.converter.Converter;
 import rsb.converter.ConverterSignature;
 import rsb.converter.UserData;
 import rsb.converter.WireContents;
-import ipaaca.Ipaaca.IU;
-import ipaaca.Ipaaca.LinkSet;
-import ipaaca.Ipaaca.PayloadItem;
 
 /**
  * Serializes AbstractIUs into protocolbuffer IUs and vice versa.

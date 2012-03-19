@@ -1,6 +1,6 @@
 package ipaaca;
 
-import ipaaca.Ipaaca.PayloadItem;
+import ipaaca.protobuf.Ipaaca.PayloadItem;
 
 import java.util.ArrayList;
 import java.util.Collection;
