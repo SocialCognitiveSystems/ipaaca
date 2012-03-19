@@ -10,3 +10,7 @@ java/.classpath
 .project
 .classpath
 **/.*.swp
+.*.sw[a-z]
+*.un~
+Session.vim
+

@@ -210,23 +210,23 @@ class IUInterface(object): #{{{
 		'''Attempt to add links if the conditions are met
 		and send an update message. Then call the local setter.'''
 		if not hasattr(targets, '__iter__'): targets=[targets]
-		self._modify_links(links=self, is_delta=True, new_links={type:targets}, links_to_remove={}, writer_name=writer_name)
+		self._modify_links(is_delta=True, new_links={type:targets}, links_to_remove={}, writer_name=writer_name)
 		self._add_and_remove_links( add={type:targets}, remove={} )
 	def remove_links(self, type, targets, writer_name=None):
 		'''Attempt to remove links if the conditions are met
 		and send an update message. Then call the local setter.'''
 		if not hasattr(targets, '__iter__'): targets=[targets]
-		self._modify_links(links=self, is_delta=True, new_links={}, links_to_remove={type:targets}, writer_name=writer_name)
+		self._modify_links(is_delta=True, new_links={}, links_to_remove={type:targets}, writer_name=writer_name)
 		self._add_and_remove_links( add={}, remove={type:targets} )
 	def modify_links(self, add, remove, writer_name=None):
 		'''Attempt to modify links if the conditions are met
 		and send an update message. Then call the local setter.'''
-		self._modify_links(links=self, is_delta=True, new_links=add, links_to_remove=remove, writer_name=writer_name)
+		self._modify_links(is_delta=True, new_links=add, links_to_remove=remove, writer_name=writer_name)
 		self._add_and_remove_links( add=add, remove=remove )
 	def set_links(self, links, writer_name=None):
 		'''Attempt to set (replace) links if the conditions are met
 		and send an update message. Then call the local setter.'''
-		self._modify_links(links=self, is_delta=False, new_links=links, links_to_remove={}, writer_name=writer_name)
+		self._modify_links(is_delta=False, new_links=links, links_to_remove={}, writer_name=writer_name)
 		self._replace_links( links=links )
 	def get_links(self, type):
 		return set(self._links[type])
@@ -300,7 +300,7 @@ class IU(IUInterface):#{{{
 		self.revision_lock = threading.RLock()
 		self._payload = Payload(iu=self)
 	
-	def _modify_links(self, links, is_delta=False, new_links={}, links_to_remove={}, writer_name=None):
+	def _modify_links(self, is_delta=False, new_links={}, links_to_remove={}, writer_name=None):
 		if self.committed:
 			raise IUCommittedError(self)
 		with self.revision_lock:
@@ -412,7 +412,7 @@ class RemotePushIU(IUInterface):#{{{
 		self._payload = Payload(iu=self, new_payload=payload, omit_init_update_message=True)
 		self._links = links
 	
-	def _modify_links(self, links, is_delta=False, new_links={}, links_to_remove={}, writer_name=None):
+	def _modify_links(self, is_delta=False, new_links={}, links_to_remove={}, writer_name=None):
 		"""Modify the links: add or remove item from this payload remotely and send update."""
 		if self.committed:
 			raise IUCommittedError(self)
