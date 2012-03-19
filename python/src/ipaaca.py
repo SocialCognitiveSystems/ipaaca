@@ -137,14 +137,14 @@ class Payload(dict):
 		#   exceptions and sending updates in the case where we just receive
 		#   a whole new payload from the remote side and overwrite it locally.
 		if (not omit_init_update_message) and (self.iu.buffer is not None):
-			self.iu._modify_payload(payload=self, is_delta=False, new_items=pl, keys_to_remove=[], writer_name=writer_name)
+			self.iu._modify_payload(is_delta=False, new_items=pl, keys_to_remove=[], writer_name=writer_name)
 		for k, v in pl.items():
 			dict.__setitem__(self, k, v)
 	def __setitem__(self, k, v, writer_name=None):
-		self.iu._modify_payload(payload=self, is_delta=True, new_items={k:v}, keys_to_remove=[], writer_name=writer_name)
+		self.iu._modify_payload(is_delta=True, new_items={k:v}, keys_to_remove=[], writer_name=writer_name)
 		result = dict.__setitem__(self, k, v)
 	def __delitem__(self, k, writer_name=None):
-		self.iu._modify_payload(payload=self, is_delta=True, new_items={}, keys_to_remove=[k], writer_name=writer_name)
+		self.iu._modify_payload(is_delta=True, new_items={}, keys_to_remove=[k], writer_name=writer_name)
 		result = dict.__delitem__(self, k)
 	def _remotely_enforced_setitem(self, k, v):
 		"""Sets an item when requested remotely."""
@@ -316,7 +316,7 @@ class IU(IUInterface):#{{{
 						links_to_remove=links_to_remove,
 						writer_name=self.owner_name if writer_name is None else writer_name)
 	
-	def _modify_payload(self, payload, is_delta=True, new_items={}, keys_to_remove=[], writer_name=None):
+	def _modify_payload(self, is_delta=True, new_items={}, keys_to_remove=[], writer_name=None):
 		"""Modify the payload: add or remove items from this payload locally and send update."""
 		if self.committed:
 			raise IUCommittedError(self)
@@ -432,7 +432,7 @@ class RemotePushIU(IUInterface):#{{{
 		else:
 			self._revision = new_revision
 	
-	def _modify_payload(self, payload, is_delta=True, new_items={}, keys_to_remove=[], writer_name=None):
+	def _modify_payload(self, is_delta=True, new_items={}, keys_to_remove=[], writer_name=None):
 		"""Modify the payload: add or remove item from this payload remotely and send update."""
 		if self.committed:
 			raise IUCommittedError(self)
