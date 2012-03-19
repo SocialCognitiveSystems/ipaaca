@@ -7,12 +7,12 @@ import rsb.RSBException;
 import rsb.patterns.DataCallback;
 import rsb.patterns.LocalServer;
 
-import ipaaca.Ipaaca;
-import ipaaca.Ipaaca.IUCommission;
-import ipaaca.Ipaaca.IULinkUpdate;
-import ipaaca.Ipaaca.IUPayloadUpdate;
-import ipaaca.Ipaaca.LinkSet;
-import ipaaca.Ipaaca.PayloadItem;
+import ipaaca.protobuf.Ipaaca;
+import ipaaca.protobuf.Ipaaca.IUCommission;
+import ipaaca.protobuf.Ipaaca.IULinkUpdate;
+import ipaaca.protobuf.Ipaaca.IUPayloadUpdate;
+import ipaaca.protobuf.Ipaaca.LinkSet;
+import ipaaca.protobuf.Ipaaca.PayloadItem;
 
 import java.util.HashMap;
 import java.util.Map;

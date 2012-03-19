@@ -1,7 +1,7 @@
 package ipaaca;
 
 import static org.junit.Assert.*;
-import ipaaca.Ipaaca.IUPayloadUpdate;
+import ipaaca.protobuf.Ipaaca.IUPayloadUpdate;
 
 import org.junit.Before;
 import org.junit.Test;

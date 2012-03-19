@@ -1,14 +1,15 @@
 package ipaaca;
 
+import ipaaca.protobuf.Ipaaca;
+import ipaaca.protobuf.Ipaaca.IU;
+import ipaaca.protobuf.Ipaaca.IU.AccessMode;
+import ipaaca.protobuf.Ipaaca.LinkSet;
+import ipaaca.protobuf.Ipaaca.PayloadItem;
+
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
-import ipaaca.Ipaaca;
-import ipaaca.Ipaaca.IU;
-import ipaaca.Ipaaca.IU.AccessMode;
-import ipaaca.Ipaaca.LinkSet;
-import ipaaca.Ipaaca.PayloadItem;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.mockito.Mockito.*;

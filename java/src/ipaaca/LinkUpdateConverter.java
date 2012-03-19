@@ -1,6 +1,6 @@
 package ipaaca;
 
-import ipaaca.Ipaaca.IULinkUpdate;
+import ipaaca.protobuf.Ipaaca.IULinkUpdate;
 
 import java.nio.ByteBuffer;
 

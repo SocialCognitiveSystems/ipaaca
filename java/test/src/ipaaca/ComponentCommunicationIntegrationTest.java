@@ -10,6 +10,7 @@ import java.util.Set;
 import static org.hamcrest.collection.IsIterableContainingInAnyOrder.*;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.google.common.collect.ImmutableMap;
@@ -25,7 +26,8 @@ import static ipaaca.IUTestUtil.*;
  */
 public class ComponentCommunicationIntegrationTest
 {
-    static
+    @BeforeClass
+    public static void setupStatic()
     {
         Initializer.initializeIpaacaRsb();
     }

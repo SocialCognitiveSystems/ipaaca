@@ -1,6 +1,7 @@
 package ipaaca;
 
-import ipaaca.Ipaaca.IntMessage;
+import ipaaca.protobuf.Ipaaca.IntMessage;
+
 import java.nio.ByteBuffer;
 import rsb.converter.ConversionException;
 import rsb.converter.Converter;

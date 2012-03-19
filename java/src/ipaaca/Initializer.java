@@ -1,8 +1,6 @@
 package ipaaca;
 
-import ipaaca.Ipaaca.IUCommission;
-import ipaaca.Ipaaca.IULinkUpdate;
-import ipaaca.Ipaaca.IUPayloadUpdate;
+import ipaaca.protobuf.Ipaaca.IUCommission;
 import rsb.converter.ConverterSignature;
 import rsb.converter.DefaultConverterRepository;
 import rsb.converter.ProtocolBufferConverter;
@@ -35,7 +33,7 @@ public final class Initializer {
 	    DefaultConverterRepository.getDefaultConverterRepository().addConverter(
                 new PayloadConverter());
 	    DefaultConverterRepository.getDefaultConverterRepository().addConverter(
-                new LinkUpdateConverter());
+                new LinkUpdateConverter());	    
 	    	    
 	}
 }
