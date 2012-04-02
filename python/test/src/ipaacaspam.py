@@ -66,6 +66,7 @@ class Sender(object):
 	def __init__(self, send_frequency):
 		self.ob = ipaaca.OutputBuffer('PowerOut')
 		self.iu = ipaaca.IU('spam')
+		self.data_prefix='A'*1024;
 		self.iu.payload = {'data':'0'}
 		self.ob.add(self.iu)
 		self.counter = 0
@@ -79,6 +80,17 @@ class Sender(object):
 			time.sleep(self.delay)
 			self.counter += 1
 			self.iu.payload['data'] = str(self.counter)
+			#self.iu.payload = {
+			#		'data':self.data_prefix,
+			#		'data2':self.data_prefix,
+			#		'data3':self.data_prefix,
+			#		'data4':self.data_prefix,
+			#		'data5':self.data_prefix,
+			#		'data6':self.data_prefix,
+			#		'data7':self.data_prefix,
+			#		'data8':self.data_prefix,
+			#		'data9':self.data_prefix,
+			#		}
 			if self.counter == 1000:
 				print "Sent 1k updates at", int(1000.0/(time.time()-last_time)),"Hz"
 				last_time = time.time()
