@@ -15,7 +15,7 @@ import rsb.converter
 
 import ipaaca_pb2
 
-OMIT_REVISION_CHECKS = True
+OMIT_REVISION_CHECKS = False
 
 # IDEAS
 #  We should think about relaying the update event (or at least the
