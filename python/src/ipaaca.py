@@ -295,6 +295,7 @@ class IU(IUInterface):#{{{
 	def __init__(self, category='undef', access_mode=IUAccessMode.PUSH, read_only=False, _payload_type='MAP'):
 		super(IU, self).__init__(uid=None, access_mode=access_mode, read_only=read_only)
 		self._revision = 1
+		self.uid = str(uuid.uuid4())
 		self._category = category
 		self._payload_type = _payload_type
 		self.revision_lock = threading.RLock()
@@ -391,7 +392,7 @@ class IU(IUInterface):#{{{
 	uid = property(
 			fget=IUInterface._get_uid,
 			fset=_set_uid,
-			doc='Unique ID of theIU.')
+			doc='Unique ID of the IU.')
 
 #}}}
 
@@ -939,7 +940,7 @@ class OutputBuffer(Buffer):
 		self._informer_store = {}
 		self._id_prefix = str(owning_component_name)+'-'+str(self._uuid)+'-IU-'
 		self.__iu_id_counter_lock = threading.Lock()
-		self.__iu_id_counter = 0
+		#self.__iu_id_counter = 0 # hbuschme: IUs now have their Ids assigned on creation
 	
 	def _create_own_name_listener(self, iu_category):
 		# FIXME replace this
@@ -952,12 +953,13 @@ class OutputBuffer(Buffer):
 		#logger.info("Added category listener for "+iu_category)
 		#return cat_listener
 	
-	def _generate_iu_uid(self):
-		'''Generate a unique IU id of the form'''
-		with self.__iu_id_counter_lock:
-			self.__iu_id_counter += 1
-			number = self.__iu_id_counter
-		return self._id_prefix + str(number)
+	# hbuschme: IUs now have their Ids assigned on creation
+	#def _generate_iu_uid(self):
+	#	'''Generate a unique IU id of the form ????'''
+	#	with self.__iu_id_counter_lock:
+	#		self.__iu_id_counter += 1
+	#		number = self.__iu_id_counter
+	#	return self._id_prefix + str(number)
 
 	def _remote_update_links(self, update):
 		'''Apply a remotely requested update to one of the stored IU's links.'''
@@ -1032,9 +1034,10 @@ class OutputBuffer(Buffer):
 	
 	def add(self, iu):
 		'''Add an IU to the IU store, assign an ID and publish it.'''
-		if iu._uid is not None:
-			raise IUPublishedError(iu)
-		iu.uid = self._generate_iu_uid()
+		# hbuschme: IUs now have their Ids assigned on creation
+		#if iu._uid is not None:
+		#	raise IUPublishedError(iu)
+		#iu.uid = self._generate_iu_uid()
 		self._iu_store[iu._uid] = iu
 		iu.buffer = self
 		self._publish_iu(iu)
