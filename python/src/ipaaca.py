@@ -1038,7 +1038,9 @@ class OutputBuffer(Buffer):
 		#if iu._uid is not None:
 		#	raise IUPublishedError(iu)
 		#iu.uid = self._generate_iu_uid()
-		self._iu_store[iu._uid] = iu
+	 	if iu.uid in self._iu_store:
+			raise IUPublishedError(iu)
+		self._iu_store[iu.uid] = iu
 		iu.buffer = self
 		self._publish_iu(iu)
 	
