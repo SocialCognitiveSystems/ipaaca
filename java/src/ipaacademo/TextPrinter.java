@@ -1,13 +1,16 @@
 package ipaacademo;
 
-import java.util.EnumSet;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.Set;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
+import ipaaca.AbstractIU;
+import ipaaca.HandlerFunctor;
+import ipaaca.IUEventHandler;
+import ipaaca.IUEventType;
+import ipaaca.Initializer;
+import ipaaca.InputBuffer;
+import ipaaca.OutputBuffer;
+import ipaaca.RemotePushIU;
 
-import ipaaca.*;
+import java.util.EnumSet;
+import java.util.Set;
 
 import javax.swing.JFrame;
 import javax.swing.JLabel;

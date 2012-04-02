@@ -5,6 +5,7 @@ import ipaaca.protobuf.Ipaaca.IUPayloadUpdate;
 import ipaaca.protobuf.Ipaaca.LinkSet;
 import ipaaca.protobuf.Ipaaca.PayloadItem;
 
+import java.rmi.server.UID;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -32,12 +33,7 @@ public class LocalIU extends AbstractIU
 
     public LocalIU()
     {
-        this(null);
-    }
-
-    public LocalIU(String uid)
-    {
-        super(uid);
+        super(new UID().toString());
         revision = 1;
         payload = new Payload(this);
     }

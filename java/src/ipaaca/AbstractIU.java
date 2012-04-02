@@ -184,11 +184,6 @@ public abstract class AbstractIU
         return uid;
     }
 
-    public void setUid(String uid)
-    {
-        this.uid = uid;
-    }
-
     public abstract void commit();
 
     // XXX: might not be valid for all types of IUs
