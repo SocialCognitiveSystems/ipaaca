@@ -361,5 +361,30 @@ public class ComponentCommunicationIntegrationTest
         assertThat(iuIn.getLinks("SAME_LEVEL"),containsInAnyOrder("iu7"));
     }
     
+    @Test
+    public void testPublishLinks() throws InterruptedException
+    {
+        LocalIU localIU2 = new LocalIU();
+        localIU2.setCategory(CATEGORY);
+        localIU2.getPayload().put("key1", "item2");
+        localIU.addLinks("SAME_LEVEL", ImmutableSet.of(localIU2.getUid()));
+        outBuffer.add(localIU);
+        outBuffer.add(localIU2);
+        Thread.sleep(200);
+        assertThat(localIU.getLinks("SAME_LEVEL"),containsInAnyOrder(localIU2.getUid()));
+    }
     
+    @Test
+    public void testPublishLinksRemote() throws InterruptedException
+    {
+        LocalIU localIU2 = new LocalIU();
+        localIU2.setCategory(CATEGORY);
+        localIU2.getPayload().put("key1", "item2");
+        localIU.addLinks("SAME_LEVEL", ImmutableSet.of(localIU2.getUid()));
+        outBuffer.add(localIU);
+        outBuffer.add(localIU2);
+        Thread.sleep(200);
+        AbstractIU iuIn = inBuffer.getIU(localIU.getUid());
+        assertThat(iuIn.getLinks("SAME_LEVEL"),containsInAnyOrder(localIU2.getUid()));
+    }
 }

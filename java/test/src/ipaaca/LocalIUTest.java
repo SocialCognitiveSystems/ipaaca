@@ -21,7 +21,7 @@ public class LocalIUTest
     @Test
     public void testCommit()
     {
-        LocalIU liu = new LocalIU("iu1");
+        LocalIU liu = new LocalIU();
         liu.getPayload().put("key1", "item1");
         liu.setBuffer(mockBuffer);
         liu.commit("commitWriter");
@@ -33,7 +33,7 @@ public class LocalIUTest
     @Test
     public void testSetPayloadOnUnpublishedIU()
     {
-        LocalIU liu = new LocalIU("iu1");
+        LocalIU liu = new LocalIU();
         liu.getPayload().put("key1", "item1");
         assertEquals("item1", liu.getPayload().get("key1"));
     }
@@ -41,7 +41,7 @@ public class LocalIUTest
     @Test
     public void testSetPayloadOnPublishedIU()
     {
-        LocalIU liu = new LocalIU("iu1");
+        LocalIU liu = new LocalIU();
         liu.setBuffer(mockBuffer);
         liu.getPayload().put("key1", "item1");
         assertEquals("item1", liu.getPayload().get("key1"));
