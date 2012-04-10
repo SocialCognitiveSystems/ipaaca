@@ -2,9 +2,20 @@
 #include <cstdlib>
 
 namespace ipaaca {
-/*
-*/
 
+// util and init//{{{
+std::string generate_uuid_string()
+{
+	uuid_t uuidt;
+	uuid_string_t uuidstr;
+	uuid_generate(uuidt);
+	uuid_unparse_lower(uuidt, uuidstr);
+	return uuidstr;
+}
+
+//const LinkSet EMPTY_LINK_SET = LinkSet();
+//const std::set<std::string> EMPTY_LINK_SET();
+       
 void initialize_ipaaca_rsb()
 {
 	ParticipantConfig config = ParticipantConfig::fromConfiguration();
@@ -17,8 +28,19 @@ void initialize_ipaaca_rsb()
 	
 	//IPAACA_TODO("initialize all converters")
 }
+/*
+void init_inprocess_too() {
+	//ParticipantConfig config = Factory::getInstance().getDefaultParticipantConfig();
+	ParticipantConfig config = ParticipantConfig::fromFile("rsb.cfg");
+	//ParticipantConfig::Transport inprocess = config.getTransport("inprocess");
+	//inprocess.setEnabled(true);
+	//config.addTransport(inprocess);
+	Factory::getInstance().setDefaultParticipantConfig(config);
+}
+*/
+//}}}
 
-std::ostream& operator<<(std::ostream& os, const IUPayloadUpdate& obj)
+std::ostream& operator<<(std::ostream& os, const IUPayloadUpdate& obj)//{{{
 {
 	os << "PayloadUpdate(uid=" << obj.uid << ", revision=" << obj.revision;
 	os << ", writer_name=" << obj.writer_name << ", is_delta=" << (obj.is_delta?"True":"False");
@@ -37,8 +59,8 @@ std::ostream& operator<<(std::ostream& os, const IUPayloadUpdate& obj)
 	os << "])";
 	return os;
 }
-
-std::ostream& operator<<(std::ostream& os, const IULinkUpdate& obj)
+//}}}
+std::ostream& operator<<(std::ostream& os, const IULinkUpdate& obj)//{{{
 {
 	os << "LinkUpdate(uid=" << obj.uid << ", revision=" << obj.revision;
 	os << ", writer_name=" << obj.writer_name << ", is_delta=" << (obj.is_delta?"True":"False");
@@ -69,25 +91,270 @@ std::ostream& operator<<(std::ostream& os, const IULinkUpdate& obj)
 	os << "})";
 	return os;
 }
+//}}}
 
+// SmartLinkMap//{{{
+void SmartLinkMap::_add_and_remove_links(const LinkMap& add, const LinkMap& remove)
+{
+	// remove specified links
+	for (LinkMap::const_iterator it = remove.begin(); it != remove.end(); ++it ) {
+		// if link type exists
+		if (_links.count(it->first) > 0) {
+			// remove one by one
+			for (LinkSet::const_iterator it2=it->second.begin(); it2!=it->second.end(); ++it2) {
+				_links[it->first].erase(*it2);
+			}
+			// wipe the type key if no more links are left
+			if (_links[it->first].size() == 0) {
+				_links.erase(it->first);
+			}
+		}
+	}
+	// add specified links
+	for (LinkMap::const_iterator it = add.begin(); it != add.end(); ++it ) {
+		for (LinkSet::const_iterator it2=it->second.begin(); it2!=it->second.end(); ++it2) {
+			_links[it->first].insert(*it2);
+		}
+	}
+}
+void SmartLinkMap::_replace_links(const LinkMap& links)
+{
+	//_links.clear();
+	_links=links;
+}
+//}}}
+
+
+
+// OutputBuffer//{{{
+void OutputBuffer::_send_iu_link_update(IUInterface* iu, bool is_delta, revision_t revision, const LinkMap& new_links, const LinkMap& links_to_remove, const std::string& writer_name)
+{
+	IPAACA_IMPLEMENT_ME
+}
+void OutputBuffer::_send_iu_payload_update(IUInterface* iu, bool is_delta, revision_t revision, const std::map<std::string, std::string>& new_items, const std::vector<std::string>& keys_to_remove, const std::string& writer_name)
+{
+	IPAACA_IMPLEMENT_ME
+}
+void OutputBuffer::_send_iu_commission(IUInterface* iu, revision_t revision, const std::string& writer_name)
+{
+	IPAACA_IMPLEMENT_ME
+}
+void OutputBuffer::add(IU::ref iu)
+{
+	IPAACA_IMPLEMENT_ME
+	// TODO place in iu store 
+	iu->_set_buffer(this); //shared_from_this());
+	// TODO
+}
 
 /*
-void init_inprocess_too() {
-	//ParticipantConfig config = Factory::getInstance().getDefaultParticipantConfig();
-	ParticipantConfig config = ParticipantConfig::fromFile("rsb.cfg");
-	//ParticipantConfig::Transport inprocess = config.getTransport("inprocess");
-	//inprocess.setEnabled(true);
-	//config.addTransport(inprocess);
-	Factory::getInstance().setDefaultParticipantConfig(config);
-}
+	def _send_iu_link_update(self, iu, is_delta, revision, new_links=None, links_to_remove=None, writer_name="undef"):
+		'''Send an IU link update.
+		
+		Keyword arguments:
+		iu -- the IU being updated
+		is_delta -- whether this is an incremental update or a replacement
+			the whole link dictionary
+		revision -- the new revision number
+		new_links -- a dictionary of new link sets
+		links_to_remove -- a dict of the link sets that shall be removed
+		writer_name -- name of the Buffer that initiated this update, necessary
+			to enable remote components to filter out updates that originate d
+			from their own operations
+		'''
+		if new_links is None:
+			new_links = {}
+		if links_to_remove is None:
+			links_to_remove = {}
+		link_update = IULinkUpdate(iu._uid, is_delta=is_delta, revision=revision)
+		link_update.new_links = new_links
+		if is_delta:
+			link_update.links_to_remove = links_to_remove
+		link_update.writer_name = writer_name
+		informer = self._get_informer(iu._category)
+		informer.publishData(link_update)
+		# FIXME send the notification to the target, if the target is not the writer_name
 */
+/*
+	def _send_iu_payload_update(self, iu, is_delta, revision, new_items=None, keys_to_remove=None, writer_name="undef"):
+		'''Send an IU payload update.
+		
+		Keyword arguments:
+		iu -- the IU being updated
+		is_delta -- whether this is an incremental update or a replacement
+		revision -- the new revision number
+		new_items -- a dictionary of new payload items
+		keys_to_remove -- a list of the keys that shall be removed from the
+		 	payload
+		writer_name -- name of the Buffer that initiated this update, necessary
+			to enable remote components to filter out updates that originate d
+			from their own operations
+		'''
+		if new_items is None:
+			new_items = {}
+		if keys_to_remove is None:
+			keys_to_remove = []
+		payload_update = IUPayloadUpdate(iu._uid, is_delta=is_delta, revision=revision)
+		payload_update.new_items = new_items
+		if is_delta:
+			payload_update.keys_to_remove = keys_to_remove
+		payload_update.writer_name = writer_name
+		informer = self._get_informer(iu._category)
+		informer.publishData(payload_update)
+*/
+//}}}
 
-IU::ref IU::create(/* params */)
+
+
+
+// IUInterface//{{{
+
+IUInterface::IUInterface()
+: _buffer(NULL), _committed(false)
+{
+}
+
+void IUInterface::_set_uid(const std::string& uid) {
+	if (_uid != "") {
+		throw IUAlreadyHasAnUIDError();
+	}
+	_uid = uid;
+}
+
+void IUInterface::_set_buffer(Buffer* buffer) { //boost::shared_ptr<Buffer> buffer) {
+	if (_buffer) {
+		throw IUAlreadyInABufferError();
+	}
+	_buffer = buffer;
+}
+
+void IUInterface::_set_owner_name(const std::string& owner_name) {
+	if (_owner_name != "") {
+		throw IUAlreadyHasAnOwnerNameError();
+	}
+	_owner_name = owner_name;
+}
+
+void IUInterface::add_links(const std::string& type, const LinkSet& targets, const std::string& writer_name)
+{
+	LinkMap none;
+	LinkMap add;
+	add[type] = targets;
+	_modify_links(true, add, none, writer_name);
+	_add_and_remove_links(add, none);
+}
+
+void IUInterface::remove_links(const std::string& type, const LinkSet& targets, const std::string& writer_name)
+{
+	LinkMap none;
+	LinkMap remove;
+	remove[type] = targets;
+	_modify_links(true, none, remove, writer_name);
+	_add_and_remove_links(none, remove);
+}
+
+void IUInterface::modify_links(const LinkMap& add, const LinkMap& remove, const std::string& writer_name)
+{
+	_modify_links(true, add, remove, writer_name);
+	_add_and_remove_links(add, remove);
+}
+
+void IUInterface::set_links(const LinkMap& links, const std::string& writer_name)
+{
+	LinkMap none;
+	_modify_links(false, links, none, writer_name);
+	_replace_links(links);
+}
+
+//}}}
+
+// IU//{{{
+IU::ref IU::create(const std::string& category, IUAccessMode access_mode, bool read_only, const std::string& payload_type)
 {
 	IU::ref iu = IU::ref(new IU(/* params */));
-	iu->payload.initialize(iu);
+	iu->_payload.initialize(iu);
 	return iu;
 }
+
+IU::IU(const std::string& category, IUAccessMode access_mode, bool read_only, const std::string& payload_type)
+{
+	_revision = 1;
+	_uid = ipaaca::generate_uuid_string();
+	_category = category;
+	_payload_type = payload_type;
+	// payload initialization deferred to IU::create(), above
+	_read_only = read_only;
+	_access_mode = access_mode;
+	_committed = false;
+}
+
+void IU::_modify_links(bool is_delta, const LinkMap& new_links, const LinkMap& links_to_remove, const std::string& writer_name)
+{
+	_revision_lock.lock();
+	if (_committed) {
+		_revision_lock.unlock();
+		throw IUCommittedError();
+	}
+	_increase_revision_number();
+	if (is_published()) {
+		_buffer->_send_iu_link_update(this, is_delta, _revision, new_links, links_to_remove, writer_name);
+	}
+	_revision_lock.unlock();
+}
+void IU::_modify_payload(bool is_delta, const std::map<std::string, std::string>& new_items, const std::vector<std::string>& keys_to_remove, const std::string& writer_name)
+{
+	_revision_lock.lock();
+	if (_committed) {
+		_revision_lock.unlock();
+		throw IUCommittedError();
+	}
+	_increase_revision_number();
+	if (is_published()) {
+		_buffer->_send_iu_payload_update(this, is_delta, _revision, new_items, keys_to_remove, writer_name);
+	}
+	_revision_lock.unlock();
+}
+
+void IU::commit()
+{
+	_internal_commit();
+}
+
+void IU::_internal_commit(const std::string& writer_name)
+{
+	_revision_lock.lock();
+	if (_committed) {
+		_revision_lock.unlock();
+		throw IUCommittedError();
+	}
+	_increase_revision_number();
+	_committed = true;
+	if (is_published()) {
+		_buffer->_send_iu_commission(this, _revision, writer_name);
+	}
+	_revision_lock.unlock();
+}
+//}}}
+
+// RemotePushIU//{{{
+void RemotePushIU::_modify_links(bool is_delta, const LinkMap& new_links, const LinkMap& links_to_remove, const std::string& writer_name)
+{
+	IPAACA_IMPLEMENT_ME
+}
+void RemotePushIU::_modify_payload(bool is_delta, const std::map<std::string, std::string>& new_items, const std::vector<std::string>& keys_to_remove, const std::string& writer_name)
+{
+	IPAACA_IMPLEMENT_ME
+}
+
+void RemotePushIU::commit()
+{
+	IPAACA_IMPLEMENT_ME
+}
+
+//}}}
+
+
+
 
 // PayloadEntryProxy//{{{
 
@@ -116,9 +383,6 @@ PayloadEntryProxy::operator double()
 
 // Payload//{{{
 
-Payload::Payload()
-{
-}
 void Payload::initialize(boost::shared_ptr<IUInterface> iu)
 {
 	_iu = iu;
@@ -131,11 +395,17 @@ PayloadEntryProxy Payload::operator[](const std::string& key)
 }
 
 inline void Payload::set(const std::string& k, const std::string& v) {
-	//self._iu._modify_payload(self, isdelta=true, newitm={k:v}, keystorm=[], writer_name=None );
+	std::map<std::string, std::string> _new;
+	std::vector<std::string> _remove;
+	_new[k]=v;
+	_iu->_modify_payload(true, _new, _remove, "" );
 	_store[k] = v;
 }
 inline void Payload::remove(const std::string& k) {
-	//self._iu._modify_payload(self, isdelta=true, newitm={}, keystorm=[k], writer_name=None );
+	std::map<std::string, std::string> _new;
+	std::vector<std::string> _remove;
+	_remove.push_back(k);
+	_iu->_modify_payload(true, _new, _remove, "" );
 	_store.erase(k);
 }
 inline std::string Payload::get(const std::string& k) {
@@ -145,7 +415,6 @@ inline std::string Payload::get(const std::string& k) {
 //}}}
 
 /*
-
 // IUConverter//{{{
 
 IUConverter::IUConverter()
@@ -199,9 +468,7 @@ AnnotatedData IUConverter::deserialize(const std::string& wireSchema, const std:
 }
 
 //}}}
-
 */
-
 
 // IUPayloadUpdateConverter//{{{
 
@@ -318,17 +585,6 @@ AnnotatedData IULinkUpdateConverter::deserialize(const std::string& wireSchema, 
 }
 
 //}}}
-
-
-
-
-
-
-
-
-
-
-
 
 
 } // of namespace ipaaca

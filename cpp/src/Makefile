@@ -4,10 +4,20 @@ CCFLAGS=-I. -I/usr/local/include -I/opt/local/include ${CONFIG}
 BOOSTLIBS = -L/opt/local/lib -lboost_regex-mt -lboost_date_time-mt -lboost_program_options-mt -lboost_thread-mt -lboost_filesystem-mt -lboost_signals-mt -lboost_system-mt
 PROTOLIBS = -L/opt/local/lib -lprotobuf
 LIBS = ${BOOSTLIBS} ${PROTOLIBS} -L/usr/local/lib -lrsc -lrsbcore
-all: protoc
-	#g++ ${CCFLAGS} -o ipaaca-test ${SOURCES} ${LIBS}
-	g++ ${CCFLAGS} -DMAKE_RECEIVER -o ipaaca-receiver ${SOURCES} ${LIBS}
-	g++ ${CCFLAGS} -DMAKE_SENDER -o ipaaca-sender ${SOURCES} ${LIBS}
+
+COMPILER = gfilt
+
+all: main
+	true
+
+receiver:
+	${COMPILER} ${CCFLAGS} -DMAKE_RECEIVER -o ipaaca-receiver ${SOURCES} ${LIBS}
+
+sender:
+	${COMPILER} ${CCFLAGS} -DMAKE_SENDER -o ipaaca-sender ${SOURCES} ${LIBS}
+
+main:
+	${COMPILER} ${CCFLAGS} -o ipaaca-main ${SOURCES} ${LIBS}
 
 protoc:
 	protoc --proto_path=../../proto ../../proto/ipaaca.proto --cpp_out=.

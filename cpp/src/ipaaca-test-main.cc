@@ -75,7 +75,6 @@ int main() {
 	lup->links_to_remove["grin"].insert("1001");
 	informer->publish(ldata);
 	
-	
 	std::cout << "Done." << std::endl;
 	return EXIT_SUCCESS;
 }
@@ -88,22 +87,29 @@ int main() {
 using namespace ipaaca;
 
 int main() {
-	//try{
+	try{
 		initialize_ipaaca_rsb();
-		IU::ref iu = IU::create();
-		std::cout << "payload.get(\"TEST\") = \"" << iu->payload.get("TEST") << "\"" << std::endl;
-		std::cout << "payload[\"TEST\"] = \"" << (std::string) iu->payload["TEST"] << "\"" << std::endl;
-		iu->payload["TEST"] = "123.5-WAS-SET";
-		std::cout << "payload[\"TEST\"] = \"" << (std::string) iu->payload["TEST"] << "\"" << std::endl;
 		
-		std::string s = "The string \"" + iu->payload["TEST"].to_str() + "\" is the new value.";
+		
+		OutputBuffer ob;
+		
+		IU::ref iu = IU::create();
+		ob.add(iu);
+		
+		std::cout << "_payload.get(\"TEST\") = \"" << iu->_payload.get("TEST") << "\"" << std::endl;
+		std::cout << "_payload[\"TEST\"] = \"" << (std::string) iu->_payload["TEST"] << "\"" << std::endl;
+		iu->_payload["TEST"] = "123.5-WAS-SET";
+		std::cout << "_payload[\"TEST\"] = \"" << (std::string) iu->_payload["TEST"] << "\"" << std::endl;
+		
+		std::string s = "The string \"" + iu->_payload["TEST"].to_str() + "\" is the new value.";
 		std::cout << "Concatenation test: " << s << std::endl;
 	
-		std::cout << "Interpreted as  long  value: " << iu->payload["TEST"].to_int() << std::endl;
-		std::cout << "Interpreted as double value: " << iu->payload["TEST"].to_float() << std::endl;
-	//} catch (std::exception& e) {
-	//	std::cout << e.what() << std::endl;
-	//}
+		std::cout << "Interpreted as  long  value: " << iu->_payload["TEST"].to_int() << std::endl;
+		std::cout << "Interpreted as double value: " << iu->_payload["TEST"].to_float() << std::endl;
+		iu->commit();
+	} catch (ipaaca::Exception& e) {
+		std::cout << "== IPAACA EXCEPTION == " << e.what() << std::endl;
+	}
 }
 
 #endif
