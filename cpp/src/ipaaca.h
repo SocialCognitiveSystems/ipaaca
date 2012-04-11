@@ -137,14 +137,16 @@ class Buffer { //: public boost::enable_shared_from_this<Buffer> {
 	friend class IU;
 	friend class RemotePushIU;
 	protected:
+		std::string _uuid;
+		std::string _basename;
 		std::string _unique_name;
 	protected:
 		_IPAACA_ABSTRACT_ virtual void _send_iu_link_update(IUInterface* iu, bool is_delta, revision_t revision, const LinkMap& new_links, const LinkMap& links_to_remove, const std::string& writer_name="undef") = 0;
 		_IPAACA_ABSTRACT_ virtual void _send_iu_payload_update(IUInterface* iu, bool is_delta, revision_t revision, const std::map<std::string, std::string>& new_items, const std::vector<std::string>& keys_to_remove, const std::string& writer_name="undef") = 0;
 		_IPAACA_ABSTRACT_ virtual void _send_iu_commission(IUInterface* iu, revision_t revision, const std::string& writer_name="undef") = 0;
 		void _allocate_unique_name(const std::string& basename);
-		inline Buffer(const std::string& basename) {
-			_allocate_unique_name(basename);
+		inline Buffer(const std::string& basename, const std::string& function) {
+			_allocate_unique_name(basename, function);
 		}
 	public:
 		virtual inline ~Buffer() { }
@@ -158,6 +160,7 @@ class OutputBuffer: public Buffer { //, public boost::enable_shared_from_this<Ou
 	protected:
 		std::map<std::string, Informer<AnyType>::Ptr> _informer_store;
 		IUStore _iu_store;
+		Lock _iu_id_counter_lock;
 	protected:
 		// informing functions
 		void _send_iu_link_update(IUInterface* iu, bool is_delta, revision_t revision, const LinkMap& new_links, const LinkMap& links_to_remove, const std::string& writer_name="undef");

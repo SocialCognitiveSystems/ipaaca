@@ -22,12 +22,17 @@ void initialize_ipaaca_rsb()
 	Factory::getInstance().setDefaultParticipantConfig(config);
 	
 	boost::shared_ptr<IUConverter> iu_converter(new IUConverter());
-	boost::shared_ptr<IUPayloadUpdateConverter> payload_update_converter(new IUPayloadUpdateConverter());
-	boost::shared_ptr<IULinkUpdateConverter> link_update_converter(new IULinkUpdateConverter());
 	stringConverterRepository()->registerConverter(iu_converter);
+	
+	boost::shared_ptr<IUPayloadUpdateConverter> payload_update_converter(new IUPayloadUpdateConverter());
 	stringConverterRepository()->registerConverter(payload_update_converter);
+	
+	boost::shared_ptr<IULinkUpdateConverter> link_update_converter(new IULinkUpdateConverter());
 	stringConverterRepository()->registerConverter(link_update_converter);
 	
+	boost::shared_ptr<ProtocolBufferConverter<protobuf::IUCommission> > iu_commission_converter(new ProtocolBufferConverter<protobuf::IUCommission> ());
+	stringConverterRepository()->registerConverter(iu_commission_converter);
+ 
 	//IPAACA_TODO("initialize all converters")
 }
 /*
@@ -127,31 +132,61 @@ void SmartLinkMap::_replace_links(const LinkMap& links)
 //}}}
 
 // Buffer//{{{
-void Buffer::_allocate_unique_name(const std::string& basename) {
+void Buffer::_allocate_unique_name(const std::string& basename, const std::string& function) {
 	std::string uuid = ipaaca::generate_uuid_string();
-	std::string name = basename + "-" + uuid.substr(0,8);
-	_unique_name = name;
+	_basename = basename;
+	_uuid = uuid.substr(0,8);
+	_unique_name = basename + "ID" + _uuid + "/" + function;
 }
 //}}}
 
 // OutputBuffer//{{{
 
 OutputBuffer::OutputBuffer(const std::string& basename)
-:Buffer(basename)
+:Buffer(basename, "OB")
 {
+	_id_prefix = _basename + "-" + _uuid + "-IU-";
 }
+
 void OutputBuffer::_send_iu_link_update(IUInterface* iu, bool is_delta, revision_t revision, const LinkMap& new_links, const LinkMap& links_to_remove, const std::string& writer_name)
 {
-	IPAACA_IMPLEMENT_ME
+	IULinkUpdate* lup = new ipaaca::IULinkUpdate();
+	Informer<ipaaca::IULinkUpdate>::DataPtr ldata(lup);
+	lup->uid = iu->uid();
+	lup->is_delta = is_delta;
+	lup->revision = revision;
+	lup->is_delta = true;
+	lup->new_links = new_links;
+	if (is_delta) lup->links_to_remove = links_to_remove;
+	lup->writer_name = writer_name;
+	Informer<AnyType>::Ptr informer = _get_informer(iu->category());
+	informer->publish(ldata);
 }
+
 void OutputBuffer::_send_iu_payload_update(IUInterface* iu, bool is_delta, revision_t revision, const std::map<std::string, std::string>& new_items, const std::vector<std::string>& keys_to_remove, const std::string& writer_name)
 {
-	IPAACA_IMPLEMENT_ME
+	IUPayloadUpdate* pup = new ipaaca::IUPayloadUpdate();
+	Informer<ipaaca::IUPayloadUpdate>::DataPtr pdata(pup);
+	pup->uid = iu->uid();
+	pup->is_delta = is_delta;
+	pup->revision = revision;
+	pup->new_items = new_items;
+	if (is_delta) pup->keys_to_remove = keys_to_remove;
+	pup->writer_name = writer_name;
+	Informer<AnyType>::Ptr informer = _get_informer(iu->category());
+	informer->publish(pdata);
 }
+
 void OutputBuffer::_send_iu_commission(IUInterface* iu, revision_t revision, const std::string& writer_name)
 {
-	IPAACA_IMPLEMENT_ME
+	Informer<protobuf::IUCommission>::DataPtr data(new protobuf::IUCommission());
+	data->set_uid(iu->uid());
+	data->set_revision(revision);
+	data->set_writer_name(writer_name);
+	Informer<AnyType>::Ptr informer = _get_informer(iu->category());
+	informer->publish(data);
 }
+
 void OutputBuffer::add(IU::ref iu)
 {
 	//IPAACA_IMPLEMENT_ME
