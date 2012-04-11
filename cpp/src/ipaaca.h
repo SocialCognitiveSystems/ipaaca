@@ -83,6 +83,14 @@ class OutputBuffer;
 
 std::string generate_uuid_string();
 
+class IUStore: public std::map<std::string, boost::shared_ptr<IU> >
+{
+};
+class RemotePushIUStore: public std::map<std::string, boost::shared_ptr<RemotePushIU> > // TODO genericize to all remote IU types
+{
+};
+
+
 class Lock
 {
 	protected:
@@ -141,22 +149,36 @@ class Buffer { //: public boost::enable_shared_from_this<Buffer> {
 	public:
 		virtual inline ~Buffer() { }
 		inline const std::string& unique_name() { return _unique_name; }
-		_IPAACA_ABSTRACT_ virtual void add(boost::shared_ptr<IU> iu) = 0;
+		//_IPAACA_ABSTRACT_ virtual void add(boost::shared_ptr<IUInterface> iu) = 0;
 };
 
 class OutputBuffer: public Buffer { //, public boost::enable_shared_from_this<OutputBuffer>  {
 	friend class IU;
 	friend class RemotePushIU;
 	protected:
+		std::map<std::string, Informer<AnyType>::Ptr> _informer_store;
+		IUStore _iu_store;
+	protected:
+		// informing functions
 		void _send_iu_link_update(IUInterface* iu, bool is_delta, revision_t revision, const LinkMap& new_links, const LinkMap& links_to_remove, const std::string& writer_name="undef");
 		void _send_iu_payload_update(IUInterface* iu, bool is_delta, revision_t revision, const std::map<std::string, std::string>& new_items, const std::vector<std::string>& keys_to_remove, const std::string& writer_name="undef");
 		void _send_iu_commission(IUInterface* iu, revision_t revision, const std::string& writer_name);
+		// remote access functions
+		// _remote_update_links(IULinkUpdate)
+		// _remote_update_payload(IUPayloadUpdate)
+		// _remote_commit(protobuf::IUCommission)
+	protected:
+		void _publish_iu(boost::shared_ptr<IU> iu);
+		void _retract_iu(boost::shared_ptr<IU> iu);
+		Informer<AnyType>::Ptr _get_informer(const std::string& category);
 	public:
 		OutputBuffer(const std::string& basename);
 		~OutputBuffer() {
 			IPAACA_IMPLEMENT_ME
 		}
 		void add(boost::shared_ptr<IU> iu);
+		boost::shared_ptr<IU> remove(const std::string& iu_uid);
+		boost::shared_ptr<IU> remove(boost::shared_ptr<IU> iu);
 };
 
 class InputBuffer: public Buffer { //, public boost::enable_shared_from_this<InputBuffer>  {
@@ -349,12 +371,12 @@ class IU: public IUInterface {//{{{
 		Lock _revision_lock;
 	protected:
 		inline void _increase_revision_number() { _revision++; }
-		IU(const std::string& category="undef", IUAccessMode access_mode=IU_ACCESS_PUSH, bool read_only=false, const std::string& payload_type="MAP" );
+		IU(const std::string& category, IUAccessMode access_mode=IU_ACCESS_PUSH, bool read_only=false, const std::string& payload_type="MAP" );
 	public:
 		inline ~IU() {
 			IPAACA_IMPLEMENT_ME
 		}
-		static boost::shared_ptr<IU> create(const std::string& category="undef", IUAccessMode access_mode=IU_ACCESS_PUSH, bool read_only=false, const std::string& payload_type="MAP" );
+		static boost::shared_ptr<IU> create(const std::string& category, IUAccessMode access_mode=IU_ACCESS_PUSH, bool read_only=false, const std::string& payload_type="MAP" );
 		inline Payload& payload() { return _payload; }
 		void commit();
 	protected:

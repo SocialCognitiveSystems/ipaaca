@@ -21,8 +21,10 @@ void initialize_ipaaca_rsb()
 	ParticipantConfig config = ParticipantConfig::fromConfiguration();
 	Factory::getInstance().setDefaultParticipantConfig(config);
 	
+	boost::shared_ptr<IUConverter> iu_converter(new IUConverter());
 	boost::shared_ptr<IUPayloadUpdateConverter> payload_update_converter(new IUPayloadUpdateConverter());
 	boost::shared_ptr<IULinkUpdateConverter> link_update_converter(new IULinkUpdateConverter());
+	stringConverterRepository()->registerConverter(iu_converter);
 	stringConverterRepository()->registerConverter(payload_update_converter);
 	stringConverterRepository()->registerConverter(link_update_converter);
 	
@@ -152,10 +154,41 @@ void OutputBuffer::_send_iu_commission(IUInterface* iu, revision_t revision, con
 }
 void OutputBuffer::add(IU::ref iu)
 {
-	IPAACA_IMPLEMENT_ME
-	// TODO place in iu store 
+	//IPAACA_IMPLEMENT_ME
+	if (_iu_store.count(iu->uid()) > 0) {
+		throw IUPublishedError();
+	}
+	_iu_store[iu->uid()] = iu;
 	iu->_associate_with_buffer(this); //shared_from_this());
-	// TODO
+	_publish_iu(iu);
+}
+
+void OutputBuffer::_publish_iu(IU::ref iu)
+{
+	Informer<AnyType>::Ptr informer = _get_informer(iu->_category);
+	Informer<ipaaca::IU>::DataPtr iu_data(iu);
+	informer->publish(iu_data);
+}
+
+Informer<AnyType>::Ptr OutputBuffer::_get_informer(const std::string& category)
+{
+	if (_informer_store.count(category) > 0) {
+		return _informer_store[category];
+	} else {
+		IPAACA_INFO("making new informer for category " << category)
+		std::string scope_string = "/ipaaca/category/" + category;
+		Informer<AnyType>::Ptr informer = Factory::getInstance().createInformer<AnyType> ( Scope(scope_string));
+		_informer_store[category] = informer;
+		return informer;
+	}
+}
+boost::shared_ptr<IU> OutputBuffer::remove(const std::string& iu_uid)
+{
+	IPAACA_IMPLEMENT_ME
+}
+boost::shared_ptr<IU> OutputBuffer::remove(IU::ref iu)
+{
+	IPAACA_IMPLEMENT_ME
 }
 
 /*
@@ -459,6 +492,7 @@ IUConverter::IUConverter()
 
 std::string IUConverter::serialize(const AnnotatedData& data, std::string& wire)
 {
+	IPAACA_INFO("entering")
 	// Ensure that DATA actually holds a datum of the data-type we expect.
 	assert(data.first == getDataType()); // "ipaaca::IU"
 	// NOTE: a dynamic_pointer_cast cannot be used from void*
@@ -487,6 +521,7 @@ std::string IUConverter::serialize(const AnnotatedData& data, std::string& wire)
 		}
 	}
 	pbo->SerializeToString(&wire);
+	IPAACA_INFO("leaving")
 	return getWireSchema();
 
 }

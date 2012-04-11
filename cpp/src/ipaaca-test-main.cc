@@ -94,7 +94,7 @@ int main() {
 		OutputBuffer ob("TestOB");
 		std::cout << "Buffer: " << ob.unique_name() << std::endl;
 		
-		IU::ref iu = IU::create();
+		IU::ref iu = IU::create("testcategory");
 		ob.add(iu);
 		
 		std::cout << "_payload.get(\"TEST\") = \"" << iu->_payload.get("TEST") << "\"" << std::endl;
