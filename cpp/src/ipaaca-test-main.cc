@@ -91,7 +91,8 @@ int main() {
 		initialize_ipaaca_rsb();
 		
 		
-		OutputBuffer ob;
+		OutputBuffer ob("TestOB");
+		std::cout << "Buffer: " << ob.unique_name() << std::endl;
 		
 		IU::ref iu = IU::create();
 		ob.add(iu);

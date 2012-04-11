@@ -124,9 +124,20 @@ void SmartLinkMap::_replace_links(const LinkMap& links)
 }
 //}}}
 
-
+// Buffer//{{{
+void Buffer::_allocate_unique_name(const std::string& basename) {
+	std::string uuid = ipaaca::generate_uuid_string();
+	std::string name = basename + "-" + uuid.substr(0,8);
+	_unique_name = name;
+}
+//}}}
 
 // OutputBuffer//{{{
+
+OutputBuffer::OutputBuffer(const std::string& basename)
+:Buffer(basename)
+{
+}
 void OutputBuffer::_send_iu_link_update(IUInterface* iu, bool is_delta, revision_t revision, const LinkMap& new_links, const LinkMap& links_to_remove, const std::string& writer_name)
 {
 	IPAACA_IMPLEMENT_ME
@@ -143,7 +154,7 @@ void OutputBuffer::add(IU::ref iu)
 {
 	IPAACA_IMPLEMENT_ME
 	// TODO place in iu store 
-	iu->_set_buffer(this); //shared_from_this());
+	iu->_associate_with_buffer(this); //shared_from_this());
 	// TODO
 }
 
@@ -204,6 +215,12 @@ void OutputBuffer::add(IU::ref iu)
 */
 //}}}
 
+// InputBuffer//{{{
+InputBuffer::InputBuffer(const std::string& basename)
+:Buffer(basename)
+{
+}
+//}}}
 
 
 
@@ -226,6 +243,7 @@ void IUInterface::_set_buffer(Buffer* buffer) { //boost::shared_ptr<Buffer> buff
 		throw IUAlreadyInABufferError();
 	}
 	_buffer = buffer;
+	
 }
 
 void IUInterface::_set_owner_name(const std::string& owner_name) {
@@ -233,6 +251,13 @@ void IUInterface::_set_owner_name(const std::string& owner_name) {
 		throw IUAlreadyHasAnOwnerNameError();
 	}
 	_owner_name = owner_name;
+}
+
+/// set the buffer pointer and the owner names of IU and Payload
+void IUInterface::_associate_with_buffer(Buffer* buffer) { //boost::shared_ptr<Buffer> buffer) {
+	_set_buffer(buffer); // will throw if already set
+	_set_owner_name(buffer->unique_name());
+	payload()._set_owner_name(buffer->unique_name());
 }
 
 void IUInterface::add_links(const std::string& type, const LinkSet& targets, const std::string& writer_name)
@@ -271,7 +296,7 @@ void IUInterface::set_links(const LinkMap& links, const std::string& writer_name
 // IU//{{{
 IU::ref IU::create(const std::string& category, IUAccessMode access_mode, bool read_only, const std::string& payload_type)
 {
-	IU::ref iu = IU::ref(new IU(/* params */));
+	IU::ref iu = IU::ref(new IU(category, access_mode, read_only, payload_type)); /* params */ //));
 	iu->_payload.initialize(iu);
 	return iu;
 }
@@ -337,6 +362,17 @@ void IU::_internal_commit(const std::string& writer_name)
 //}}}
 
 // RemotePushIU//{{{
+
+RemotePushIU::ref RemotePushIU::create()
+{
+	RemotePushIU::ref iu = RemotePushIU::ref(new RemotePushIU(/* params */));
+	iu->_payload.initialize(iu);
+	return iu;
+}
+RemotePushIU::RemotePushIU()
+{
+	// nothing
+}
 void RemotePushIU::_modify_links(bool is_delta, const LinkMap& new_links, const LinkMap& links_to_remove, const std::string& writer_name)
 {
 	IPAACA_IMPLEMENT_ME
@@ -414,7 +450,6 @@ inline std::string Payload::get(const std::string& k) {
 }
 //}}}
 
-/*
 // IUConverter//{{{
 
 IUConverter::IUConverter()
@@ -430,17 +465,26 @@ std::string IUConverter::serialize(const AnnotatedData& data, std::string& wire)
 	boost::shared_ptr<const IU> obj = boost::static_pointer_cast<const IU> (data.second);
 	boost::shared_ptr<protobuf::IU> pbo(new protobuf::IU());
 	// transfer obj data to pbo
-	pbo->set_uid(obj->uid);
-	pbo->set_revision(obj->revision);
-	pbo->set_writer_name(obj->writer_name);
-	pbo->set_is_delta(obj->is_delta);
-	for (std::map<std::string, std::string>::const_iterator it=obj->new_items.begin(); it!=obj->new_items.end(); ++it) {
-		protobuf::PayloadItem* item = pbo->add_new_items();
+	pbo->set_uid(obj->uid());
+	pbo->set_revision(obj->revision());
+	pbo->set_category(obj->category());
+	pbo->set_payload_type(obj->payload_type());
+	pbo->set_owner_name(obj->owner_name());
+	pbo->set_committed(obj->committed());
+	pbo->set_access_mode(ipaaca::protobuf::IU::PUSH); // TODO
+	pbo->set_read_only(obj->read_only());
+	for (std::map<std::string, std::string>::const_iterator it=obj->_payload._store.begin(); it!=obj->_payload._store.end(); ++it) {
+		protobuf::PayloadItem* item = pbo->add_payload();
 		item->set_key(it->first);
 		item->set_value(it->second);
+		item->set_type("str"); // FIXME other types than str (later)
 	}
-	for (std::vector<std::string>::const_iterator it=obj->keys_to_remove.begin(); it!=obj->keys_to_remove.end(); ++it) {
-		pbo->add_keys_to_remove(*it);
+	for (LinkMap::const_iterator it=obj->_links._links.begin(); it!=obj->_links._links.end(); ++it) {
+		protobuf::LinkSet* links = pbo->add_links();
+		links->set_type(it->first);
+		for (std::set<std::string>::const_iterator it2=it->second.begin(); it2!=it->second.end(); ++it2) {
+			links->add_targets(*it2);
+		}
 	}
 	pbo->SerializeToString(&wire);
 	return getWireSchema();
@@ -448,27 +492,45 @@ std::string IUConverter::serialize(const AnnotatedData& data, std::string& wire)
 }
 
 AnnotatedData IUConverter::deserialize(const std::string& wireSchema, const std::string& wire) {
-	assert(wireSchema == getWireSchema()); // "ipaaca-iu-payload-update"
+	assert(wireSchema == getWireSchema()); // "ipaaca-iu"
 	boost::shared_ptr<protobuf::IU> pbo(new protobuf::IU());
 	pbo->ParseFromString(wire);
-	boost::shared_ptr<IU> obj(new IU());
-	// transfer pbo data to obj
-	obj->uid = pbo->uid();
-	obj->revision = pbo->revision();
-	obj->writer_name = pbo->writer_name();
-	obj->is_delta = pbo->is_delta();
-	for (int i=0; i<pbo->new_items_size(); i++) {
-		const protobuf::PayloadItem& it = pbo->new_items(i);
-		obj->new_items[it.key()] = it.value();
+	IUAccessMode mode = static_cast<IUAccessMode>(pbo->access_mode());
+	switch(mode) {
+		case IU_ACCESS_PUSH:
+			{
+			// Create a "remote push IU"
+			boost::shared_ptr<RemotePushIU> obj(new RemotePushIU());
+			// transfer pbo data to obj
+			obj->_uid = pbo->uid();
+			obj->_revision = pbo->revision();
+			obj->_category = pbo->category();
+			obj->_payload_type = pbo->payload_type();
+			obj->_owner_name = pbo->owner_name();
+			obj->_committed = pbo->committed();
+			obj->_read_only = pbo->read_only();
+			obj->_access_mode = IU_ACCESS_PUSH;
+			for (int i=0; i<pbo->payload_size(); i++) {
+				const protobuf::PayloadItem& it = pbo->payload(i);
+				obj->_payload._store[it.key()] = it.value();
+			}
+			for (int i=0; i<pbo->links_size(); i++) {
+				const protobuf::LinkSet& pls = pbo->links(i);
+				LinkSet& ls = obj->_links._links[pls.type()];
+				for (int j=0; j<pls.targets_size(); j++) {
+					ls.insert(pls.targets(j));
+				}
+			}
+			return std::make_pair(getDataType(), obj);
+			break;
+			}
+		default:
+			// other cases not handled yet! ( TODO )
+			throw NotImplementedError();
 	}
-	for (int i=0; i<pbo->keys_to_remove_size(); i++) {
-		obj->keys_to_remove.push_back(pbo->keys_to_remove(i));
-	}
-	return std::make_pair(getDataType(), obj);
 }
 
 //}}}
-*/
 
 // IUPayloadUpdateConverter//{{{
 

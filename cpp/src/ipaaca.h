@@ -45,18 +45,18 @@ namespace ipaaca {
 typedef uint32_t revision_t;
 
 enum IUEventType {
-	ADDED,
-	COMMITTED,
-	DELETED,
-	RETRACTED,
-	UPDATED,
-	LINKSUPDATED
+	IU_ADDED,
+	IU_COMMITTED,
+	IU_DELETED,
+	IU_RETRACTED,
+	IU_UPDATED,
+	IU_LINKSUPDATED
 };
 
 enum IUAccessMode {
-	PUSH,
-	REMOTE,
-	MESSAGE
+	IU_ACCESS_PUSH,
+	IU_ACCESS_REMOTE,
+	IU_ACCESS_MESSAGE
 };
 
 //class {
@@ -109,11 +109,13 @@ class Lock
 typedef std::set<std::string> LinkSet;
 typedef std::map<std::string, LinkSet> LinkMap;
 class SmartLinkMap {
+	friend class IUInterface;
+	friend class IU;
+	friend class IUConverter;
 	public:
 		const LinkSet& get_links(const std::string& key);
 		const LinkMap& get_all_links();
 	
-	friend class IUInterface;
 	protected:
 		LinkMap _links;
 		void _add_and_remove_links(const LinkMap& add, const LinkMap& remove);
@@ -127,11 +129,34 @@ class Buffer { //: public boost::enable_shared_from_this<Buffer> {
 	friend class IU;
 	friend class RemotePushIU;
 	protected:
+		std::string _unique_name;
+	protected:
 		_IPAACA_ABSTRACT_ virtual void _send_iu_link_update(IUInterface* iu, bool is_delta, revision_t revision, const LinkMap& new_links, const LinkMap& links_to_remove, const std::string& writer_name="undef") = 0;
 		_IPAACA_ABSTRACT_ virtual void _send_iu_payload_update(IUInterface* iu, bool is_delta, revision_t revision, const std::map<std::string, std::string>& new_items, const std::vector<std::string>& keys_to_remove, const std::string& writer_name="undef") = 0;
 		_IPAACA_ABSTRACT_ virtual void _send_iu_commission(IUInterface* iu, revision_t revision, const std::string& writer_name="undef") = 0;
+		void _allocate_unique_name(const std::string& basename);
+		inline Buffer(const std::string& basename) {
+			_allocate_unique_name(basename);
+		}
 	public:
+		virtual inline ~Buffer() { }
+		inline const std::string& unique_name() { return _unique_name; }
 		_IPAACA_ABSTRACT_ virtual void add(boost::shared_ptr<IU> iu) = 0;
+};
+
+class OutputBuffer: public Buffer { //, public boost::enable_shared_from_this<OutputBuffer>  {
+	friend class IU;
+	friend class RemotePushIU;
+	protected:
+		void _send_iu_link_update(IUInterface* iu, bool is_delta, revision_t revision, const LinkMap& new_links, const LinkMap& links_to_remove, const std::string& writer_name="undef");
+		void _send_iu_payload_update(IUInterface* iu, bool is_delta, revision_t revision, const std::map<std::string, std::string>& new_items, const std::vector<std::string>& keys_to_remove, const std::string& writer_name="undef");
+		void _send_iu_commission(IUInterface* iu, revision_t revision, const std::string& writer_name);
+	public:
+		OutputBuffer(const std::string& basename);
+		~OutputBuffer() {
+			IPAACA_IMPLEMENT_ME
+		}
+		void add(boost::shared_ptr<IU> iu);
 };
 
 class InputBuffer: public Buffer { //, public boost::enable_shared_from_this<InputBuffer>  {
@@ -151,21 +176,14 @@ class InputBuffer: public Buffer { //, public boost::enable_shared_from_this<Inp
 			IPAACA_INFO("(ERROR) InputBuffer::_send_iu_commission() should never be invoked")
 		}
 	public:
+		InputBuffer(const std::string& basename);
+		~InputBuffer() {
+			IPAACA_IMPLEMENT_ME
+		}
 		inline void add(boost::shared_ptr<IU> iu)
 		{
 			IPAACA_IMPLEMENT_ME
 		}
-};
-
-class OutputBuffer: public Buffer { //, public boost::enable_shared_from_this<OutputBuffer>  {
-	friend class IU;
-	friend class RemotePushIU;
-	protected:
-		void _send_iu_link_update(IUInterface* iu, bool is_delta, revision_t revision, const LinkMap& new_links, const LinkMap& links_to_remove, const std::string& writer_name="undef");
-		void _send_iu_payload_update(IUInterface* iu, bool is_delta, revision_t revision, const std::map<std::string, std::string>& new_items, const std::vector<std::string>& keys_to_remove, const std::string& writer_name="undef");
-		void _send_iu_commission(IUInterface* iu, revision_t revision, const std::string& writer_name);
-	public:
-		void add(boost::shared_ptr<IU> iu);
 };
 
 /*
@@ -177,6 +195,13 @@ class IUEventFunctionHandler: public rsb::EventFunctionHandler {
 			: EventFunctionHandler(function, method), _buffer(buffer) { }
 };
 */
+
+class IUConverter: public rsb::converter::Converter<std::string> {//{{{
+	public:
+		IUConverter();
+		std::string serialize(const rsb::AnnotatedData& data, std::string& wire);
+		rsb::AnnotatedData deserialize(const std::string& wireSchema, const std::string& wire);
+};//}}}
 
 class IUPayloadUpdate {//{{{
 	public:
@@ -232,14 +257,20 @@ class PayloadEntryProxy//{{{
 
 class Payload//{{{
 {
+	friend class IUInterface;
+	friend class IU;
+	friend class RemotePushIU;
+	friend class IUConverter;
 	protected:
+		std::string _owner_name;
 		std::map<std::string, std::string> _store;
 		boost::shared_ptr<IUInterface> _iu;
 	protected:
-		friend class IU;
-		friend class RemotePushIU;
 		void initialize(boost::shared_ptr<IUInterface> iu);
+		inline void _set_owner_name(const std::string& name) { _owner_name = name; }
 	public:
+		inline const std::string& owner_name() { return _owner_name; }
+		// access
 		PayloadEntryProxy operator[](const std::string& key);
 		void set(const std::string& k, const std::string& v);
 		void remove(const std::string& k);
@@ -248,6 +279,7 @@ class Payload//{{{
 };//}}}
 
 class IUInterface {//{{{
+	friend class IUConverter;
 	protected:
 		IUInterface();
 	public:
@@ -271,6 +303,7 @@ class IUInterface {//{{{
 		_IPAACA_ABSTRACT_ virtual void _modify_links(bool is_delta, const LinkMap& new_links, const LinkMap& links_to_remove, const std::string& writer_name) = 0;
 		_IPAACA_ABSTRACT_ virtual void _modify_payload(bool is_delta, const std::map<std::string, std::string>& new_items, const std::vector<std::string>& keys_to_remove, const std::string& writer_name) = 0;
 		//void _set_buffer(boost::shared_ptr<Buffer> buffer);
+		void _associate_with_buffer(Buffer* buffer);
 		void _set_buffer(Buffer* buffer);
 		void _set_uid(const std::string& uid);
 		void _set_owner_name(const std::string& owner_name);
@@ -280,16 +313,16 @@ class IUInterface {//{{{
 		inline void _replace_links(const LinkMap& links) { _links._replace_links(links); }
 	public:
 		inline bool is_published() { return (_buffer != 0); }
-		inline const std::string& uid() { return _uid; }
-		inline revision_t revision() { return _revision; }
-		inline const std::string& category() { return _category; }
-		inline const std::string& payload_type() { return _payload_type; }
-		inline const std::string& owner_name() { return _owner_name; }
-		inline bool committed() { return _committed; }
-		inline IUAccessMode access_mode() { return _access_mode; }
-		inline bool read_only() { return _read_only; }
+		inline const std::string& uid() const { return _uid; }
+		inline revision_t revision() const { return _revision; }
+		inline const std::string& category() const { return _category; }
+		inline const std::string& payload_type() const { return _payload_type; }
+		inline const std::string& owner_name() const { return _owner_name; }
+		inline bool committed() const { return _committed; }
+		inline IUAccessMode access_mode() const { return _access_mode; }
+		inline bool read_only() const { return _read_only; }
 		//inline boost::shared_ptr<Buffer> buffer() { return _buffer; }
-		inline Buffer* buffer() { return _buffer; }
+		inline Buffer* buffer() const { return _buffer; }
 		inline const LinkSet& get_links(std::string type) { return _links.get_links(type); }
 		inline const LinkMap& get_all_links() { return _links.get_all_links(); }
 		// Payload
@@ -316,12 +349,12 @@ class IU: public IUInterface {//{{{
 		Lock _revision_lock;
 	protected:
 		inline void _increase_revision_number() { _revision++; }
-		IU(const std::string& category="undef", IUAccessMode access_mode=PUSH, bool read_only=false, const std::string& payload_type="MAP" );
+		IU(const std::string& category="undef", IUAccessMode access_mode=IU_ACCESS_PUSH, bool read_only=false, const std::string& payload_type="MAP" );
 	public:
 		inline ~IU() {
 			IPAACA_IMPLEMENT_ME
 		}
-		static boost::shared_ptr<IU> create(const std::string& category="undef", IUAccessMode access_mode=PUSH, bool read_only=false, const std::string& payload_type="MAP" );
+		static boost::shared_ptr<IU> create(const std::string& category="undef", IUAccessMode access_mode=IU_ACCESS_PUSH, bool read_only=false, const std::string& payload_type="MAP" );
 		inline Payload& payload() { return _payload; }
 		void commit();
 	protected:
@@ -337,16 +370,22 @@ class RemotePushIU: public IUInterface {//{{{
 	friend class Buffer;
 	friend class InputBuffer;
 	friend class OutputBuffer;
+	friend class IUConverter;
+	public:
+		Payload _payload;
 	protected:
-		//RemotePushIU();
+		RemotePushIU();
+		static boost::shared_ptr<RemotePushIU> create();
 	public:
 		inline ~RemotePushIU() {
 			IPAACA_IMPLEMENT_ME
 		}
+		inline Payload& payload() { return _payload; }
 		void commit();
 	protected:
 		void _modify_links(bool is_delta, const LinkMap& new_links, const LinkMap& links_to_remove, const std::string& writer_name = "");
 		void _modify_payload(bool is_delta, const std::map<std::string, std::string>& new_items, const std::vector<std::string>& keys_to_remove, const std::string& writer_name = "");
+	typedef boost::shared_ptr<RemotePushIU> ref;
 };//}}}
 
 class Exception: public std::exception//{{{
@@ -398,6 +437,14 @@ class IUAlreadyHasAnOwnerNameError: public Exception//{{{
 		inline ~IUAlreadyHasAnOwnerNameError() throw() { }
 		inline IUAlreadyHasAnOwnerNameError() { //boost::shared_ptr<IU> iu) {
 			_description = "IUAlreadyHasAnOwnerNameError";
+		}
+};//}}}
+class NotImplementedError: public Exception//{{{
+{
+	public:
+		inline ~NotImplementedError() throw() { }
+		inline NotImplementedError() { //boost::shared_ptr<IU> iu) {
+			_description = "NotImplementedError";
 		}
 };//}}}
 
