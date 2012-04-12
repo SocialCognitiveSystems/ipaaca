@@ -12,12 +12,16 @@
 using namespace ipaaca;
 
 #ifdef MAKE_RECEIVER
+void my_first_iu_handler(IUInterface::ptr iu, IUEventType type, bool local)
+{
+	std::cout << "[32m" << iu_event_type_to_str(type) << "[m" << std::endl;
+}
 int main() {
 	try{
 		initialize_ipaaca_rsb();
 		
-		InputBuffer ib("Tester", "testcategory");
-		
+		InputBuffer::ptr ib = InputBuffer::create("Tester", "testcategory");
+		ib->register_handler(my_first_iu_handler);
 		
 		while (true) {
 			sleep(1);
@@ -34,11 +38,11 @@ int main() {
 		initialize_ipaaca_rsb();
 		
 		
-		OutputBuffer ob("Tester");
-		std::cout << "Buffer: " << ob.unique_name() << std::endl;
+		OutputBuffer::ptr ob = OutputBuffer::create("Tester");
+		std::cout << "Buffer: " << ob->unique_name() << std::endl;
 		
 		IU::ref iu = IU::create("testcategory");
-		ob.add(iu);
+		ob->add(iu);
 		
 		std::cout << "_payload.get(\"TEST\") = \"" << iu->_payload.get("TEST") << "\"" << std::endl;
 		std::cout << "_payload[\"TEST\"] = \"" << (std::string) iu->_payload["TEST"] << "\"" << std::endl;

@@ -176,12 +176,52 @@ void SmartLinkMap::_replace_links(const LinkMap& links)
 }
 //}}}
 
+// IUEventHandler//{{{
+IUEventHandler::IUEventHandler(IUEventHandlerFunction function, IUEventType event_mask, const std::string& category)
+: _function(function), _event_mask(event_mask), _for_all_categories(false)
+{
+	if (category=="") {
+		_for_all_categories = true;
+	} else {
+		_categories.insert(category);
+	}
+}
+IUEventHandler::IUEventHandler(IUEventHandlerFunction function, IUEventType event_mask, const std::set<std::string>& categories)
+: _function(function), _event_mask(event_mask), _for_all_categories(false)
+{
+	if (categories.size()==0) {
+		_for_all_categories = true;
+	} else {
+		_categories = categories;
+	}
+}
+void IUEventHandler::call(Buffer* buffer, boost::shared_ptr<IUInterface> iu, bool local, IUEventType event_type, const std::string& category)
+{
+	if (_condition_met(event_type, category)) {
+		//IUInterface::ptr iu = buffer->get(uid);
+		//if (iu) {
+			_function(iu, event_type, local);
+		//}
+	}
+}
+//}}}
+
 // Buffer//{{{
 void Buffer::_allocate_unique_name(const std::string& basename, const std::string& function) {
 	std::string uuid = ipaaca::generate_uuid_string();
 	_basename = basename;
 	_uuid = uuid.substr(0,8);
 	_unique_name = basename + "ID" + _uuid + "/" + function;
+}
+void Buffer::register_handler(IUEventHandlerFunction function, IUEventType event_mask, const std::set<std::string>& categories)
+{
+	IUEventHandler::ptr handler = IUEventHandler::ptr(new IUEventHandler(function, event_mask, categories));
+	_event_handlers.push_back(handler);
+}
+void Buffer::register_handler(IUEventHandlerFunction function, IUEventType event_mask, const std::string& category)
+{
+	IUEventHandler::ptr handler = IUEventHandler::ptr(new IUEventHandler(function, event_mask, category));
+	_event_handlers.push_back(handler);
 }
 //}}}
 
@@ -191,6 +231,16 @@ OutputBuffer::OutputBuffer(const std::string& basename)
 :Buffer(basename, "OB")
 {
 	_id_prefix = _basename + "-" + _uuid + "-IU-";
+}
+OutputBuffer::ptr OutputBuffer::create(const std::string& basename)
+{
+	return OutputBuffer::ptr(new OutputBuffer(basename));
+}
+IUInterface::ptr OutputBuffer::get(const std::string& iu_uid)
+{
+	IUStore::iterator it = _iu_store.find(iu_uid);
+	if (it==_iu_store.end()) return IUInterface::ptr();
+	return it->second;
 }
 
 void OutputBuffer::_send_iu_link_update(IUInterface* iu, bool is_delta, revision_t revision, const LinkMap& new_links, const LinkMap& links_to_remove, const std::string& writer_name)
@@ -363,6 +413,36 @@ InputBuffer::InputBuffer(const std::string& basename, const std::string& categor
 	_create_category_listener_if_needed(category_interest4);
 }
 
+
+InputBuffer::ptr InputBuffer::create(const std::string& basename, const std::vector<std::string>& category_interests)
+{
+	return InputBuffer::ptr(new InputBuffer(basename, category_interests));
+}
+InputBuffer::ptr InputBuffer::create(const std::string& basename, const std::string& category_interest1)
+{
+	return InputBuffer::ptr(new InputBuffer(basename, category_interest1));
+}
+InputBuffer::ptr InputBuffer::create(const std::string& basename, const std::string& category_interest1, const std::string& category_interest2)
+{
+	return InputBuffer::ptr(new InputBuffer(basename, category_interest1, category_interest2));
+}
+InputBuffer::ptr InputBuffer::create(const std::string& basename, const std::string& category_interest1, const std::string& category_interest2, const std::string& category_interest3)
+{
+	return InputBuffer::ptr(new InputBuffer(basename, category_interest1, category_interest2, category_interest3));
+}
+InputBuffer::ptr InputBuffer::create(const std::string& basename, const std::string& category_interest1, const std::string& category_interest2, const std::string& category_interest3, const std::string& category_interest4)
+{
+	return InputBuffer::ptr(new InputBuffer(basename, category_interest1, category_interest2, category_interest3, category_interest4));
+}
+
+IUInterface::ptr InputBuffer::get(const std::string& iu_uid)
+{
+	RemotePushIUStore::iterator it = _iu_store.find(iu_uid); // TODO genericize
+	if (it==_iu_store.end()) return IUInterface::ptr();
+	return it->second;
+}
+
+
 RemoteServerPtr InputBuffer::_get_remote_server(boost::shared_ptr<IU> iu)
 {
 	IPAACA_IMPLEMENT_ME
@@ -397,9 +477,15 @@ ListenerPtr InputBuffer::_create_category_listener_if_needed(const std::string& 
 		return cat_listener
 	*/
 }
-void InputBuffer::call_iu_event_handlers(const std::string& uid, bool local, IUEventType event_type, const std::string& category)
+void InputBuffer::call_iu_event_handlers(boost::shared_ptr<IUInterface> iu, bool local, IUEventType event_type, const std::string& category)
 {
-	IPAACA_INFO("handling an event " << ipaaca::iu_event_type_to_str(event_type) << " for IU " << uid)
+	IPAACA_INFO("handling an event " << ipaaca::iu_event_type_to_str(event_type) << " for IU " << iu->uid())
+	//IUInterface::ptr iu = buffer->get(uid);
+	//if (iu) {
+		for (std::vector<IUEventHandler::ptr>::iterator it = _event_handlers.begin(); it != _event_handlers.end(); ++it) {
+			(*it)->call(this, iu, local, event_type, category);
+		}
+	//}
 }
 void InputBuffer::_handle_iu_events(EventPtr event)
 {
@@ -411,7 +497,7 @@ void InputBuffer::_handle_iu_events(EventPtr event)
 		} else {
 			_iu_store[iu->uid()] = iu;
 			iu->_set_buffer(this);
-			call_iu_event_handlers(iu->uid(), false, IU_ADDED, iu->category() );
+			call_iu_event_handlers(iu, false, IU_ADDED, iu->category() );
 		}
 		IPAACA_INFO( "New RemotePushIU state: " << (*iu) )
 	} else {
@@ -429,7 +515,7 @@ void InputBuffer::_handle_iu_events(EventPtr event)
 			}
 			//
 			it->second->_apply_update(update);
-			call_iu_event_handlers(it->second->uid(), false, IU_UPDATED, it->second->category() );
+			call_iu_event_handlers(it->second, false, IU_UPDATED, it->second->category() );
 			//
 			//
 		} else if (type == "ipaaca::IULinkUpdate") {
@@ -445,7 +531,7 @@ void InputBuffer::_handle_iu_events(EventPtr event)
 			}
 			//
 			it->second->_apply_link_update(update);
-			call_iu_event_handlers(it->second->uid(), false, IU_LINKSUPDATED, it->second->category() );
+			call_iu_event_handlers(it->second, false, IU_LINKSUPDATED, it->second->category() );
 			//
 			//
 		} else if (type == "ipaaca::protobuf::IUCommission") {
@@ -462,7 +548,7 @@ void InputBuffer::_handle_iu_events(EventPtr event)
 			//
 			it->second->_apply_commission();
 			it->second->_revision = update->revision();
-			call_iu_event_handlers(it->second->uid(), false, IU_COMMITTED, it->second->category() );
+			call_iu_event_handlers(it->second, false, IU_COMMITTED, it->second->category() );
 			//
 			//
 		} else {

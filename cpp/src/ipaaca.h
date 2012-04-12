@@ -46,6 +46,18 @@ namespace ipaaca {
 
 typedef uint32_t revision_t;
 
+typedef uint32_t IUEventType;
+
+#define IU_ADDED         1
+#define IU_COMMITTED     2
+#define IU_DELETED       4
+#define IU_RETRACTED     8
+#define IU_UPDATED      16
+#define IU_LINKSUPDATED 32
+//
+#define IU_ALL_EVENTS   63
+
+/*
 enum IUEventType {
 	IU_ADDED,
 	IU_COMMITTED,
@@ -54,6 +66,8 @@ enum IUEventType {
 	IU_UPDATED,
 	IU_LINKSUPDATED
 };
+*/
+
 inline std::string iu_event_type_to_str(IUEventType type)
 {
 	switch(type) {
@@ -63,7 +77,7 @@ inline std::string iu_event_type_to_str(IUEventType type)
 		case IU_RETRACTED: return "RETRACTED";
 		case IU_UPDATED: return "UPDATED";
 		case IU_LINKSUPDATED: return "LINKSUPDATED";
-		default: return "(IU_EVENT_TYPE_UNKNOWN)";
+		default: return "(NOT A KNOWN SINGLE IU EVENT TYPE)";
 	}
 }
 
@@ -90,7 +104,6 @@ class IUPayloadUpdate;
 class IUPayloadUpdateConverter;
 class IUStore;
 class FrozenIUStore;
-class IUEventHandler;
 class Buffer;
 class InputBuffer;
 class OutputBuffer;
@@ -148,6 +161,28 @@ class SmartLinkMap {
 const LinkSet EMPTY_LINK_SET;
 //const std::set<std::string> EMPTY_LINK_SET;
 
+//typedef boost::function<void (const std::string&, bool, IUEventType, const std::string&)> IUEventHandlerFunction;
+typedef boost::function<void (boost::shared_ptr<IUInterface>, IUEventType, bool)> IUEventHandlerFunction;
+
+class IUEventHandler {
+	protected:
+		IUEventHandlerFunction _function;
+		IUEventType _event_mask;
+		bool _for_all_categories;
+		std::set<std::string> _categories;
+	protected:
+		inline bool _condition_met(IUEventType event_type, const std::string& category)
+		{
+			return ((_event_mask&event_type)!=0) && (_for_all_categories || (_categories.count(category)>0));
+		}
+	public:
+		IUEventHandler(IUEventHandlerFunction function, IUEventType event_mask, const std::string& category);
+		IUEventHandler(IUEventHandlerFunction function, IUEventType event_mask, const std::set<std::string>& categories);
+		//void call(Buffer* buffer, const std::string& uid, bool local, IUEventType event_type, const std::string& category);
+		void call(Buffer* buffer, boost::shared_ptr<IUInterface> iu, bool local, IUEventType event_type, const std::string& category);
+	typedef boost::shared_ptr<IUEventHandler> ptr;
+};
+
 class Buffer { //: public boost::enable_shared_from_this<Buffer> {//{{{
 	friend class IU;
 	friend class RemotePushIU;
@@ -156,6 +191,7 @@ class Buffer { //: public boost::enable_shared_from_this<Buffer> {//{{{
 		std::string _basename;
 		std::string _unique_name;
 		std::string _id_prefix;
+		std::vector<IUEventHandler::ptr> _event_handlers;
 	protected:
 		_IPAACA_ABSTRACT_ virtual void _send_iu_link_update(IUInterface* iu, bool is_delta, revision_t revision, const LinkMap& new_links, const LinkMap& links_to_remove, const std::string& writer_name="undef") = 0;
 		_IPAACA_ABSTRACT_ virtual void _send_iu_payload_update(IUInterface* iu, bool is_delta, revision_t revision, const std::map<std::string, std::string>& new_items, const std::vector<std::string>& keys_to_remove, const std::string& writer_name="undef") = 0;
@@ -167,7 +203,10 @@ class Buffer { //: public boost::enable_shared_from_this<Buffer> {//{{{
 	public:
 		virtual inline ~Buffer() { }
 		inline const std::string& unique_name() { return _unique_name; }
+		void register_handler(IUEventHandlerFunction function, IUEventType event_mask, const std::set<std::string>& categories);
+		void register_handler(IUEventHandlerFunction function, IUEventType event_mask = IU_ALL_EVENTS, const std::string& category="");
 		//_IPAACA_ABSTRACT_ virtual void add(boost::shared_ptr<IUInterface> iu) = 0;
+		_IPAACA_ABSTRACT_ virtual boost::shared_ptr<IUInterface> get(const std::string& iu_uid) = 0;
 };
 //}}}
 
@@ -191,14 +230,18 @@ class OutputBuffer: public Buffer { //, public boost::enable_shared_from_this<Ou
 		void _publish_iu(boost::shared_ptr<IU> iu);
 		void _retract_iu(boost::shared_ptr<IU> iu);
 		Informer<AnyType>::Ptr _get_informer(const std::string& category);
-	public:
+	protected:
 		OutputBuffer(const std::string& basename);
+	public:
+		static boost::shared_ptr<OutputBuffer> create(const std::string& basename);
 		~OutputBuffer() {
 			IPAACA_IMPLEMENT_ME
 		}
 		void add(boost::shared_ptr<IU> iu);
 		boost::shared_ptr<IU> remove(const std::string& iu_uid);
 		boost::shared_ptr<IU> remove(boost::shared_ptr<IU> iu);
+		boost::shared_ptr<IUInterface> get(const std::string& iu_uid);
+	typedef boost::shared_ptr<OutputBuffer> ptr;
 };
 //}}}
 
@@ -225,20 +268,28 @@ class InputBuffer: public Buffer { //, public boost::enable_shared_from_this<Inp
 		RemoteServerPtr _get_remote_server(boost::shared_ptr<IU> iu);
 		ListenerPtr _create_category_listener_if_needed(const std::string& category);
 		void _handle_iu_events(EventPtr event);
-		void call_iu_event_handlers(const std::string& uid, bool local, IUEventType event_type, const std::string& category);
-	public:
+		void call_iu_event_handlers(boost::shared_ptr<IUInterface> iu, bool local, IUEventType event_type, const std::string& category);
+	protected:
 		InputBuffer(const std::string& basename, const std::vector<std::string>& category_interests);
 		InputBuffer(const std::string& basename, const std::string& category_interest1);
 		InputBuffer(const std::string& basename, const std::string& category_interest1, const std::string& category_interest2);
 		InputBuffer(const std::string& basename, const std::string& category_interest1, const std::string& category_interest2, const std::string& category_interest3);
 		InputBuffer(const std::string& basename, const std::string& category_interest1, const std::string& category_interest2, const std::string& category_interest3, const std::string& category_interest4);
+	public:
+		static boost::shared_ptr<InputBuffer> create(const std::string& basename, const std::vector<std::string>& category_interests);
+		static boost::shared_ptr<InputBuffer> create(const std::string& basename, const std::string& category_interest1);
+		static boost::shared_ptr<InputBuffer> create(const std::string& basename, const std::string& category_interest1, const std::string& category_interest2);
+		static boost::shared_ptr<InputBuffer> create(const std::string& basename, const std::string& category_interest1, const std::string& category_interest2, const std::string& category_interest3);
+		static boost::shared_ptr<InputBuffer> create(const std::string& basename, const std::string& category_interest1, const std::string& category_interest2, const std::string& category_interest3, const std::string& category_interest4);
 		~InputBuffer() {
 			IPAACA_IMPLEMENT_ME
 		}
+		boost::shared_ptr<IUInterface> get(const std::string& iu_uid);
 		//inline void add(boost::shared_ptr<IU> iu)
 		//{
 		//	IPAACA_IMPLEMENT_ME
 		//}
+	typedef boost::shared_ptr<InputBuffer> ptr;
 };
 //}}}
 
@@ -391,6 +442,7 @@ class IUInterface {//{{{
 		//    (with cpp specific convenience functions:)
 		void add_link(const std::string& type, const std::string& target, const std::string& writer_name = "");
 		void remove_link(const std::string& type, const std::string& target, const std::string& writer_name = "");
+	typedef boost::shared_ptr<IUInterface> ptr;
 };//}}}
 
 class IU: public IUInterface {//{{{
