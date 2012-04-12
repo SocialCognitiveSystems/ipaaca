@@ -5,7 +5,7 @@
 //#include <rsc/logging/LoggerFactory.h>
 // //rsc::logging::LoggerFactory::getInstance().reconfigure(rsc::logging::Logger::LEVEL_ALL);
 
-#ifdef MAKE_RECEIVER
+#if 0
 //boost::mutex mtx;
 using namespace ipaaca;
 
@@ -42,8 +42,11 @@ int main() {
 	}
 	return EXIT_SUCCESS;
 }
-#else
-#ifdef MAKE_SENDER
+//
+//
+//
+//
+
 using namespace ipaaca;
 int main() {
 	initialize_ipaaca_rsb();
@@ -78,7 +81,7 @@ int main() {
 	std::cout << "Done." << std::endl;
 	return EXIT_SUCCESS;
 }
-#else
+#endif
 
 //
 //   TESTS
@@ -86,6 +89,24 @@ int main() {
 
 using namespace ipaaca;
 
+#ifdef MAKE_RECEIVER
+int main() {
+	try{
+		initialize_ipaaca_rsb();
+		
+		InputBuffer ib("TestIB", "testcategory");
+		
+		
+		while (true) {
+			sleep(1);
+		}
+		
+	} catch (ipaaca::Exception& e) {
+		std::cout << "== IPAACA EXCEPTION == " << e.what() << std::endl;
+	}
+}
+#else
+#ifdef MAKE_SENDER
 int main() {
 	try{
 		initialize_ipaaca_rsb();

@@ -7,7 +7,7 @@ LIBS = ${BOOSTLIBS} ${PROTOLIBS} -L/usr/local/lib -lrsc -lrsbcore
 
 COMPILER = gfilt
 
-all: main
+all: receiver sender
 	
 
 receiver:
@@ -23,6 +23,6 @@ protoc:
 	protoc --proto_path=../../proto ../../proto/ipaaca.proto --cpp_out=.
 
 clean:
-	rm -f ipaaca-test ipaaca-sender ipaaca-receiver ipaaca.pb.h ipaaca.pb.cc
+	rm -f ipaaca-main ipaaca-sender ipaaca-receiver ipaaca.pb.h ipaaca.pb.cc
 
 
