@@ -131,6 +131,7 @@ class Lock
 typedef std::set<std::string> LinkSet;
 typedef std::map<std::string, LinkSet> LinkMap;
 class SmartLinkMap {
+	friend std::ostream& operator<<(std::ostream& os, const SmartLinkMap& obj);
 	friend class IUInterface;
 	friend class IU;
 	friend class IUConverter;
@@ -147,7 +148,7 @@ class SmartLinkMap {
 const LinkSet EMPTY_LINK_SET;
 //const std::set<std::string> EMPTY_LINK_SET;
 
-class Buffer { //: public boost::enable_shared_from_this<Buffer> {
+class Buffer { //: public boost::enable_shared_from_this<Buffer> {//{{{
 	friend class IU;
 	friend class RemotePushIU;
 	protected:
@@ -168,8 +169,9 @@ class Buffer { //: public boost::enable_shared_from_this<Buffer> {
 		inline const std::string& unique_name() { return _unique_name; }
 		//_IPAACA_ABSTRACT_ virtual void add(boost::shared_ptr<IUInterface> iu) = 0;
 };
+//}}}
 
-class OutputBuffer: public Buffer { //, public boost::enable_shared_from_this<OutputBuffer>  {
+class OutputBuffer: public Buffer { //, public boost::enable_shared_from_this<OutputBuffer>  {//{{{
 	friend class IU;
 	friend class RemotePushIU;
 	protected:
@@ -198,8 +200,9 @@ class OutputBuffer: public Buffer { //, public boost::enable_shared_from_this<Ou
 		boost::shared_ptr<IU> remove(const std::string& iu_uid);
 		boost::shared_ptr<IU> remove(boost::shared_ptr<IU> iu);
 };
+//}}}
 
-class InputBuffer: public Buffer { //, public boost::enable_shared_from_this<InputBuffer>  {
+class InputBuffer: public Buffer { //, public boost::enable_shared_from_this<InputBuffer>  {//{{{
 	friend class IU;
 	friend class RemotePushIU;
 	protected:
@@ -237,16 +240,7 @@ class InputBuffer: public Buffer { //, public boost::enable_shared_from_this<Inp
 		//	IPAACA_IMPLEMENT_ME
 		//}
 };
-
-/*
-class IUEventFunctionHandler: public rsb::EventFunctionHandler {
-	protected:
-		Buffer* _buffer;
-	public:
-		inline IUEventFunctionHandler(Buffer* buffer, const EventFunction& function, const std::string& method="")
-			: EventFunctionHandler(function, method), _buffer(buffer) { }
-};
-*/
+//}}}
 
 class IUConverter: public rsb::converter::Converter<std::string> {//{{{
 	public:
@@ -513,6 +507,18 @@ class NotImplementedError: public Exception//{{{
 			_description = "NotImplementedError";
 		}
 };//}}}
+
+// (snippets) //{{{
+/*
+class IUEventFunctionHandler: public rsb::EventFunctionHandler {
+	protected:
+		Buffer* _buffer;
+	public:
+		inline IUEventFunctionHandler(Buffer* buffer, const EventFunction& function, const std::string& method="")
+			: EventFunctionHandler(function, method), _buffer(buffer) { }
+};
+*/
+//}}}
 
 } // of namespace ipaaca
 

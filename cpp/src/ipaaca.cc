@@ -47,6 +47,24 @@ void init_inprocess_too() {
 */
 //}}}
 
+std::ostream& operator<<(std::ostream& os, const SmartLinkMap& obj)//{{{
+{
+	os << "{";
+	bool first = true;
+	for (LinkMap::const_iterator it=obj._links.begin(); it!=obj._links.end(); ++it) {
+		if (first) { first=false; } else { os << ", "; }
+		os << "'" << it->first << "': [";
+		bool firstinner = true;
+		for (LinkSet::const_iterator it2=it->second.begin(); it2!=it->second.end(); ++it2) {
+			if (firstinner) { firstinner=false; } else { os << ", "; }
+			os << "'" << *it2 << "'";
+		}
+		os << "]";
+	}
+	os << "}";
+	return os;
+}
+//}}}
 std::ostream& operator<<(std::ostream& os, const Payload& obj)//{{{
 {
 	os << "{";
@@ -61,11 +79,15 @@ std::ostream& operator<<(std::ostream& os, const Payload& obj)//{{{
 //}}}
 std::ostream& operator<<(std::ostream& os, const IUInterface& obj)//{{{
 {
-	os << "IUInterface(uid=" << obj.uid() << ", revision=" << obj.revision();
-	os << ", owner_name=" << obj.owner_name();
-	os << ", payload = ";
-	bool first = true;
+	os << "IUInterface(uid='" << obj.uid() << "'";
+	os << ", category='" << obj.category() << "'";
+	os << ", revision=" << obj.revision();
+	os << ", committed=" << (obj.committed()?"True":"False");
+	os << ", owner_name='" << obj.owner_name() << "'";
+	os << ", payload=";
 	os << obj.const_payload();
+	os << ", links=";
+	os << obj._links;
 	os << ")";
 	return os;
 }
@@ -520,6 +542,25 @@ void IUInterface::_associate_with_buffer(Buffer* buffer) { //boost::shared_ptr<B
 	payload()._set_owner_name(buffer->unique_name());
 }
 
+/// C++-specific convenience function to add one single link
+void IUInterface::add_link(const std::string& type, const std::string& target, const std::string& writer_name)
+{
+	LinkMap none;
+	LinkMap add;
+	add[type].insert(target);
+	_modify_links(true, add, none, writer_name);
+	_add_and_remove_links(add, none);
+}
+/// C++-specific convenience function to remove one single link
+void IUInterface::remove_link(const std::string& type, const std::string& target, const std::string& writer_name)
+{
+	LinkMap none;
+	LinkMap remove;
+	remove[type].insert(target);
+	_modify_links(true, none, remove, writer_name);
+	_add_and_remove_links(none, remove);
+}
+
 void IUInterface::add_links(const std::string& type, const LinkSet& targets, const std::string& writer_name)
 {
 	LinkMap none;
@@ -674,7 +715,7 @@ void RemotePushIU::_apply_update(IUPayloadUpdate::ptr update)
 }
 void RemotePushIU::_apply_commission()
 {
-	IPAACA_IMPLEMENT_ME
+	_committed = true;
 }
 void Payload::_remotely_enforced_wipe()
 {
