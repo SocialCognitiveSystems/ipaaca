@@ -14,7 +14,7 @@ using namespace ipaaca;
 #ifdef MAKE_RECEIVER
 void my_first_iu_handler(IUInterface::ptr iu, IUEventType type, bool local)
 {
-	std::cout << "[32m" << iu_event_type_to_str(type) << "[m" << std::endl;
+	std::cout << "[32m" << iu_event_type_to_str(type) << " " << (local?"(of local IU)":"(of remote IU)") << "[m" << std::endl;
 	if (type == IU_LINKSUPDATED) {
 		std::cout << "  setting something in the remote payload" << std::endl;
 		iu->payload()["new_field"] = "remotely_set";
@@ -22,7 +22,7 @@ void my_first_iu_handler(IUInterface::ptr iu, IUEventType type, bool local)
 }
 int main() {
 	try{
-		initialize_ipaaca_rsb();
+		//initialize_ipaaca_rsb();
 		
 		InputBuffer::ptr ib = InputBuffer::create("Tester", "testcategory");
 		ib->register_handler(my_first_iu_handler);
@@ -37,13 +37,18 @@ int main() {
 }
 #else
 #ifdef MAKE_SENDER
+void iu_handler_for_remote_changes(IUInterface::ptr iu, IUEventType type, bool local)
+{
+	std::cout << "[32m" << iu_event_type_to_str(type) << " " << (local?"(of local IU)":"(of remote IU)") << "[m" << std::endl;
+}
 int main() {
 	try{
-		initialize_ipaaca_rsb();
+		//initialize_ipaaca_rsb();
 		
 		
 		OutputBuffer::ptr ob = OutputBuffer::create("Tester");
-		std::cout << "Buffer: " << ob->unique_name() << std::endl;
+		ob->register_handler(iu_handler_for_remote_changes);
+		//std::cout << "Buffer: " << ob->unique_name() << std::endl;
 		
 		IU::ptr iu = IU::create("testcategory");
 		ob->add(iu);

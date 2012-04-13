@@ -156,6 +156,7 @@ class SmartLinkMap {
 	
 	protected:
 		LinkMap _links;
+		static LinkSet empty_link_set;
 		void _add_and_remove_links(const LinkMap& add, const LinkMap& remove);
 		void _replace_links(const LinkMap& links);
 };
@@ -213,6 +214,7 @@ class Buffer { //: public boost::enable_shared_from_this<Buffer> {//{{{
 		void register_handler(IUEventHandlerFunction function, IUEventType event_mask = IU_ALL_EVENTS, const std::string& category="");
 		//_IPAACA_ABSTRACT_ virtual void add(boost::shared_ptr<IUInterface> iu) = 0;
 		_IPAACA_ABSTRACT_ virtual boost::shared_ptr<IUInterface> get(const std::string& iu_uid) = 0;
+		_IPAACA_ABSTRACT_ virtual std::set<boost::shared_ptr<IUInterface> > get_ius() = 0;
 };
 //}}}
 
@@ -274,6 +276,7 @@ class OutputBuffer: public Buffer { //, public boost::enable_shared_from_this<Ou
 		boost::shared_ptr<IU> remove(const std::string& iu_uid);
 		boost::shared_ptr<IU> remove(boost::shared_ptr<IU> iu);
 		boost::shared_ptr<IUInterface> get(const std::string& iu_uid);
+		std::set<boost::shared_ptr<IUInterface> > get_ius();
 	typedef boost::shared_ptr<OutputBuffer> ptr;
 };
 //}}}
@@ -318,6 +321,7 @@ class InputBuffer: public Buffer { //, public boost::enable_shared_from_this<Inp
 			IPAACA_IMPLEMENT_ME
 		}
 		boost::shared_ptr<IUInterface> get(const std::string& iu_uid);
+		std::set<boost::shared_ptr<IUInterface> > get_ius();
 		//inline void add(boost::shared_ptr<IU> iu)
 		//{
 		//	IPAACA_IMPLEMENT_ME
@@ -369,7 +373,22 @@ class IULinkUpdateConverter: public rsb::converter::Converter<std::string> {//{{
 		rsb::AnnotatedData deserialize(const std::string& wireSchema, const std::string& wire);
 };//}}}
 
-void initialize_ipaaca_rsb();
+
+class IntConverter: public rsb::converter::Converter<std::string> {//{{{
+	public:
+		IntConverter();
+		std::string serialize(const rsb::AnnotatedData& data, std::string& wire);
+		rsb::AnnotatedData deserialize(const std::string& wireSchema, const std::string& wire);
+};//}}}
+
+class Initializer
+{
+	public:
+		static void initialize_ipaaca_rsb_if_needed();
+		static bool initialized();
+	protected:
+		static bool _initialized;
+};
 
 class PayloadEntryProxy//{{{
 {
