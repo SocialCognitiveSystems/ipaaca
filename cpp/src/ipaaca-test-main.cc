@@ -15,6 +15,10 @@ using namespace ipaaca;
 void my_first_iu_handler(IUInterface::ptr iu, IUEventType type, bool local)
 {
 	std::cout << "[32m" << iu_event_type_to_str(type) << "[m" << std::endl;
+	if (type == IU_LINKSUPDATED) {
+		std::cout << "  setting something in the remote payload" << std::endl;
+		iu->payload()["new_field"] = "remotely_set";
+	}
 }
 int main() {
 	try{
@@ -41,7 +45,7 @@ int main() {
 		OutputBuffer::ptr ob = OutputBuffer::create("Tester");
 		std::cout << "Buffer: " << ob->unique_name() << std::endl;
 		
-		IU::ref iu = IU::create("testcategory");
+		IU::ptr iu = IU::create("testcategory");
 		ob->add(iu);
 		
 		std::cout << "_payload.get(\"TEST\") = \"" << iu->_payload.get("TEST") << "\"" << std::endl;
@@ -52,10 +56,13 @@ int main() {
 		std::string s = "The string \"" + iu->_payload["TEST"].to_str() + "\" is the new value.";
 		std::cout << "Concatenation test: " << s << std::endl;
 		
-		iu->add_link("grin", "DUMMY_IU_UID");
+		iu->add_link("grin", "DUMMY_IU_UID_1234efef1234");
 		
 		std::cout << "Interpreted as  long  value: " << iu->_payload["TEST"].to_int() << std::endl;
 		std::cout << "Interpreted as double value: " << iu->_payload["TEST"].to_float() << std::endl;
+		
+		std::cout << "Committing and quitting in 1 sec" << std::endl;
+		sleep(1);
 		iu->commit();
 	} catch (ipaaca::Exception& e) {
 		std::cout << "== IPAACA EXCEPTION == " << e.what() << std::endl;

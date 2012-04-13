@@ -3,10 +3,12 @@
 
 #ifdef IPAACA_DEBUG_MESSAGES
 #define IPAACA_INFO(i) std::cout << __FILE__ << ":" << __LINE__ << ": " << __func__ << "() -- " << i << std::endl;
+#define IPAACA_WARNING(i) std::cout << __FILE__ << ":" << __LINE__ << ": " << __func__ << "() -- WARNING: " << i << std::endl;
 #define IPAACA_IMPLEMENT_ME std::cout << __FILE__ << ":" << __LINE__ << ": " << __func__ << "() -- IMPLEMENT ME" << std::endl;
 #define IPAACA_TODO(i) std::cout << __FILE__ << ":" << __LINE__ << ": " << __func__ << "() -- TODO: " << i << std::endl;
 #else
 #define IPAACA_INFO(i) ;
+#define IPAACA_WARNING(i) ;
 #define IPAACA_IMPLEMENT_ME(i) ;
 #define IPAACA_TODO(i) ;
 #endif
@@ -186,6 +188,9 @@ class IUEventHandler {
 class Buffer { //: public boost::enable_shared_from_this<Buffer> {//{{{
 	friend class IU;
 	friend class RemotePushIU;
+	friend class CallbackIUPayloadUpdate;
+	friend class CallbackIULinkUpdate;
+	friend class CallbackIUCommission;
 	protected:
 		std::string _uuid;
 		std::string _basename;
@@ -200,6 +205,7 @@ class Buffer { //: public boost::enable_shared_from_this<Buffer> {//{{{
 		inline Buffer(const std::string& basename, const std::string& function) {
 			_allocate_unique_name(basename, function);
 		}
+		void call_iu_event_handlers(boost::shared_ptr<IUInterface> iu, bool local, IUEventType event_type, const std::string& category);
 	public:
 		virtual inline ~Buffer() { }
 		inline const std::string& unique_name() { return _unique_name; }
@@ -210,13 +216,39 @@ class Buffer { //: public boost::enable_shared_from_this<Buffer> {//{{{
 };
 //}}}
 
+class CallbackIUPayloadUpdate: public Server::Callback<IUPayloadUpdate, int> {
+	protected:
+		Buffer* _buffer;
+	public:
+		CallbackIUPayloadUpdate(Buffer* buffer);
+		boost::shared_ptr<int> call(const std::string& methodName, boost::shared_ptr<IUPayloadUpdate> update);
+};
+class CallbackIULinkUpdate: public Server::Callback<IULinkUpdate, int> {
+	protected:
+		Buffer* _buffer;
+	public:
+		CallbackIULinkUpdate(Buffer* buffer);
+	public:
+		boost::shared_ptr<int> call(const std::string& methodName, boost::shared_ptr<IULinkUpdate> update);
+};
+class CallbackIUCommission: public Server::Callback<protobuf::IUCommission, int> {
+	protected:
+		Buffer* _buffer;
+	public:
+		CallbackIUCommission(Buffer* buffer);
+	public:
+		boost::shared_ptr<int> call(const std::string& methodName, boost::shared_ptr<protobuf::IUCommission> update);
+};
+
 class OutputBuffer: public Buffer { //, public boost::enable_shared_from_this<OutputBuffer>  {//{{{
 	friend class IU;
 	friend class RemotePushIU;
 	protected:
+	protected:
 		std::map<std::string, Informer<AnyType>::Ptr> _informer_store;
 		IUStore _iu_store;
 		Lock _iu_id_counter_lock;
+		ServerPtr _server;
 	protected:
 		// informing functions
 		void _send_iu_link_update(IUInterface* iu, bool is_delta, revision_t revision, const LinkMap& new_links, const LinkMap& links_to_remove, const std::string& writer_name="undef");
@@ -232,6 +264,7 @@ class OutputBuffer: public Buffer { //, public boost::enable_shared_from_this<Ou
 		Informer<AnyType>::Ptr _get_informer(const std::string& category);
 	protected:
 		OutputBuffer(const std::string& basename);
+		void _initialize_server();
 	public:
 		static boost::shared_ptr<OutputBuffer> create(const std::string& basename);
 		~OutputBuffer() {
@@ -250,6 +283,7 @@ class InputBuffer: public Buffer { //, public boost::enable_shared_from_this<Inp
 	friend class RemotePushIU;
 	protected:
 		std::map<std::string, ListenerPtr> _listener_store;
+		std::map<std::string, RemoteServerPtr> _remote_server_store;
 		RemotePushIUStore _iu_store;  // TODO genericize
 	protected:
 		inline void _send_iu_link_update(IUInterface* iu, bool is_delta, revision_t revision, const LinkMap& new_links, const LinkMap& links_to_remove, const std::string& writer_name="undef")
@@ -265,10 +299,9 @@ class InputBuffer: public Buffer { //, public boost::enable_shared_from_this<Inp
 			IPAACA_INFO("(ERROR) InputBuffer::_send_iu_commission() should never be invoked")
 		}
 	protected:
-		RemoteServerPtr _get_remote_server(boost::shared_ptr<IU> iu);
+		RemoteServerPtr _get_remote_server(const std::string& unique_server_name);
 		ListenerPtr _create_category_listener_if_needed(const std::string& category);
 		void _handle_iu_events(EventPtr event);
-		void call_iu_event_handlers(boost::shared_ptr<IUInterface> iu, bool local, IUEventType event_type, const std::string& category);
 	protected:
 		InputBuffer(const std::string& basename, const std::vector<std::string>& category_interests);
 		InputBuffer(const std::string& basename, const std::string& category_interest1);
@@ -361,6 +394,7 @@ class Payload//{{{
 	friend class IU;
 	friend class RemotePushIU;
 	friend class IUConverter;
+	friend class CallbackIUPayloadUpdate;
 	protected:
 		std::string _owner_name;
 		std::map<std::string, std::string> _store;
@@ -371,14 +405,17 @@ class Payload//{{{
 		void _remotely_enforced_wipe();
 		void _remotely_enforced_delitem(const std::string& k);
 		void _remotely_enforced_setitem(const std::string& k, const std::string& v);
+		void _internal_replace_all(const std::map<std::string, std::string>& new_contents, const std::string& writer_name="");
+		void _internal_set(const std::string& k, const std::string& v, const std::string& writer_name="");
+		void _internal_remove(const std::string& k, const std::string& writer_name="");
 	public:
 		inline const std::string& owner_name() { return _owner_name; }
 		// access
 		PayloadEntryProxy operator[](const std::string& key);
-		void set(const std::string& k, const std::string& v);
-		void remove(const std::string& k);
+		inline void set(const std::string& k, const std::string& v) { _internal_set(k, v); }
+		inline void remove(const std::string& k) { _internal_remove(k); }
 		std::string get(const std::string& k);
-	typedef boost::shared_ptr<Payload> ref;
+	typedef boost::shared_ptr<Payload> ptr;
 };//}}}
 
 class IUInterface {//{{{
@@ -449,6 +486,9 @@ class IU: public IUInterface {//{{{
 	friend class Buffer;
 	friend class InputBuffer;
 	friend class OutputBuffer;
+	friend class CallbackIUPayloadUpdate;
+	friend class CallbackIULinkUpdate;
+	friend class CallbackIUCommission;
 	public:
 		Payload _payload;
 	protected:
@@ -470,7 +510,7 @@ class IU: public IUInterface {//{{{
 	protected:
 		void _internal_commit(const std::string& writer_name = "");
 	public:
-	typedef boost::shared_ptr<IU> ref;
+	typedef boost::shared_ptr<IU> ptr;
 };//}}}
 
 class RemotePushIU: public IUInterface {//{{{
@@ -497,7 +537,7 @@ class RemotePushIU: public IUInterface {//{{{
 		void _apply_update(IUPayloadUpdate::ptr update);
 		void _apply_link_update(IULinkUpdate::ptr update);
 		void _apply_commission();
-	typedef boost::shared_ptr<RemotePushIU> ref;
+	typedef boost::shared_ptr<RemotePushIU> ptr;
 };//}}}
 
 class Exception: public std::exception//{{{
@@ -525,6 +565,22 @@ class IUCommittedError: public Exception//{{{
 		inline ~IUCommittedError() throw() { }
 		inline IUCommittedError() { //boost::shared_ptr<IU> iu) {
 			_description = "IUCommittedError";
+		}
+};//}}}
+class IUUpdateFailedError: public Exception//{{{
+{
+	public:
+		inline ~IUUpdateFailedError() throw() { }
+		inline IUUpdateFailedError() { //boost::shared_ptr<IU> iu) {
+			_description = "IUUpdateFailedError";
+		}
+};//}}}
+class IUReadOnlyError: public Exception//{{{
+{
+	public:
+		inline ~IUReadOnlyError() throw() { }
+		inline IUReadOnlyError() { //boost::shared_ptr<IU> iu) {
+			_description = "IUReadOnlyError";
 		}
 };//}}}
 class IUAlreadyInABufferError: public Exception//{{{
