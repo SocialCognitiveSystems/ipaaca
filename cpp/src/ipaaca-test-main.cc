@@ -53,6 +53,9 @@ int main() {
 		IU::ptr iu = IU::create("testcategory");
 		ob->add(iu);
 		
+		std::cout << "Updating in 1 sec" << std::endl;
+		sleep(1);
+		
 		std::cout << "_payload.get(\"TEST\") = \"" << iu->_payload.get("TEST") << "\"" << std::endl;
 		std::cout << "_payload[\"TEST\"] = \"" << (std::string) iu->_payload["TEST"] << "\"" << std::endl;
 		iu->_payload["TEST"] = "123.5-WAS-SET";

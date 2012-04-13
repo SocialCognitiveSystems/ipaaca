@@ -1,6 +1,17 @@
 #ifndef __IPAACA_H__
 #define __IPAACA_H_
 
+/// ipaaca/IU/RSB protocol major version number
+#define IPAACA_PROTOCOL_VERSION_MAJOR         1
+/// ipaaca/IU/RSB protocol minor version number
+#define IPAACA_PROTOCOL_VERSION_MINOR         0
+
+/// running release number of ipaaca-c++
+#define IPAACA_CPP_RELEASE_NUMBER             1
+/// date of last release number increment
+#define IPAACA_CPP_RELEASE_DATE     "2012-04-13"
+
+
 #ifdef IPAACA_DEBUG_MESSAGES
 #define IPAACA_INFO(i) std::cout << __FILE__ << ":" << __LINE__ << ": " << __func__ << "() -- " << i << std::endl;
 #define IPAACA_WARNING(i) std::cout << __FILE__ << ":" << __LINE__ << ": " << __func__ << "() -- WARNING: " << i << std::endl;
@@ -13,9 +24,10 @@
 #define IPAACA_TODO(i) ;
 #endif
 
-// just for marking pure virtual functions for readability
+/// marking pure virtual functions for extra readability
 #define _IPAACA_ABSTRACT_
 
+/// value to return when reading nonexistant payload keys
 #define IPAACA_PAYLOAD_DEFAULT_STRING_VALUE ""
 
 #include <iostream>
@@ -48,28 +60,18 @@ namespace ipaaca {
 
 typedef uint32_t revision_t;
 
+/// Type of the IU event. Realized as an integer to enable bit masks for filters.
 typedef uint32_t IUEventType;
-
 #define IU_ADDED         1
 #define IU_COMMITTED     2
 #define IU_DELETED       4
 #define IU_RETRACTED     8
 #define IU_UPDATED      16
 #define IU_LINKSUPDATED 32
-//
+/// Bit mask for receiving all events
 #define IU_ALL_EVENTS   63
 
-/*
-enum IUEventType {
-	IU_ADDED,
-	IU_COMMITTED,
-	IU_DELETED,
-	IU_RETRACTED,
-	IU_UPDATED,
-	IU_LINKSUPDATED
-};
-*/
-
+/// Convert an int event type to a human-readable string
 inline std::string iu_event_type_to_str(IUEventType type)
 {
 	switch(type) {
@@ -83,17 +85,12 @@ inline std::string iu_event_type_to_str(IUEventType type)
 	}
 }
 
+/// IU access mode: PUSH means that updates are broadcast; REMOTE means that reads are RPC calls; MESSAGE means a fire-and-forget message
 enum IUAccessMode {
 	IU_ACCESS_PUSH,
 	IU_ACCESS_REMOTE,
 	IU_ACCESS_MESSAGE
 };
-
-//class {
-//public:
-//    template<typename T>
-//    operator shared_ptr<T>() { return shared_ptr<T>(); }
-//} NullPointer;
 
 class PayloadEntryProxy;
 class Payload;
@@ -110,16 +107,19 @@ class Buffer;
 class InputBuffer;
 class OutputBuffer;
 
+/// generate a UUID as an ASCII string
 std::string generate_uuid_string();
 
+/// store for (local) IUs. TODO Stores need to be unified more
 class IUStore: public std::map<std::string, boost::shared_ptr<IU> >
 {
 };
+/// store for RemotePushIUs. TODO Stores need to be unified more
 class RemotePushIUStore: public std::map<std::string, boost::shared_ptr<RemotePushIU> > // TODO genericize to all remote IU types
 {
 };
 
-
+/// a reentrant lock/mutex
 class Lock
 {
 	protected:
@@ -291,15 +291,15 @@ class InputBuffer: public Buffer { //, public boost::enable_shared_from_this<Inp
 	protected:
 		inline void _send_iu_link_update(IUInterface* iu, bool is_delta, revision_t revision, const LinkMap& new_links, const LinkMap& links_to_remove, const std::string& writer_name="undef")
 		{
-			IPAACA_INFO("(ERROR) InputBuffer::_send_iu_link_update() should never be invoked")
+			IPAACA_WARNING("(ERROR) InputBuffer::_send_iu_link_update() should never be invoked")
 		}
 		inline void _send_iu_payload_update(IUInterface* iu, bool is_delta, revision_t revision, const std::map<std::string, std::string>& new_items, const std::vector<std::string>& keys_to_remove, const std::string& writer_name="undef")
 		{
-			IPAACA_INFO("(ERROR) InputBuffer::_send_iu_payload_update() should never be invoked")
+			IPAACA_WARNING("(ERROR) InputBuffer::_send_iu_payload_update() should never be invoked")
 		}
 		inline void _send_iu_commission(IUInterface* iu, revision_t revision, const std::string& writer_name="undef")
 		{
-			IPAACA_INFO("(ERROR) InputBuffer::_send_iu_commission() should never be invoked")
+			IPAACA_WARNING("(ERROR) InputBuffer::_send_iu_commission() should never be invoked")
 		}
 	protected:
 		RemoteServerPtr _get_remote_server(const std::string& unique_server_name);
@@ -322,10 +322,6 @@ class InputBuffer: public Buffer { //, public boost::enable_shared_from_this<Inp
 		}
 		boost::shared_ptr<IUInterface> get(const std::string& iu_uid);
 		std::set<boost::shared_ptr<IUInterface> > get_ius();
-		//inline void add(boost::shared_ptr<IU> iu)
-		//{
-		//	IPAACA_IMPLEMENT_ME
-		//}
 	typedef boost::shared_ptr<InputBuffer> ptr;
 };
 //}}}
@@ -568,6 +564,14 @@ class Exception: public std::exception//{{{
 		inline ~Exception() throw() { }
 		const char* what() const throw() {
 			return _description.c_str();
+		}
+};//}}}
+class IUNotFoundError: public Exception//{{{
+{
+	public:
+		inline ~IUNotFoundError() throw() { }
+		inline IUNotFoundError() { //boost::shared_ptr<IU> iu) {
+			_description = "IUNotFoundError";
 		}
 };//}}}
 class IUPublishedError: public Exception//{{{

@@ -247,13 +247,10 @@ void Buffer::register_handler(IUEventHandlerFunction function, IUEventType event
 }
 void Buffer::call_iu_event_handlers(boost::shared_ptr<IUInterface> iu, bool local, IUEventType event_type, const std::string& category)
 {
-	IPAACA_INFO("handling an event " << ipaaca::iu_event_type_to_str(event_type) << " for IU " << iu->uid())
-	//IUInterface::ptr iu = buffer->get(uid);
-	//if (iu) {
-		for (std::vector<IUEventHandler::ptr>::iterator it = _event_handlers.begin(); it != _event_handlers.end(); ++it) {
-			(*it)->call(this, iu, local, event_type, category);
-		}
-	//}
+	//IPAACA_INFO("handling an event " << ipaaca::iu_event_type_to_str(event_type) << " for IU " << iu->uid())
+	for (std::vector<IUEventHandler::ptr>::iterator it = _event_handlers.begin(); it != _event_handlers.end(); ++it) {
+		(*it)->call(this, iu, local, event_type, category);
+	}
 }
 //}}}
 
@@ -441,7 +438,7 @@ Informer<AnyType>::Ptr OutputBuffer::_get_informer(const std::string& category)
 	if (_informer_store.count(category) > 0) {
 		return _informer_store[category];
 	} else {
-		IPAACA_INFO("making new informer for category " << category)
+		//IPAACA_INFO("Making new informer for category " << category)
 		std::string scope_string = "/ipaaca/category/" + category;
 		Informer<AnyType>::Ptr informer = Factory::getInstance().createInformer<AnyType> ( Scope(scope_string));
 		_informer_store[category] = informer;
@@ -450,12 +447,27 @@ Informer<AnyType>::Ptr OutputBuffer::_get_informer(const std::string& category)
 }
 boost::shared_ptr<IU> OutputBuffer::remove(const std::string& iu_uid)
 {
-	IPAACA_IMPLEMENT_ME
+	IUStore::iterator it = _iu_store.find(iu_uid);
+	if (it == _iu_store.end()) throw IUNotFoundError();
+	IU::ptr iu = it->second;
+	_retract_iu(iu);
+	_iu_store.erase(iu_uid);
+	return iu;
 }
 boost::shared_ptr<IU> OutputBuffer::remove(IU::ptr iu)
 {
-	IPAACA_IMPLEMENT_ME
+	return remove(iu->uid()); // to make sure it is in the store
 }
+
+void OutputBuffer::_retract_iu(IU::ptr iu)
+{
+	Informer<protobuf::IURetraction>::DataPtr data(new protobuf::IURetraction());
+	data->set_uid(iu->uid());
+	data->set_revision(iu->revision());
+	Informer<AnyType>::Ptr informer = _get_informer(iu->category());
+	informer->publish(data);
+}
+
 
 //}}}
 
@@ -546,10 +558,9 @@ RemoteServerPtr InputBuffer::_get_remote_server(const std::string& unique_server
 
 ListenerPtr InputBuffer::_create_category_listener_if_needed(const std::string& category)
 {
-	IPAACA_INFO("entering")
 	std::map<std::string, ListenerPtr>::iterator it = _listener_store.find(category);
 	if (it!=_listener_store.end()) return it->second;
-	IPAACA_INFO("creating a new listener")
+	//IPAACA_INFO("Creating a new listener for category " << category)
 	std::string scope_string = "/ipaaca/category/" + category;
 	ListenerPtr listener = Factory::getInstance().createListener( Scope(scope_string) );
 	HandlerPtr event_handler = HandlerPtr(
@@ -559,7 +570,6 @@ ListenerPtr InputBuffer::_create_category_listener_if_needed(const std::string& 
 		);
 	listener->addHandler(event_handler);
 	_listener_store[category] = listener;
-	IPAACA_INFO("done")
 	return listener;
 	/*
 		'''Return (or create, store and return) a category listener.'''
@@ -584,14 +594,13 @@ void InputBuffer::_handle_iu_events(EventPtr event)
 			iu->_set_buffer(this);
 			call_iu_event_handlers(iu, false, IU_ADDED, iu->category() );
 		}
-		IPAACA_INFO( "New RemotePushIU state: " << (*iu) )
+		//IPAACA_INFO( "New RemotePushIU state: " << (*iu) )
 	} else {
 		RemotePushIUStore::iterator it;
 		if (type == "ipaaca::IUPayloadUpdate") {
 			boost::shared_ptr<IUPayloadUpdate> update = boost::static_pointer_cast<IUPayloadUpdate>(event->getData());
-			IPAACA_INFO("** writer name: " << update->writer_name)
+			//IPAACA_INFO("** writer name: " << update->writer_name)
 			if (update->writer_name == _unique_name) {
-				//IPAACA_INFO("Ignoring locally-written IU update")
 				return;
 			}
 			it = _iu_store.find(update->uid);
@@ -607,7 +616,6 @@ void InputBuffer::_handle_iu_events(EventPtr event)
 		} else if (type == "ipaaca::IULinkUpdate") {
 			boost::shared_ptr<IULinkUpdate> update = boost::static_pointer_cast<IULinkUpdate>(event->getData());
 			if (update->writer_name == _unique_name) {
-				//IPAACA_INFO("Ignoring locally-written IU update")
 				return;
 			}
 			it = _iu_store.find(update->uid);
@@ -623,7 +631,6 @@ void InputBuffer::_handle_iu_events(EventPtr event)
 		} else if (type == "ipaaca::protobuf::IUCommission") {
 			boost::shared_ptr<protobuf::IUCommission> update = boost::static_pointer_cast<protobuf::IUCommission>(event->getData());
 			if (update->writer_name() == _unique_name) {
-				//IPAACA_INFO("Ignoring locally-written IU commit")
 				return;
 			}
 			it = _iu_store.find(update->uid());
@@ -641,37 +648,8 @@ void InputBuffer::_handle_iu_events(EventPtr event)
 			std::cout << "(Unhandled Event type " << type << " !)" << std::endl;
 			return;
 		}
-		IPAACA_INFO( "New RemotePushIU state: " << *(it->second) )
+		//IPAACA_INFO( "New RemotePushIU state: " << *(it->second) )
 	}
-	/*
-	else:
-		# an update to an existing IU
-		if event.data.writer_name == self.unique_name:
-			# Discard updates that originate from this buffer
-			return
-		if event.data.uid not in self._iu_store:
-			# TODO: we should request the IU's owner to send us the IU
-			logger.warning("Update message for IU which we did not fully receive before.")
-			return
-		if type_ is ipaaca_pb2.IUCommission:
-			# IU commit
-			iu = self._iu_store[event.data.uid]
-			iu._apply_commission()
-			iu._revision = event.data.revision
-			self.call_iu_event_handlers(event.data.uid, local=False, event_type=IUEventType.COMMITTED, category=iu.category)
-		elif type_ is IUPayloadUpdate:
-			# IU payload update
-			iu = self._iu_store[event.data.uid]
-			iu._apply_update(event.data)
-			self.call_iu_event_handlers(event.data.uid, local=False, event_type=IUEventType.UPDATED, category=iu.category)
-		elif type_ is IULinkUpdate:
-			# IU link update
-			iu = self._iu_store[event.data.uid]
-			iu._apply_link_update(event.data)
-			self.call_iu_event_handlers(event.data.uid, local=False, event_type=IUEventType.LINKSUPDATED, category=iu.category)
-		else:
-			logger.warning('Warning: _handle_iu_events failed to handle an object of type '+str(type_))
-	*/
 }
 
 //}}}
@@ -1036,7 +1014,6 @@ IUConverter::IUConverter()
 
 std::string IUConverter::serialize(const AnnotatedData& data, std::string& wire)
 {
-	IPAACA_INFO("entering")
 	// Ensure that DATA actually holds a datum of the data-type we expect.
 	assert(data.first == getDataType()); // "ipaaca::IU"
 	// NOTE: a dynamic_pointer_cast cannot be used from void*
@@ -1065,7 +1042,6 @@ std::string IUConverter::serialize(const AnnotatedData& data, std::string& wire)
 		}
 	}
 	pbo->SerializeToString(&wire);
-	IPAACA_INFO("leaving")
 	return getWireSchema();
 
 }
@@ -1231,13 +1207,12 @@ AnnotatedData IULinkUpdateConverter::deserialize(const std::string& wireSchema, 
 // IntConverter//{{{
 
 IntConverter::IntConverter()
-: Converter<std::string> ("int", "int", true)
+: Converter<std::string> ("int", "int32", true)
 {
 }
 
 std::string IntConverter::serialize(const AnnotatedData& data, std::string& wire)
 {
-	IPAACA_INFO("entering")
 	// Ensure that DATA actually holds a datum of the data-type we expect.
 	assert(data.first == getDataType()); // "int"
 	// NOTE: a dynamic_pointer_cast cannot be used from void*
@@ -1246,7 +1221,6 @@ std::string IntConverter::serialize(const AnnotatedData& data, std::string& wire
 	// transfer obj data to pbo
 	pbo->set_value(*obj);
 	pbo->SerializeToString(&wire);
-	IPAACA_INFO("leaving")
 	return getWireSchema();
 
 }
