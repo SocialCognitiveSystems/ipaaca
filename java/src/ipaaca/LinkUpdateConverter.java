@@ -12,6 +12,11 @@ import rsb.converter.WireContents;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 
+/**
+ * Serializer/deserializer for IULinkUpdate
+ * @author hvanwelbergen
+ *
+ */
 public class LinkUpdateConverter implements Converter<ByteBuffer>
 {
     private static final String LINKUPDATE_WIRESCHEMA = "ipaaca-iu-link-update";

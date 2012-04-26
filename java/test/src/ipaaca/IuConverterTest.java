@@ -27,6 +27,11 @@ import rsb.converter.WireContents;
 import rsb.patterns.RemoteServer;
 import static ipaaca.IUTestUtil.*;
 
+/**
+ * Unit test cases for the IUConverter
+ * @author hvanwelbergen
+ *
+ */
 public class IuConverterTest
 {
     private static final String CATEGORY = "category1";

@@ -11,6 +11,11 @@ import rsb.converter.WireContents;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 
+/**
+ * Serializer/deserializer for ints
+ * @author hvanwelbergen
+ *
+ */
 public class IntConverter implements Converter<ByteBuffer>
 {
     

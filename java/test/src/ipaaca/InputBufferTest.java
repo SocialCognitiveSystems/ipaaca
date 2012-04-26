@@ -14,6 +14,11 @@ import rsb.RSBException;
 
 import com.google.common.collect.ImmutableSet;
 
+/**
+ * Unit testcases for the input buffer
+ * @author hvanwelbergen
+ *
+ */
 public class InputBufferTest
 {
     private static final String COMPID = "Comp1";

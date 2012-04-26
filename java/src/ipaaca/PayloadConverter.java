@@ -12,6 +12,11 @@ import rsb.converter.WireContents;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 
+/**
+ * Serializer/deserializer for IUPayloadUpdate
+ * @author hvanwelbergen
+ *
+ */
 public class PayloadConverter implements Converter<ByteBuffer>
 {
     private static final String PAYLOAD_WIRESCHEMA = "ipaaca-iu-payload-update";
