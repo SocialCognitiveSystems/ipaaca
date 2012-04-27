@@ -14,27 +14,24 @@ import com.google.protobuf.InvalidProtocolBufferException;
 /**
  * Serializer/deserializer for ints
  * @author hvanwelbergen
- *
+ * 
  */
 public class IntConverter implements Converter<ByteBuffer>
 {
-    
-    
+
     @Override
     public ConverterSignature getSignature()
     {
-        return new ConverterSignature("int32",Integer.class);
+        return new ConverterSignature("int32", Integer.class);
     }
 
     @Override
     public WireContents<ByteBuffer> serialize(Class<?> typeInfo, Object obj) throws ConversionException
     {
-        Integer intVal = (Integer)obj;
-        IntMessage message = IntMessage.newBuilder()
-            .setValue(intVal)
-            .build();
-        
-        return new WireContents<ByteBuffer>(ByteBuffer.wrap(message.toByteArray()),"int32");        
+        Integer intVal = (Integer) obj;
+        IntMessage message = IntMessage.newBuilder().setValue(intVal).build();
+
+        return new WireContents<ByteBuffer>(ByteBuffer.wrap(message.toByteArray()), "int32");
     }
 
     @Override

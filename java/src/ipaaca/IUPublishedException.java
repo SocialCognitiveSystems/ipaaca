@@ -3,7 +3,7 @@ package ipaaca;
 /**
  * IUPublishedException exceptions occur when publishing (=putting it in an output buffer) an already published IU.
  * @author hvanwelbergen
- *
+ * 
  */
 public class IUPublishedException extends RuntimeException
 {

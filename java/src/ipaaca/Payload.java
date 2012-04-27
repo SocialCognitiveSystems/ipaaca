@@ -22,7 +22,7 @@ public class Payload implements Map<String, String>
     {
         this.iu = iu;
     }
-    
+
     // def __init__(self, remote_push_iu, new_payload):
     // """Create remote payload object.
     //
@@ -34,46 +34,46 @@ public class Payload implements Map<String, String>
     // self._remote_push_iu = remote_push_iu
     // if new_payload is not None:
     // for k,v in new_payload.items():
-    // dict.__setitem__(self, k, v)    
+    // dict.__setitem__(self, k, v)
     public Payload(AbstractIU iu, List<PayloadItem> payloadItems)
     {
-        this(iu,payloadItems,null);      
+        this(iu, payloadItems, null);
     }
-    
-    public Payload(AbstractIU iu, Map<String,String> newPayload)
+
+    public Payload(AbstractIU iu, Map<String, String> newPayload)
     {
-        this(iu,newPayload,null);      
+        this(iu, newPayload, null);
     }
-    
-    public Payload(AbstractIU iu, Map<String,String> newPayload, String writerName)
+
+    public Payload(AbstractIU iu, Map<String, String> newPayload, String writerName)
     {
         this.iu = iu;
         set(newPayload, writerName);
     }
-    
-    public Payload(AbstractIU iu, List<PayloadItem>newPayload, String writerName)
+
+    public Payload(AbstractIU iu, List<PayloadItem> newPayload, String writerName)
     {
         this.iu = iu;
-        set(newPayload,writerName);       
+        set(newPayload, writerName);
     }
-    
-    public void set(Map<String,String> newPayload, String writerName)
+
+    public void set(Map<String, String> newPayload, String writerName)
     {
         iu.setPayload(newPayload, writerName);
         map.clear();
         map.putAll(newPayload);
     }
-    
-    public void set(List<PayloadItem>newPayload, String writerName)
+
+    public void set(List<PayloadItem> newPayload, String writerName)
     {
-        iu.handlePayloadSetting(newPayload,writerName);
+        iu.handlePayloadSetting(newPayload, writerName);
         map.clear();
         for (PayloadItem item : newPayload)
         {
             map.put(item.getKey(), item.getValue());
         }
     }
-    
+
     // def _remotely_enforced_setitem(self, k, v):
     // """Sets an item when requested remotely."""
     // return dict.__setitem__(self, k, v)
@@ -160,7 +160,7 @@ public class Payload implements Map<String, String>
     // raise IUUpdateFailedError(self._remote_push_iu)
     // else:
     // self._remote_push_iu._revision = new_revision
-    // dict.__setitem__(self, k, v)    
+    // dict.__setitem__(self, k, v)
     /**
      * Set item in this payload.
      * Requests item setting from the OutputBuffer holding the local version
@@ -204,7 +204,7 @@ public class Payload implements Map<String, String>
      * Requests item deletion from the OutputBuffer holding the local version
      * of this IU. Returns when permission is granted and item is deleted;
      * otherwise raises an IUUpdateFailedError.
-     */    
+     */
     public String remove(Object key, String writer)
     {
         iu.removeFromPayload(key, writer);

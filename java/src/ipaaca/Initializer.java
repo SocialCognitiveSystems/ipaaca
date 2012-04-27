@@ -8,11 +8,14 @@ import rsb.converter.ProtocolBufferConverter;
 /**
  * Hooks up the ipaaca converters, call initializeIpaacaRsb() before using ipaaca.
  * @author hvanwelbergen
- *
+ * 
  */
 public final class Initializer
 {
-    private Initializer(){}
+    private Initializer()
+    {
+    }
+
     public static void initializeIpaacaRsb()
     {
         DefaultConverterRepository.getDefaultConverterRepository().addConverter(new IntConverter());

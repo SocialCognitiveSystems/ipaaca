@@ -3,7 +3,7 @@ package ipaaca;
 /**
  * Indicates that a remote update failed
  * @author hvanwelbergen
- *
+ * 
  */
 public class IUUpdateFailedException extends RuntimeException
 {

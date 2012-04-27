@@ -1,4 +1,5 @@
 package ipaaca;
+
 import ipaaca.protobuf.Ipaaca.IU;
 import ipaaca.protobuf.Ipaaca.LinkSet;
 import ipaaca.protobuf.Ipaaca.PayloadItem;
@@ -22,17 +23,17 @@ import rsb.converter.WireContents;
 /**
  * Serializes AbstractIUs into protocolbuffer IUs and vice versa.
  * @author hvanwelbergen
- *
+ * 
  */
 public class IUConverter implements Converter<ByteBuffer>
 {
     private final ConverterSignature signature;
-    
+
     public IUConverter(ConverterSignature signature)
     {
         this.signature = signature;
     }
-    
+
     @Override
     public ConverterSignature getSignature()
     {
@@ -42,36 +43,23 @@ public class IUConverter implements Converter<ByteBuffer>
     @Override
     public WireContents<ByteBuffer> serialize(Class<?> typeInfo, Object obj) throws ConversionException
     {
-        AbstractIU iua = (AbstractIU)obj;
+        AbstractIU iua = (AbstractIU) obj;
         List<PayloadItem> payloadItems = new ArrayList<PayloadItem>();
-        for(Entry<String, String> entry:iua.getPayload().entrySet())
+        for (Entry<String, String> entry : iua.getPayload().entrySet())
         {
-            payloadItems.add(PayloadItem.newBuilder()
-                    .setKey(entry.getKey())
-                    .setValue(entry.getValue())
-                    .setType("")
-                    .build());
+            payloadItems.add(PayloadItem.newBuilder().setKey(entry.getKey()).setValue(entry.getValue()).setType("").build());
         }
-        
+
         List<LinkSet> links = new ArrayList<LinkSet>();
-        for (Entry<String, Collection<String>> entry:iua.getAllLinks().asMap().entrySet())
+        for (Entry<String, Collection<String>> entry : iua.getAllLinks().asMap().entrySet())
         {
             links.add(LinkSet.newBuilder().setType(entry.getKey()).addAllTargets(entry.getValue()).build());
         }
-        
-        IU iu = IU.newBuilder()
-                .setUid(iua.getUid())
-                .setRevision(iua.getRevision())
-                .setCategory(iua.getCategory())
-                .setOwnerName(iua.getOwnerName())
-                .setCommitted(iua.isCommitted())
-                .setAccessMode(IU.AccessMode.PUSH) //TODO for other access modes (also in Python version)
-                .setReadOnly(iua.isReadOnly())
-                .setPayloadType("MAP")
-                .addAllPayload(payloadItems)
-                .addAllLinks(links)
-                .build();
-        return new WireContents<ByteBuffer>(ByteBuffer.wrap(iu.toByteArray()),"ipaaca-iu");        
+
+        IU iu = IU.newBuilder().setUid(iua.getUid()).setRevision(iua.getRevision()).setCategory(iua.getCategory())
+                .setOwnerName(iua.getOwnerName()).setCommitted(iua.isCommitted()).setAccessMode(IU.AccessMode.PUSH) // TODO for other access modes (also in Python version)
+                .setReadOnly(iua.isReadOnly()).setPayloadType("MAP").addAllPayload(payloadItems).addAllLinks(links).build();
+        return new WireContents<ByteBuffer>(ByteBuffer.wrap(iu.toByteArray()), "ipaaca-iu");
     }
 
     @Override
@@ -87,22 +75,22 @@ public class IUConverter implements Converter<ByteBuffer>
             throw new RuntimeException(e);
         }
 
-        if(iu.getAccessMode() == IU.AccessMode.PUSH)
+        if (iu.getAccessMode() == IU.AccessMode.PUSH)
         {
             RemotePushIU iuout = new RemotePushIU(iu.getUid());
             iuout.setCategory(iu.getCategory());
             iuout.committed = iu.getCommitted();
             iuout.setOwnerName(iu.getOwnerName());
             iuout.setRevision(iu.getRevision());
-            iuout.setReadOnly(iu.getReadOnly());            
-            iuout.payload = new Payload(iuout,iu.getPayloadList());            
+            iuout.setReadOnly(iu.getReadOnly());
+            iuout.payload = new Payload(iuout, iu.getPayloadList());
             SetMultimap<String, String> links = HashMultimap.create();
-            for(LinkSet ls: iu.getLinksList())
+            for (LinkSet ls : iu.getLinksList())
             {
-                links.putAll(ls.getType(),ls.getTargetsList());
+                links.putAll(ls.getType(), ls.getTargetsList());
             }
             iuout.setLinksLocally(links);
-            return new UserData<RemotePushIU>(iuout, RemotePushIU.class);            
+            return new UserData<RemotePushIU>(iuout, RemotePushIU.class);
         }
         else
         {

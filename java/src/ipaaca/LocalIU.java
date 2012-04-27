@@ -70,9 +70,9 @@ public class LocalIU extends AbstractIU
             {
                 increaseRevisionNumber();
                 committed = true;
-                if(outputBuffer!=null)
-                {    
-                    outputBuffer.sendIUCommission(this, writerName);                
+                if (outputBuffer != null)
+                {
+                    outputBuffer.sendIUCommission(this, writerName);
                 }
             }
         }
@@ -112,7 +112,7 @@ public class LocalIU extends AbstractIU
         synchronized (revisionLock)
         {
             increaseRevisionNumber();
-            if(isPublished())
+            if (isPublished())
             {
                 String wName = null;
                 if (getBuffer() != null)
@@ -127,24 +127,19 @@ public class LocalIU extends AbstractIU
                 {
                     wName = null;
                 }
-                Set<LinkSet> addSet = new HashSet<LinkSet>();                
-                for(Entry<String, Collection<String>> entry :linksToAdd.asMap().entrySet())
+                Set<LinkSet> addSet = new HashSet<LinkSet>();
+                for (Entry<String, Collection<String>> entry : linksToAdd.asMap().entrySet())
                 {
                     addSet.add(LinkSet.newBuilder().setType(entry.getKey()).addAllTargets(entry.getValue()).build());
                 }
-                Set<LinkSet> removeSet = new HashSet<LinkSet>();                
-                for(Entry<String, Collection<String>> entry :linksToRemove.asMap().entrySet())
+                Set<LinkSet> removeSet = new HashSet<LinkSet>();
+                for (Entry<String, Collection<String>> entry : linksToRemove.asMap().entrySet())
                 {
                     removeSet.add(LinkSet.newBuilder().setType(entry.getKey()).addAllTargets(entry.getValue()).build());
                 }
-                outputBuffer.sendIULinkUpdate(this,IULinkUpdate.newBuilder()
-                        .setUid(getUid())
-                        .setRevision(getRevision())
-                        .setWriterName(wName)
-                        .setIsDelta(isDelta)
-                        .addAllNewLinks(addSet)
-                        .addAllLinksToRemove(removeSet)
-                        .build());
+                outputBuffer.sendIULinkUpdate(this,
+                        IULinkUpdate.newBuilder().setUid(getUid()).setRevision(getRevision()).setWriterName(wName).setIsDelta(isDelta)
+                                .addAllNewLinks(addSet).addAllLinksToRemove(removeSet).build());
             }
         }
     }

@@ -3,7 +3,7 @@ package ipaaca;
 /**
  * IUReadOnlyException's occur when writing to a read-only IU
  * @author hvanwelbergen
- *
+ * 
  */
 public class IUReadOnlyException extends RuntimeException
 {

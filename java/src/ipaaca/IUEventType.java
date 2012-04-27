@@ -1,5 +1,6 @@
 package ipaaca;
 
-public enum IUEventType {
-	ADDED, COMMITTED, DELETED, RETRACTED, UPDATED,LINKSUPDATED;
+public enum IUEventType
+{
+    ADDED, COMMITTED, DELETED, RETRACTED, UPDATED, LINKSUPDATED;
 }
