@@ -851,7 +851,7 @@ class InputBuffer(Buffer):
 		self._category_interests = []
 		if category_interests is not None:
 			for cat in category_interests:
-				self._create_category_listener_if_needed(cat)
+				self._add_category_listener(cat)
 	
 	def _get_remote_server(self, iu):
 		'''Return (or create, store and return) a remote server.'''
@@ -862,15 +862,14 @@ class InputBuffer(Buffer):
 		self._remote_server_store[iu.owner_name] = remote_server
 		return remote_server
 	
-	def _create_category_listener_if_needed(self, iu_category):
+	def _add_category_listener(self, iu_category):
 		'''Return (or create, store and return) a category listener.'''
-		if iu_category in self._listener_store: return self._informer_store[iu_category]
-		cat_listener = rsb.createListener(rsb.Scope("/ipaaca/category/"+str(iu_category)), config=self._participant_config)
-		cat_listener.addHandler(self._handle_iu_events)
-		self._listener_store[iu_category] = cat_listener
-		self._category_interests.append(iu_category)
-		logger.info("Added listener in scope "+"/ipaaca/category/"+iu_category)
-		return cat_listener
+		if iu_category not in self._listener_store: 
+			cat_listener = rsb.createListener(rsb.Scope("/ipaaca/category/"+str(iu_category)), config=self._participant_config)
+			cat_listener.addHandler(self._handle_iu_events)
+			self._listener_store[iu_category] = cat_listener
+			self._category_interests.append(iu_category)
+			logger.info("Added listener in scope "+"/ipaaca/category/"+iu_category)
 	
 	def _handle_iu_events(self, event):
 		'''Dispatch incoming IU events.
@@ -918,6 +917,10 @@ class InputBuffer(Buffer):
 				self.call_iu_event_handlers(event.data.uid, local=False, event_type=IUEventType.LINKSUPDATED, category=iu.category)
 			else:
 				logger.warning('Warning: _handle_iu_events failed to handle an object of type '+str(type_))
+
+	def add_category_interests(self, category_interests):
+		for interest in category_interests:
+			self._add_category_listener(interest)
 
 
 class OutputBuffer(Buffer):
