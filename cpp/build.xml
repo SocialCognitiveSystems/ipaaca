@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="IpaacaCpp"  default="run">
-   <import file="../../soashared/ant/build.xml" />
+   
    <target name="-pre-compilation">
      <echo message="Compiling protobuf file" />
      <exec executable="protoc">
@@ -9,5 +9,8 @@
         <arg value="--cpp_out=build/" />
      </exec>
    </target>
+   
+   <!--import file="../../soashared/ant/build.xml" /-->
+   <import file="../../HmiBuild/build.xml" />
 </project>
 
