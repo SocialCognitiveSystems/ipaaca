@@ -29,4 +29,10 @@
     </subant>
   </target>
 
+  <target name="dist">
+    <subant target="dist" genericantfile="build.xml">
+      <fileset dir="." includes="*/build.xml"/>
+    </subant>
+  </target>
+
 </project>

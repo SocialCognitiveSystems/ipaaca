@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="ipaaca-java"  default="run">
-   
+
+	<target name="dist">
+		<echo>FIXME - Ramin's hack: JAVA - DOING NOTHING ON DIST</echo>
+	</target>
    <target name="-pre-compilation">
      <echo message="Compiling protobuf file" />
      <mkdir dir="generatedsrc"/>
@@ -11,6 +14,6 @@
      </exec>
    </target>
    
-   <!--import file="../../soashared/ant/build.xml" /-->
-   <import file="../../HmiBuild/build.xml" />
+   <import file="../../soashared/ant/build.xml" />
+   <!-- import file="../../HmiBuild/build.xml" / -->
 </project>
