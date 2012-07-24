@@ -1,5 +1,6 @@
 package ipaaca;
 
-public enum IUAccessMode {
-	PUSH,REMOTE,MESSAGE;
+public enum IUAccessMode
+{
+    PUSH, REMOTE, MESSAGE;
 }

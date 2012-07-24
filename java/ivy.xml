@@ -1,5 +1,5 @@
 <ivy-module version="2.0">
-   <info organisation="ipaaca" module="ipaaca"/>
+   <info organisation="ipaaca" module="ipaaca-java"/>
    <configurations>
       <include file="${ivy.settings.dir}/configurations.xml"/>
    </configurations>

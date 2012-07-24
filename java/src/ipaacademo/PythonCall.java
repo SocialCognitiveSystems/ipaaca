@@ -6,6 +6,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
+/**
+ * Demonstrates how to call a python script from java
+ * @author hvanwelbergen
+ *
+ */
 public class PythonCall
 {
 

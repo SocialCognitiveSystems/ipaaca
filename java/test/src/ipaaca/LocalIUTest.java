@@ -6,7 +6,10 @@ import ipaaca.protobuf.Ipaaca.IUPayloadUpdate;
 import org.junit.Before;
 import org.junit.Test;
 import static org.mockito.Mockito.*;
-
+/**
+ * Unit testcases for the LocalIU
+ * @author hvanwelbergen
+ */
 public class LocalIUTest
 {
     OutputBuffer mockBuffer = mock(OutputBuffer.class);

@@ -12,6 +12,11 @@ import rsb.converter.WireContents;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 
+/**
+ * Serializer/deserializer for IULinkUpdate
+ * @author hvanwelbergen
+ * 
+ */
 public class LinkUpdateConverter implements Converter<ByteBuffer>
 {
     private static final String LINKUPDATE_WIRESCHEMA = "ipaaca-iu-link-update";
@@ -28,20 +33,20 @@ public class LinkUpdateConverter implements Converter<ByteBuffer>
         {
             throw new RuntimeException(e);
         }
-        return new UserData<IULinkUpdate>(pl, IULinkUpdate.class);   
+        return new UserData<IULinkUpdate>(pl, IULinkUpdate.class);
     }
 
     @Override
     public ConverterSignature getSignature()
     {
-        return new ConverterSignature(LINKUPDATE_WIRESCHEMA,IULinkUpdate.class);
+        return new ConverterSignature(LINKUPDATE_WIRESCHEMA, IULinkUpdate.class);
     }
 
     @Override
     public WireContents<ByteBuffer> serialize(Class<?> typeInfo, Object obj) throws ConversionException
     {
-        IULinkUpdate pl = (IULinkUpdate)obj;
-        return new WireContents<ByteBuffer>(ByteBuffer.wrap(pl.toByteArray()),LINKUPDATE_WIRESCHEMA);        
+        IULinkUpdate pl = (IULinkUpdate) obj;
+        return new WireContents<ByteBuffer>(ByteBuffer.wrap(pl.toByteArray()), LINKUPDATE_WIRESCHEMA);
     }
 
 }
