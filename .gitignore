@@ -1,10 +1,12 @@
 .DS_Store
 */generatedsrc
 */build
+*/*/build
 */lib
 */test/lib
 */test/report
 */dist
+*/deps
 */privateprops
 */.project
 */.classpath

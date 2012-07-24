@@ -6,5 +6,5 @@ Specification-Title:    IpaacaJava
 Specification-Version:  0.1
 Specification-Vendor:   ipaaca
 Implementation-Title:   IpaacaJava
-Implementation-Version: July 02 2012  01:46 PM
+Implementation-Version: July 24 2012  02:58 PM
 Implementation-Vendor:  ipaaca

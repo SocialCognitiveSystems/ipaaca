@@ -1,0 +1,4 @@
+#!/bin/bash
+echo "Starting local-only spread daemon for ipaaca ..."
+spread -n localhost &
+

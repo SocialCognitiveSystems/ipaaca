@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="IpaacaCpp"  default="dist">
-   <import file="../../soashared/ant/build.xml" />
+   <import file="../../../soashared/ant/build.xml" />
    <target name="-pre-compilation">
      <echo message="Compiling protobuf file" />
      <exec executable="protoc">

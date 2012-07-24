@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="IpaacaPython"  default="run">
-   <import file="../../soashared/ant/build.xml" />
-   <!--import file="../../HmiBuild/build.xml" / -->
-	<target name="dist">
-		<echo>FIXME - Ramin's hack: PYTHON - DOING NOTHING ON DIST</echo>
-	</target>
+   <import file="../../../soashared/ant/build.xml" />
+   <!--import file="../../../HmiBuild/build.xml" / -->
+   <target name="dist">
+      <echo>FIXME - Ramin's hack: PYTHON - DOING NOTHING ON DIST</echo>
+   </target>
    <target name="-pre-compilation">
      <echo message="Compiling protobuf file" />
      <exec executable="protoc">
