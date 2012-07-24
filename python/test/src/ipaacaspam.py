@@ -97,6 +97,24 @@ class Sender(object):
 				self.counter = 0
 				#print ".",
 				#sys.stdout.flush()
+
+class TestAcker(object):
+	def __init__(self):
+		self.ib = ipaaca.InputBuffer('TestIn', ['testcategory'])
+		self.ib.register_handler(self.handle_iu_event)
+	
+	def handle_iu_event(self, iu, event_type, local):
+		print "Received a testcategory event ", event_type
+		if event_type=='ADDED':
+			try:
+				iu.payload['ack'] = 'ack'
+			except ipaaca.IUUpdateFailedError, e:
+				print "== tried to send an initial update, but someone else was quicker."
+	
+	def run(self):
+		while True:
+			time.sleep(1)
+
 	
 if __name__ == '__main__':
 	if len(sys.argv)<2:
@@ -125,6 +143,9 @@ if __name__ == '__main__':
 			sys.exit(1)
 		s = Sender(send_frequency=freq)
 		s.run()
+	elif sys.argv[1] == 'testacker':
+		r = TestAcker()
+		r.run()
 	else:
 		print "specify either 'sender', 'receiver', 'ping' or 'pong' as an argument"
 		sys.exit(1)
