@@ -1,13 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="IpaacaCpp"  default="dist">
    <import file="../../../soashared/ant/build.xml" />
-   <target name="-pre-compilation">
-     <echo message="Compiling protobuf file" />
-     <exec executable="protoc">
-        <arg value="--proto_path=../proto" />
-        <arg value="../proto/ipaaca.proto" />
-        <arg value="--cpp_out=build/" />
-     </exec>
+   <target name="check-proto-files">
+      <echo message="Checking whether compiled protobuf files are already present..." />
+      <available file="build/ipaaca.pb.h" property="pb.present"/>
    </target>
+   <target name="-proto-yes" depends="check-proto-files" if="pb.present">
+      <echo message="Built protobuf files found, skipping compilation" />
+   </target>
+   <target name="-proto-no" depends="check-proto-files" unless="pb.present">
+      <echo message="Compiling protobuf files" />
+      <exec executable="protoc">
+         <arg value="--proto_path=../proto" />
+         <arg value="../proto/ipaaca.proto" />
+         <arg value="--cpp_out=build/" />
+      </exec>
+   </target>
+   <target name="-pre-compilation" depends="-proto-yes,-proto-no" />
 </project>
 
