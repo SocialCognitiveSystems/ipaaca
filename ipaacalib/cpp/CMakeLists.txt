@@ -50,13 +50,15 @@ include_directories( ${PROJECT_SOURCE_DIR}/build )
 # add local include directory
 include_directories( ${PROJECT_SOURCE_DIR}/include )
 # add lib and include directory from pulled dependencies
-include_directories( ${PROJECT_SOURCE_DIR}/lib/include )
-link_directories( ${PROJECT_SOURCE_DIR}/lib )
+include_directories( ${PROJECT_SOURCE_DIR}/../../deps/include )
+link_directories( ${PROJECT_SOURCE_DIR}/../../deps/lib )
 
 # specify source files for ipaaca (auto-generated ones are in build/ )
 set (SOURCE
 	src/ipaaca.cc
-	build/ipaaca.pb.cc
+	src/ipaaca-cmdline-parser.cc
+	src/ipaaca-string-utils.cc
+	build/ipaaca/ipaaca.pb.cc
 	)
 
 # compile all files to "ipaaca" shared library
@@ -81,8 +83,8 @@ install(
 	FILES_MATCHING PATTERN "*.h" PATTERN "*.hh" PATTERN "*.hpp" PATTERN "*.inl"
 	)
 install(
-	FILES build/ipaaca.pb.h
-	DESTINATION /include
+	FILES build/ipaaca/ipaaca.pb.h
+	DESTINATION /include/ipaaca/
 	)
 
 

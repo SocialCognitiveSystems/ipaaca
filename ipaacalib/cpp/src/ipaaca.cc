@@ -1,8 +1,12 @@
-#include <ipaaca.h>
+#include <ipaaca/ipaaca.h>
 #include <cstdlib>
 
 namespace ipaaca {
 
+using namespace rsb;
+using namespace rsb::filter;
+using namespace rsb::converter;
+using namespace rsb::patterns;
 
 // util and init//{{{
 
@@ -472,6 +476,13 @@ void OutputBuffer::_retract_iu(IU::ptr iu)
 //}}}
 
 // InputBuffer//{{{
+InputBuffer::InputBuffer(const std::string& basename, const std::set<std::string>& category_interests)
+:Buffer(basename, "IB")
+{
+	for (std::set<std::string>::const_iterator it=category_interests.begin(); it!=category_interests.end(); ++it) {
+		_create_category_listener_if_needed(*it);
+	}
+}
 InputBuffer::InputBuffer(const std::string& basename, const std::vector<std::string>& category_interests)
 :Buffer(basename, "IB")
 {
@@ -507,6 +518,11 @@ InputBuffer::InputBuffer(const std::string& basename, const std::string& categor
 }
 
 
+InputBuffer::ptr InputBuffer::create(const std::string& basename, const std::set<std::string>& category_interests)
+{
+	Initializer::initialize_ipaaca_rsb_if_needed();
+	return InputBuffer::ptr(new InputBuffer(basename, category_interests));
+}
 InputBuffer::ptr InputBuffer::create(const std::string& basename, const std::vector<std::string>& category_interests)
 {
 	Initializer::initialize_ipaaca_rsb_if_needed();
@@ -977,6 +993,10 @@ PayloadEntryProxy Payload::operator[](const std::string& key)
 {
 	//boost::shared_ptr<PayloadEntryProxy> p(new PayloadEntryProxy(this, key));
 	return PayloadEntryProxy(this, key);
+}
+Payload::operator std::map<std::string, std::string>()
+{
+	return _store;
 }
 
 inline void Payload::_internal_set(const std::string& k, const std::string& v, const std::string& writer_name) {

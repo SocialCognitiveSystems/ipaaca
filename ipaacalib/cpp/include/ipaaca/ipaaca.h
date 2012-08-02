@@ -1,5 +1,5 @@
 #ifndef __IPAACA_H__
-#define __IPAACA_H_
+#define __IPAACA_H__
 
 /// ipaaca/IU/RSB protocol major version number
 #define IPAACA_PROTOCOL_VERSION_MAJOR         1
@@ -45,16 +45,16 @@
 #include <rsb/converter/Converter.h>
 #include <rsb/rsbexports.h>
 
-#include <ipaaca.pb.h>
+#include <ipaaca/ipaaca.pb.h>
 
 #include <pthread.h>
 #include <uuid/uuid.h>
 
 //using namespace boost;
-using namespace rsb;
-using namespace rsb::filter;
-using namespace rsb::converter;
-using namespace rsb::patterns;
+//using namespace rsb;
+//using namespace rsb::filter;
+//using namespace rsb::converter;
+//using namespace rsb::patterns;
 
 namespace ipaaca {
 
@@ -218,14 +218,14 @@ class Buffer { //: public boost::enable_shared_from_this<Buffer> {//{{{
 };
 //}}}
 
-class CallbackIUPayloadUpdate: public Server::Callback<IUPayloadUpdate, int> {
+class CallbackIUPayloadUpdate: public rsb::patterns::Server::Callback<IUPayloadUpdate, int> {
 	protected:
 		Buffer* _buffer;
 	public:
 		CallbackIUPayloadUpdate(Buffer* buffer);
 		boost::shared_ptr<int> call(const std::string& methodName, boost::shared_ptr<IUPayloadUpdate> update);
 };
-class CallbackIULinkUpdate: public Server::Callback<IULinkUpdate, int> {
+class CallbackIULinkUpdate: public rsb::patterns::Server::Callback<IULinkUpdate, int> {
 	protected:
 		Buffer* _buffer;
 	public:
@@ -233,7 +233,7 @@ class CallbackIULinkUpdate: public Server::Callback<IULinkUpdate, int> {
 	public:
 		boost::shared_ptr<int> call(const std::string& methodName, boost::shared_ptr<IULinkUpdate> update);
 };
-class CallbackIUCommission: public Server::Callback<protobuf::IUCommission, int> {
+class CallbackIUCommission: public rsb::patterns::Server::Callback<protobuf::IUCommission, int> {
 	protected:
 		Buffer* _buffer;
 	public:
@@ -247,10 +247,10 @@ class OutputBuffer: public Buffer { //, public boost::enable_shared_from_this<Ou
 	friend class RemotePushIU;
 	protected:
 	protected:
-		std::map<std::string, Informer<AnyType>::Ptr> _informer_store;
+		std::map<std::string, rsb::Informer<rsb::AnyType>::Ptr> _informer_store;
 		IUStore _iu_store;
 		Lock _iu_id_counter_lock;
-		ServerPtr _server;
+		rsb::patterns::ServerPtr _server;
 	protected:
 		// informing functions
 		void _send_iu_link_update(IUInterface* iu, bool is_delta, revision_t revision, const LinkMap& new_links, const LinkMap& links_to_remove, const std::string& writer_name="undef");
@@ -263,7 +263,7 @@ class OutputBuffer: public Buffer { //, public boost::enable_shared_from_this<Ou
 	protected:
 		void _publish_iu(boost::shared_ptr<IU> iu);
 		void _retract_iu(boost::shared_ptr<IU> iu);
-		Informer<AnyType>::Ptr _get_informer(const std::string& category);
+		rsb::Informer<rsb::AnyType>::Ptr _get_informer(const std::string& category);
 	protected:
 		OutputBuffer(const std::string& basename);
 		void _initialize_server();
@@ -285,8 +285,8 @@ class InputBuffer: public Buffer { //, public boost::enable_shared_from_this<Inp
 	friend class IU;
 	friend class RemotePushIU;
 	protected:
-		std::map<std::string, ListenerPtr> _listener_store;
-		std::map<std::string, RemoteServerPtr> _remote_server_store;
+		std::map<std::string, rsb::ListenerPtr> _listener_store;
+		std::map<std::string, rsb::patterns::RemoteServerPtr> _remote_server_store;
 		RemotePushIUStore _iu_store;  // TODO genericize
 	protected:
 		inline void _send_iu_link_update(IUInterface* iu, bool is_delta, revision_t revision, const LinkMap& new_links, const LinkMap& links_to_remove, const std::string& writer_name="undef")
@@ -302,16 +302,18 @@ class InputBuffer: public Buffer { //, public boost::enable_shared_from_this<Inp
 			IPAACA_WARNING("(ERROR) InputBuffer::_send_iu_commission() should never be invoked")
 		}
 	protected:
-		RemoteServerPtr _get_remote_server(const std::string& unique_server_name);
-		ListenerPtr _create_category_listener_if_needed(const std::string& category);
-		void _handle_iu_events(EventPtr event);
+		rsb::patterns::RemoteServerPtr _get_remote_server(const std::string& unique_server_name);
+		rsb::ListenerPtr _create_category_listener_if_needed(const std::string& category);
+		void _handle_iu_events(rsb::EventPtr event);
 	protected:
+		InputBuffer(const std::string& basename, const std::set<std::string>& category_interests);
 		InputBuffer(const std::string& basename, const std::vector<std::string>& category_interests);
 		InputBuffer(const std::string& basename, const std::string& category_interest1);
 		InputBuffer(const std::string& basename, const std::string& category_interest1, const std::string& category_interest2);
 		InputBuffer(const std::string& basename, const std::string& category_interest1, const std::string& category_interest2, const std::string& category_interest3);
 		InputBuffer(const std::string& basename, const std::string& category_interest1, const std::string& category_interest2, const std::string& category_interest3, const std::string& category_interest4);
 	public:
+		static boost::shared_ptr<InputBuffer> create(const std::string& basename, const std::set<std::string>& category_interests);
 		static boost::shared_ptr<InputBuffer> create(const std::string& basename, const std::vector<std::string>& category_interests);
 		static boost::shared_ptr<InputBuffer> create(const std::string& basename, const std::string& category_interest1);
 		static boost::shared_ptr<InputBuffer> create(const std::string& basename, const std::string& category_interest1, const std::string& category_interest2);
@@ -427,6 +429,8 @@ class Payload//{{{
 		inline const std::string& owner_name() { return _owner_name; }
 		// access
 		PayloadEntryProxy operator[](const std::string& key);
+		operator std::map<std::string, std::string>();
+		inline void set(const std::map<std::string, std::string>& all_elems) { _internal_replace_all(all_elems); }
 		inline void set(const std::string& k, const std::string& v) { _internal_set(k, v); }
 		inline void remove(const std::string& k) { _internal_remove(k); }
 		std::string get(const std::string& k);
@@ -638,6 +642,50 @@ class NotImplementedError: public Exception//{{{
 			_description = "NotImplementedError";
 		}
 };//}}}
+
+// additional misc classes ( Command line options )//{{{
+class CommandLineOptions {
+	public:
+		inline CommandLineOptions() { }
+		std::map<std::string, std::string> param_opts;
+		std::map<std::string, bool> param_set;
+	public:
+		void set_option(const std::string& name, bool expect, const char* optarg);
+		std::string get_param(const std::string& o);
+		bool is_set(const std::string& o);
+		void dump();
+	typedef boost::shared_ptr<CommandLineOptions> ptr;
+};
+
+class CommandLineParser {
+	protected:
+		std::map<char, std::string> longopt; // letter->name
+		std::map<std::string, char> shortopt; // letter->name
+		std::map<std::string, bool> options; //  name / expect_param
+		std::map<std::string, std::string> defaults; // for opt params
+		std::map<std::string, int> set_flag; // for paramless opts
+	protected:
+		CommandLineParser();
+	public:
+		inline ~CommandLineParser() { }
+		static inline boost::shared_ptr<CommandLineParser> create() {
+			return boost::shared_ptr<CommandLineParser>(new CommandLineParser());
+		}
+		void initialize_parser_defaults();
+		void dump_options();
+		void add_option(const std::string& optname, char shortn, bool expect_param, const std::string& defaultv);
+		void ensure_defaults_in( CommandLineOptions::ptr clo );
+		CommandLineOptions::ptr parse(int argc, char* const* argv);
+	typedef boost::shared_ptr<CommandLineParser> ptr;
+};
+//}}}
+
+// additional misc functions ( String splitting / joining )//{{{
+std::string str_join(const std::set<std::string>& set,const std::string& sep);
+std::string str_join(const std::vector<std::string>& vec,const std::string& sep);
+void str_split_wipe(const std::string& str, std::vector<std::string>& tokens, const std::string& delimiters );
+void str_split_append(const std::string& str, std::vector<std::string>& tokens, const std::string& delimiters );
+//}}}
 
 // (snippets) //{{{
 /*

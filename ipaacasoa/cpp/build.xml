@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="IpaacaSoaCpp"  default="dist">
+   <import file="../../../hmibuild/build.xml" />
+</project>
+

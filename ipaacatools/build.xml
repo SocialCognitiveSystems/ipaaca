@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="IpaacaTools"  default="dist">
-   <import file="../../soashared/ant/build.xml" />
+   <import file="../../hmibuild/build.xml" />
 </project>
 

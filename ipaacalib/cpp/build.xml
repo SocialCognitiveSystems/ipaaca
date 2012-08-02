@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="IpaacaCpp"  default="dist">
-   <import file="../../../soashared/ant/build.xml" />
+   <import file="../../../hmibuild/build.xml" />
    <target name="check-proto-files">
       <echo message="Checking whether compiled protobuf files are already present..." />
       <available file="build/ipaaca.pb.h" property="pb.present"/>
@@ -10,10 +10,11 @@
    </target>
    <target name="-proto-no" depends="check-proto-files" unless="pb.present">
       <echo message="Compiling protobuf files" />
+      <mkdir dir="${build.dir}/ipaaca" />
       <exec executable="protoc">
          <arg value="--proto_path=../proto" />
          <arg value="../proto/ipaaca.proto" />
-         <arg value="--cpp_out=build/" />
+         <arg value="--cpp_out=build/ipaaca/" />
       </exec>
    </target>
    <target name="-pre-compilation" depends="-proto-yes,-proto-no" />

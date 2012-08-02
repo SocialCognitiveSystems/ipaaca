@@ -16,5 +16,6 @@
 *.un~
 Session.vim
 **/manifest.mf
+**/**/manifest.mf
 **/*.*~
 

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="IpaacaPython"  default="run">
-   <import file="../../../soashared/ant/build.xml" />
+   <import file="../../../hmibuild/build.xml" />
    <!--import file="../../../HmiBuild/build.xml" / -->
    <target name="-pre-compilation">
      <echo message="Compiling protobuf file" />

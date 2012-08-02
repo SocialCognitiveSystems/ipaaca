@@ -790,7 +790,7 @@ class Buffer(object):
 		'''
 		super(Buffer, self).__init__()
 		self._owning_component_name = owning_component_name
-		self._participant_config = participant_config #rsb.ParticipantConfig.fromDefaultSources() if participant_config is None else participant_config
+		self._participant_config = rsb.ParticipantConfig.fromDefaultSources() if participant_config is None else participant_config
 		self._uuid = str(uuid.uuid4())[0:8]
 		# Initialise with a temporary, but already unique, name
 		self._unique_name = "undef-"+self._uuid
