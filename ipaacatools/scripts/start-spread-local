@@ -1,4 +1,10 @@
 #!/bin/bash
-echo "Starting local-only spread daemon for ipaaca ..."
-spread -n localhost &
+if [ -d /vol/soa/opt64/spread ]; then
+	echo "Starting local-only spread daemon for ipaaca (from soa volume) ..."
+	LD_LIBRARY_PATH=/vol/soa/opt64/spread/current/lib
+	/vol/soa/opt64/spread/current/sbin/spread -n localhost &
+else
+	echo "Starting local-only spread daemon for ipaaca ..."
+	spread -n localhost &
+fi
 

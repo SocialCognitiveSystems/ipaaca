@@ -43,10 +43,16 @@ void Initializer::initialize_ipaaca_rsb_if_needed()
 std::string generate_uuid_string()
 {
 	uuid_t uuidt;
-	uuid_string_t uuidstr;
 	uuid_generate(uuidt);
+#ifdef __MACOSX__
+	uuid_string_t uuidstr;
 	uuid_unparse_lower(uuidt, uuidstr);
 	return uuidstr;
+#else
+	char result_c[37];
+	uuid_unparse_lower(uuidt, result_c);
+	return result_c;
+#endif
 }
 
 /*

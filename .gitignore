@@ -1,5 +1,6 @@
 .DS_Store
 */generatedsrc
+*/*/generatedsrc
 */build
 */*/build
 */lib
@@ -18,4 +19,6 @@ Session.vim
 **/manifest.mf
 **/**/manifest.mf
 **/*.*~
+deps
+dist
 

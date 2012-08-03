@@ -25,6 +25,10 @@ set(RSBLIBS rsc rsbcore)
 #set(LIBS ${LIBS} ${PROTOLIBS} ${RSBLIBS})
 set(LIBS ${LIBS} ${PROTOBUF_LIBRARY} ${Boost_LIBRARIES} ${RSBLIBS})
 
+if (NOT DEFINED APPLE)
+	set(LIBS ${LIBS} uuid)
+endif(NOT DEFINED APPLE)
+
 # enhance the default search paths (headers, libs ...)
 set(CMAKE_PREFIX_PATH ${PROJECT_SOURCE_DIR}:/opt/local:${CMAKE_PREFIX_PATH})
 
