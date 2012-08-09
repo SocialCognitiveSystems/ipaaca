@@ -22,19 +22,22 @@ void Initializer::initialize_ipaaca_rsb_if_needed()
 	Factory::getInstance().setDefaultParticipantConfig(config);
 	
 	boost::shared_ptr<IUConverter> iu_converter(new IUConverter());
-	stringConverterRepository()->registerConverter(iu_converter);
+	converterRepository<std::string>()->registerConverter(iu_converter);
 	
 	boost::shared_ptr<IUPayloadUpdateConverter> payload_update_converter(new IUPayloadUpdateConverter());
-	stringConverterRepository()->registerConverter(payload_update_converter);
+	converterRepository<std::string>()->registerConverter(payload_update_converter);
 	
 	boost::shared_ptr<IULinkUpdateConverter> link_update_converter(new IULinkUpdateConverter());
-	stringConverterRepository()->registerConverter(link_update_converter);
+	converterRepository<std::string>()->registerConverter(link_update_converter);
 	
 	boost::shared_ptr<ProtocolBufferConverter<protobuf::IUCommission> > iu_commission_converter(new ProtocolBufferConverter<protobuf::IUCommission> ());
-	stringConverterRepository()->registerConverter(iu_commission_converter);
- 
+	converterRepository<std::string>()->registerConverter(iu_commission_converter);
+	
+	boost::shared_ptr<ProtocolBufferConverter<protobuf::IURetraction> > iu_retraction_converter(new ProtocolBufferConverter<protobuf::IURetraction> ());
+	converterRepository<std::string>()->registerConverter(iu_retraction_converter);
+	
 	boost::shared_ptr<IntConverter> int_converter(new IntConverter());
-	stringConverterRepository()->registerConverter(int_converter);
+	converterRepository<std::string>()->registerConverter(int_converter);
 	
 	_initialized = true;
 	//IPAACA_TODO("initialize all converters")
@@ -666,6 +669,21 @@ void InputBuffer::_handle_iu_events(EventPtr event)
 			call_iu_event_handlers(it->second, false, IU_COMMITTED, it->second->category() );
 			//
 			//
+		} else if (type == "ipaaca::protobuf::IURetraction") {
+			boost::shared_ptr<protobuf::IURetraction> update = boost::static_pointer_cast<protobuf::IURetraction>(event->getData());
+			it = _iu_store.find(update->uid());
+			if (it == _iu_store.end()) {
+				IPAACA_INFO("Ignoring RETRACTED message for an IU that we did not fully receive before")
+				return;
+			}
+			//
+			it->second->_revision = update->revision();
+			it->second->_apply_retraction();
+			// remove from InputBuffer     FIXME: this is a crossover between retracted and deleted behavior
+			_iu_store.erase(it->first);
+			// and call the handler. IU reference is still valid for this call, although removed from buffer.
+			call_iu_event_handlers(it->second, false, IU_COMMITTED, it->second->category() );
+			//
 		} else {
 			std::cout << "(Unhandled Event type " << type << " !)" << std::endl;
 			return;
@@ -681,7 +699,7 @@ void InputBuffer::_handle_iu_events(EventPtr event)
 // IUInterface//{{{
 
 IUInterface::IUInterface()
-: _buffer(NULL), _committed(false)
+: _buffer(NULL), _committed(false), _retracted(false)
 {
 }
 
@@ -944,6 +962,10 @@ void RemotePushIU::_apply_update(IUPayloadUpdate::ptr update)
 void RemotePushIU::_apply_commission()
 {
 	_committed = true;
+}
+void RemotePushIU::_apply_retraction()
+{
+	_retracted = true;
 }
 void Payload::_remotely_enforced_wipe()
 {

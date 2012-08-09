@@ -241,6 +241,14 @@ class CallbackIUCommission: public rsb::patterns::Server::Callback<protobuf::IUC
 	public:
 		boost::shared_ptr<int> call(const std::string& methodName, boost::shared_ptr<protobuf::IUCommission> update);
 };
+class CallbackIURetraction: public rsb::patterns::Server::Callback<protobuf::IURetraction, int> {
+	protected:
+		Buffer* _buffer;
+	public:
+		CallbackIURetraction(Buffer* buffer);
+	public:
+		boost::shared_ptr<int> call(const std::string& methodName, boost::shared_ptr<protobuf::IURetraction> update);
+};
 
 class OutputBuffer: public Buffer { //, public boost::enable_shared_from_this<OutputBuffer>  {//{{{
 	friend class IU;
@@ -451,6 +459,7 @@ class IUInterface {//{{{
 		std::string _payload_type; // default is "MAP"
 		std::string _owner_name;
 		bool _committed;
+		bool _retracted;
 		IUAccessMode _access_mode;
 		bool _read_only;
 		//boost::shared_ptr<Buffer> _buffer;
@@ -556,6 +565,7 @@ class RemotePushIU: public IUInterface {//{{{
 		void _apply_update(IUPayloadUpdate::ptr update);
 		void _apply_link_update(IULinkUpdate::ptr update);
 		void _apply_commission();
+		void _apply_retraction();
 	typedef boost::shared_ptr<RemotePushIU> ptr;
 };//}}}
 

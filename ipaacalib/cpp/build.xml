@@ -3,7 +3,7 @@
    <import file="../../../hmibuild/build.xml" />
    <target name="check-proto-files">
       <echo message="Checking whether compiled protobuf files are already present..." />
-      <available file="build/ipaaca.pb.h" property="pb.present"/>
+      <available file="build/ipaaca/ipaaca.pb.h" property="pb.present"/>
    </target>
    <target name="-proto-yes" depends="check-proto-files" if="pb.present">
       <echo message="Built protobuf files found, skipping compilation" />
