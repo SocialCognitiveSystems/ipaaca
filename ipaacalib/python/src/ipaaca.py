@@ -1165,9 +1165,9 @@ def initialize_ipaaca_rsb():#{{{
 	rsb.converter.registerGlobalConverter(
 		rsb.converter.ProtocolBufferConverter(
 			messageClass=ipaaca_pb2.IUCommission))
-	#rsb.__defaultParticipantConfig = rsb.ParticipantConfig.fromDefaultSources()
+	rsb.__defaultParticipantConfig = rsb.ParticipantConfig.fromDefaultSources()
 	#t = rsb.ParticipantConfig.Transport('spread', {'enabled':'true'})
-	rsb.__defaultParticipantConfig = rsb.ParticipantConfig.fromFile('rsb.cfg')
+	#rsb.__defaultParticipantConfig = rsb.ParticipantConfig.fromFile('rsb.cfg')
 #}}}
 
 

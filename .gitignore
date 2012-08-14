@@ -16,8 +16,10 @@
 .*.sw[a-z]
 *.un~
 Session.vim
-**/manifest.mf
-**/**/manifest.mf
+*/manifest.mf
+*/*/manifest.mf
+*/*/*/manifest.mf
+*/*/*/*/manifest.mf
 **/*.*~
 deps
 dist
