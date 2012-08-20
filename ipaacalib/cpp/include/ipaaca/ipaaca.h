@@ -11,7 +11,6 @@
 /// date of last release number increment
 #define IPAACA_CPP_RELEASE_DATE     "2012-04-13"
 
-
 #ifdef IPAACA_DEBUG_MESSAGES
 #define IPAACA_INFO(i) std::cout << __FILE__ << ":" << __LINE__ << ": " << __func__ << "() -- " << i << std::endl;
 #define IPAACA_WARNING(i) std::cout << __FILE__ << ":" << __LINE__ << ": " << __func__ << "() -- WARNING: " << i << std::endl;
@@ -24,11 +23,16 @@
 #define IPAACA_TODO(i) ;
 #endif
 
+
 /// marking pure virtual functions for extra readability
 #define _IPAACA_ABSTRACT_
 
 /// value to return when reading nonexistant payload keys
 #define IPAACA_PAYLOAD_DEFAULT_STRING_VALUE ""
+
+// seconds until remote writes time out
+#define IPAACA_REMOTE_SERVER_TIMEOUT 2.0
+
 
 #include <iostream>
 
@@ -193,6 +197,7 @@ class Buffer { //: public boost::enable_shared_from_this<Buffer> {//{{{
 	friend class CallbackIULinkUpdate;
 	friend class CallbackIUCommission;
 	protected:
+		//Lock _handler_lock;
 		std::string _uuid;
 		std::string _basename;
 		std::string _unique_name;

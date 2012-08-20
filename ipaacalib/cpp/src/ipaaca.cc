@@ -880,7 +880,7 @@ void RemotePushIU::_modify_links(bool is_delta, const LinkMap& new_links, const 
 	update->writer_name = _buffer->unique_name();
 	update->new_links = new_links;
 	update->links_to_remove = links_to_remove;
-	boost::shared_ptr<int> result = server->call<int>("updateLinks", update, 1); // TODO 1 sec
+	boost::shared_ptr<int> result = server->call<int>("updateLinks", update, IPAACA_REMOTE_SERVER_TIMEOUT); // TODO
 	if (*result == 0) {
 		throw IUUpdateFailedError();
 	} else {
@@ -903,7 +903,7 @@ void RemotePushIU::_modify_payload(bool is_delta, const std::map<std::string, st
 	update->writer_name = _buffer->unique_name();
 	update->new_items = new_items;
 	update->keys_to_remove = keys_to_remove;
-	boost::shared_ptr<int> result = server->call<int>("updatePayload", update, 1); // TODO 1 sec
+	boost::shared_ptr<int> result = server->call<int>("updatePayload", update, IPAACA_REMOTE_SERVER_TIMEOUT); // TODO
 	if (*result == 0) {
 		throw IUUpdateFailedError();
 	} else {
@@ -925,7 +925,7 @@ void RemotePushIU::commit()
 	update->set_uid(_uid);
 	update->set_revision(_revision);
 	update->set_writer_name(_buffer->unique_name());
-	boost::shared_ptr<int> result = server->call<int>("commit", update, 1); // TODO 1 sec
+	boost::shared_ptr<int> result = server->call<int>("commit", update, IPAACA_REMOTE_SERVER_TIMEOUT); // TODO
 	if (*result == 0) {
 		throw IUUpdateFailedError();
 	} else {

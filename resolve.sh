@@ -23,7 +23,7 @@ for P in $PACKAGES; do
 	[ "$files" ] && cp -a ../$P/dist/scripts/* deps/scripts/
 	files=(../$P/dist/python/*.zip);
 	[ "$files" ] && for zipfile in ../$P/dist/python/*.zip; do
-		unzip -qq $zipfile -d deps/python
+		unzip -oqq $zipfile -d deps/python
 	done
 done
 
