@@ -55,14 +55,14 @@ def enum(*sequential, **named):
 
 
 def pack_typed_payload_item(protobuf_object, key, value):
-	protobuf_object.key = str(key)
-	protobuf_object.value = str(value)
+	protobuf_object.key = key
+	protobuf_object.value = value
 	protobuf_object.type = 'str' # TODO: more types
 
 
 def unpack_typed_payload_item(protobuf_object):
 	# TODO: more types
-	return (protobuf_object.key, str(protobuf_object.value))
+	return (protobuf_object.key, protobuf_object.value)
 
 
 class IpaacaLoggingHandler(logging.Handler):
@@ -131,7 +131,14 @@ class IUNotFoundError(Exception):
 
 class Payload(dict):
 	def __init__(self, iu, writer_name=None, new_payload=None, omit_init_update_message=False):
-		pl = {} if new_payload is None else new_payload
+		pl1 = {} if new_payload is None else new_payload
+		pl = {}
+		for k,v in pl1.items():
+			if type(k)==str:
+				k=unicode(k,'utf8')
+			if type(v)==str:
+				v=unicode(v,'utf8')
+			pl[k] = v
 		self.iu = iu
 		# NOTE omit_init_update_message is necessary to prevent checking for
 		#   exceptions and sending updates in the case where we just receive
@@ -141,9 +148,15 @@ class Payload(dict):
 		for k, v in pl.items():
 			dict.__setitem__(self, k, v)
 	def __setitem__(self, k, v, writer_name=None):
+		if type(k)==str:
+			k=unicode(k,'utf8')
+		if type(v)==str:
+			v=unicode(v,'utf8')
 		self.iu._modify_payload(is_delta=True, new_items={k:v}, keys_to_remove=[], writer_name=writer_name)
 		result = dict.__setitem__(self, k, v)
 	def __delitem__(self, k, writer_name=None):
+		if type(k)==str:
+			k=unicode(k,'utf8')
 		self.iu._modify_payload(is_delta=True, new_items={}, keys_to_remove=[k], writer_name=writer_name)
 		result = dict.__delitem__(self, k)
 	def _remotely_enforced_setitem(self, k, v):
@@ -179,7 +192,7 @@ class IUInterface(object): #{{{
 		self._links = collections.defaultdict(set)
 	
 	def __str__(self):
-		s = str(self.__class__)+"{ "
+		s = unicode(self.__class__)+"{ "
 		s += "uid="+self._uid+" "
 		s += "(buffer="+(self.buffer.unique_name if self.buffer is not None else "<None>")+") "
 		s += "owner_name=" + ("<None>" if self.owner_name is None else self.owner_name) + " "
