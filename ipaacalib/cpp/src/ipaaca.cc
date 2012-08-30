@@ -993,20 +993,44 @@ PayloadEntryProxy::PayloadEntryProxy(Payload* payload, const std::string& key)
 }
 PayloadEntryProxy& PayloadEntryProxy::operator=(const std::string& value)
 {
+	std::cout << "operator=(string)" << std::endl;
 	_payload->set(_key, value);
+	return *this;
+}
+PayloadEntryProxy& PayloadEntryProxy::operator=(const char* value)
+{
+	std::cout << "operator=(const char*)" << std::endl;
+	_payload->set(_key, value);
+	return *this;
+}
+PayloadEntryProxy& PayloadEntryProxy::operator=(double value)
+{
+	std::cout << "operator=(double)" << std::endl;
+	_payload->set(_key, boost::lexical_cast<std::string>(value));
+	return *this;
+}
+PayloadEntryProxy& PayloadEntryProxy::operator=(bool value)
+{
+	std::cout << "operator=(bool)" << std::endl;
+	_payload->set(_key, boost::lexical_cast<std::string>(value));
 	return *this;
 }
 PayloadEntryProxy::operator std::string()
 {
 	return _payload->get(_key);
 }
+PayloadEntryProxy::operator bool()
+{
+	std::string s = operator std::string();
+	return ((s=="1")||(s=="true")||(s=="True"));
+}
 PayloadEntryProxy::operator long()
 {
-	return atol(operator std::string().c_str());
+	return boost::lexical_cast<long>(operator std::string().c_str());
 }
 PayloadEntryProxy::operator double()
 {
-	return atof(operator std::string().c_str());
+	return boost::lexical_cast<double>(operator std::string().c_str());
 }
 //}}}
 

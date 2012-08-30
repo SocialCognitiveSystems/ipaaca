@@ -39,6 +39,7 @@
 #include <boost/thread.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/pointer_cast.hpp>
+#include <boost/lexical_cast.hpp>
 
 #include <rsc/runtime/TypeStringTools.h>
 #include <rsb/Factory.h>
@@ -409,12 +410,18 @@ class PayloadEntryProxy//{{{
 	public:
 		PayloadEntryProxy(Payload* payload, const std::string& key);
 		PayloadEntryProxy& operator=(const std::string& value);
+		PayloadEntryProxy& operator=(const char* value);
+		PayloadEntryProxy& operator=(double value);
+		PayloadEntryProxy& operator=(bool value);
 		operator std::string();
 		operator long();
 		operator double();
+		operator bool();
 		inline std::string to_str() { return operator std::string(); }
-		inline long to_int() { return operator long(); }
+		//inline long to_int() { return operator long(); }
+		inline long to_long() { return operator long(); }
 		inline double to_float() { return operator double(); }
+		inline bool to_bool() { return operator bool(); }
 };//}}}
 
 class Payload//{{{
