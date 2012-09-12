@@ -3,6 +3,7 @@
 */*/generatedsrc
 */build
 */*/build
+*/*/*/build
 */lib
 */test/lib
 */test/report
@@ -12,7 +13,7 @@
 */.project
 */.classpath
 *.pyc
-**/.*.swp
+*/.*.swp
 .*.sw[a-z]
 *.un~
 Session.vim
@@ -20,7 +21,7 @@ Session.vim
 */*/manifest.mf
 */*/*/manifest.mf
 */*/*/*/manifest.mf
-**/*.*~
+*/*.*~
 deps
 dist
 

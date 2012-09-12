@@ -85,7 +85,8 @@ IUEventType = enum(
 	DELETED = 'DELETED',
 	RETRACTED = 'RETRACTED',
 	UPDATED = 'UPDATED',
-	LINKSUPDATED = 'LINKSUPDATED'
+	LINKSUPDATED = 'LINKSUPDATED',
+	MESSAGE = 'MESSAGE'
 )
 
 
@@ -416,6 +417,143 @@ class IU(IUInterface):#{{{
 
 #}}}
 
+class Message(IU):#{{{
+	"""Local IU of Message sub-type. Can be handled like a normal IU, but on the remote side it is only existent during the handler calls."""
+	def __init__(self, category='undef', access_mode=IUAccessMode.MESSAGE, read_only=True, _payload_type='MAP'):
+		super(Message, self).__init__(category=category, access_mode=access_mode, read_only=read_only, _payload_type=_payload_type)
+	
+	def _modify_links(self, is_delta=False, new_links={}, links_to_remove={}, writer_name=None):
+		if self.is_published:
+			logger.info('Info: modifying a Message after sending has no global effects')
+	
+	def _modify_payload(self, is_delta=True, new_items={}, keys_to_remove=[], writer_name=None):
+		if self.is_published:
+			logger.info('Info: modifying a Message after sending has no global effects')
+	
+	def _increase_revision_number(self):
+		self._revision += 1
+	
+	def _internal_commit(self, writer_name=None):
+		if self.is_published:
+			logger.info('Info: committing to a Message after sending has no global effects')
+	
+	def commit(self):
+		return self._internal_commit()
+	
+	def _get_payload(self):
+		return self._payload
+	def _set_payload(self, new_pl, writer_name=None):
+		if self.is_published:
+			logger.info('Info: modifying a Message after sending has no global effects')
+		else:
+			if self.committed:
+				raise IUCommittedError(self)
+			with self.revision_lock:
+				self._increase_revision_number()
+				self._payload = Payload(
+						iu=self,
+						writer_name=None if self.buffer is None else (self.buffer.unique_name if writer_name is None else writer_name),
+						new_payload=new_pl)
+	payload = property(
+			fget=_get_payload,
+			fset=_set_payload,
+			doc='Payload dictionary of this IU.')
+	
+	def _get_is_published(self):
+		return self.buffer is not None
+	is_published = property(
+			fget=_get_is_published, 
+			doc='Flag indicating whether this IU has been published or not.')
+	
+	def _set_buffer(self, buffer):
+		if self._buffer is not None:
+			raise Exception('The IU is already in a buffer, cannot move it.')
+		self._buffer = buffer
+		self.owner_name = buffer.unique_name
+		self._payload.owner_name = buffer.unique_name
+	buffer = property(
+			fget=IUInterface._get_buffer,
+			fset=_set_buffer,
+			doc='Buffer this IU is held in.')
+	
+	def _set_uid(self, uid):
+		if self._uid is not None:
+			raise AttributeError('The uid of IU ' + self.uid + ' has already been set, cannot change it.')
+		self._uid = uid
+	uid = property(
+			fget=IUInterface._get_uid,
+			fset=_set_uid,
+			doc='Unique ID of the IU.')
+#}}}
+
+class RemoteMessage(IUInterface):#{{{
+	
+	"""A remote IU with access mode 'MESSAGE'."""
+	
+	def __init__(self, uid, revision, read_only, owner_name, category, payload_type, committed, payload, links):
+		super(RemoteMessage, self).__init__(uid=uid, access_mode=IUAccessMode.PUSH, read_only=read_only)
+		self._revision = revision
+		self._category = category
+		self.owner_name = owner_name
+		self._payload_type = payload_type
+		self._committed = committed
+		self._retracted = False
+		# NOTE Since the payload is an already-existant Payload which we didn't modify ourselves,
+		#  don't try to invoke any modification checks or network updates ourselves either.
+		#  We are just receiving it here and applying the new data.
+		self._payload = Payload(iu=self, new_payload=payload, omit_init_update_message=True)
+		self._links = links
+	
+	def _modify_links(self, is_delta=False, new_links={}, links_to_remove={}, writer_name=None):
+		logger.info('Info: modifying a RemoteMessage only has local effects')
+	
+	def _modify_payload(self, is_delta=True, new_items={}, keys_to_remove=[], writer_name=None):
+		logger.info('Info: modifying a RemoteMessage only has local effects')
+
+	def commit(self):
+		logger.info('Info: committing to a RemoteMessage only has local effects')
+
+	def _get_payload(self):
+		return self._payload
+	def _set_payload(self, new_pl):
+		logger.info('Info: modifying a RemoteMessage only has local effects')
+		self._payload = Payload(iu=self, new_payload=new_pl, omit_init_update_message=True)
+	payload = property(
+			fget=_get_payload,
+			fset=_set_payload,
+			doc='Payload dictionary of the IU.')
+
+	def _apply_link_update(self, update):
+		"""Apply a IULinkUpdate to the IU."""
+		logger.warning('Warning: should never be called: RemoteMessage._apply_link_update')
+		self._revision = update.revision
+		if update.is_delta:
+			self._add_and_remove_links(add=update.new_links, remove=update.links_to_remove)
+		else:
+			self._replace_links(links=update.new_links)
+	
+	def _apply_update(self, update):
+		"""Apply a IUPayloadUpdate to the IU."""
+		logger.warning('Warning: should never be called: RemoteMessage._apply_update')
+		self._revision = update.revision
+		if update.is_delta:
+			for k in update.keys_to_remove: self.payload._remotely_enforced_delitem(k)
+			for k, v in update.new_items.items(): self.payload._remotely_enforced_setitem(k, v)
+		else:
+			# NOTE Please read the comment in the constructor
+			self._payload = Payload(iu=self, new_payload=update.new_items, omit_init_update_message=True)
+	
+	def _apply_commission(self):
+		"""Apply commission to the IU"""
+		logger.warning('Warning: should never be called: RemoteMessage._apply_commission')
+		self._committed = True
+	
+	def _apply_retraction(self):
+		"""Apply retraction to the IU"""
+		logger.warning('Warning: should never be called: RemoteMessage._apply_retraction')
+		self._retracted = True
+#}}}
+
 class RemotePushIU(IUInterface):#{{{
 	
 	"""A remote IU with access mode 'PUSH'."""
@@ -582,7 +720,7 @@ class IUConverter(rsb.converter.Converter):#{{{
 		pbo.payload_type = iu._payload_type
 		pbo.owner_name = iu._owner_name
 		pbo.committed = iu._committed
-		pbo.access_mode = ipaaca_pb2.IU.PUSH # TODO
+		pbo.access_mode = iu._access_mode #ipaaca_pb2.IU.PUSH # TODO
 		pbo.read_only = iu._read_only
 		for k,v in iu._payload.items():
 			entry = pbo.payload.add()
@@ -619,8 +757,29 @@ class IUConverter(rsb.converter.Converter):#{{{
 						links=_links
 					)
 				return remote_push_iu
+			elif pbo.access_mode ==  ipaaca_pb2.IU.MESSAGE:
+				_payload = {}
+				for entry in pbo.payload:
+					k, v = unpack_typed_payload_item(entry)
+					_payload[k] = v
+				_links = collections.defaultdict(set)
+				for linkset in pbo.links:
+					for target_uid in linkset.targets:
+						_links[linkset.type].add(target_uid)
+				remote_message = RemoteMessage(
+						uid=pbo.uid,
+						revision=pbo.revision,
+						read_only = pbo.read_only,
+						owner_name = pbo.owner_name,
+						category = pbo.category,
+						payload_type = pbo.payload_type,
+						committed = pbo.committed,
+						payload=_payload,
+						links=_links
+					)
+				return remote_message
 			else:
-				raise Exception("We can only handle IUs with access mode 'PUSH' for now!")
+				raise Exception("We can only handle IUs with access mode 'PUSH' or 'MESSAGE' for now!")
 		else:
 			raise ValueError("Inacceptable dataType %s" % type)
 #}}}
@@ -915,6 +1074,12 @@ class InputBuffer(Buffer):
 				self._iu_store[ event.data.uid ] = event.data
 				event.data.buffer = self
 				self.call_iu_event_handlers(event.data.uid, local=False, event_type=IUEventType.ADDED, category=event.data.category)
+		elif type_ is RemoteMessage:
+			# a new Message, an ephemeral IU that is removed after calling handlers
+			self._iu_store[ event.data.uid ] = event.data
+			event.data.buffer = self
+			self.call_iu_event_handlers(event.data.uid, local=False, event_type=IUEventType.MESSAGE, category=event.data.category)
+			del self._iu_store[ event.data.uid ]
 		else:
 			# an update to an existing IU
 			if event.data.uid not in self._iu_store:
@@ -1080,7 +1245,11 @@ class OutputBuffer(Buffer):
 		#iu.uid = self._generate_iu_uid()
 	 	if iu.uid in self._iu_store:
 			raise IUPublishedError(iu)
-		self._iu_store[iu.uid] = iu
+		if iu.buffer is not None:
+			raise IUPublishedError(iu)
+		if iu.access_mode != IUAccessMode.MESSAGE:
+			# Messages are not really stored in the OutputBuffer
+			self._iu_store[iu.uid] = iu
 		iu.buffer = self
 		self._publish_iu(iu)
 	

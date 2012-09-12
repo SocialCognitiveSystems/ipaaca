@@ -42,8 +42,8 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CXX_OLD_CODE_CONVENIENCE_FLAGS} ${CXX_
 include_directories( ${PROJECT_SOURCE_DIR}/include )
 
 # add lib and include directory from pulled dependencies
-include_directories( ${PROJECT_SOURCE_DIR}/../../../dist/include )
-link_directories( ${PROJECT_SOURCE_DIR}/../../../dist/lib )
+include_directories( ${PROJECT_SOURCE_DIR}/../../../dist/include ${PROJECT_SOURCE_DIR}/../../../deps/include )
+link_directories( ${PROJECT_SOURCE_DIR}/../../../dist/lib ${PROJECT_SOURCE_DIR}/../../../deps/lib )
 
 # specify source files for ipaaca (auto-generated ones are in build/ )
 set (SOURCE

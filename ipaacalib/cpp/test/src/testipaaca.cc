@@ -1,4 +1,4 @@
-#include <ipaaca.h>
+#include <ipaaca/ipaaca.h>
 #include <typeinfo>
 
 using namespace ipaaca;

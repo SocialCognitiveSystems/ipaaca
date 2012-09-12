@@ -9,7 +9,7 @@
 /// running release number of ipaaca-c++
 #define IPAACA_CPP_RELEASE_NUMBER             1
 /// date of last release number increment
-#define IPAACA_CPP_RELEASE_DATE     "2012-04-13"
+#define IPAACA_CPP_RELEASE_DATE     "2012-09-08"
 
 #ifdef IPAACA_DEBUG_MESSAGES
 #define IPAACA_INFO(i) std::cout << __FILE__ << ":" << __LINE__ << ": " << __func__ << "() -- " << i << std::endl;
@@ -73,8 +73,9 @@ typedef uint32_t IUEventType;
 #define IU_RETRACTED     8
 #define IU_UPDATED      16
 #define IU_LINKSUPDATED 32
+#define IU_MESSAGE      64
 /// Bit mask for receiving all events
-#define IU_ALL_EVENTS   63
+#define IU_ALL_EVENTS  127
 
 /// Convert an int event type to a human-readable string
 inline std::string iu_event_type_to_str(IUEventType type)
@@ -86,6 +87,7 @@ inline std::string iu_event_type_to_str(IUEventType type)
 		case IU_RETRACTED: return "RETRACTED";
 		case IU_UPDATED: return "UPDATED";
 		case IU_LINKSUPDATED: return "LINKSUPDATED";
+		case IU_MESSAGE: return "MESSAGE";
 		default: return "(NOT A KNOWN SINGLE IU EVENT TYPE)";
 	}
 }
@@ -429,7 +431,9 @@ class Payload//{{{
 	friend std::ostream& operator<<(std::ostream& os, const Payload& obj);
 	friend class IUInterface;
 	friend class IU;
+	friend class Message;
 	friend class RemotePushIU;
+	friend class RemoteMessage;
 	friend class IUConverter;
 	friend class CallbackIUPayloadUpdate;
 	protected:
@@ -545,12 +549,34 @@ class IU: public IUInterface {//{{{
 		inline const Payload& const_payload() const { return _payload; }
 		void commit();
 	protected:
+		virtual void _modify_links(bool is_delta, const LinkMap& new_links, const LinkMap& links_to_remove, const std::string& writer_name = "");
+		virtual void _modify_payload(bool is_delta, const std::map<std::string, std::string>& new_items, const std::vector<std::string>& keys_to_remove, const std::string& writer_name = "");
+	protected:
+		virtual void _internal_commit(const std::string& writer_name = "");
+	public:
+	typedef boost::shared_ptr<IU> ptr;
+};//}}}
+class Message: public IU {//{{{
+	friend class Buffer;
+	friend class InputBuffer;
+	friend class OutputBuffer;
+	friend class CallbackIUPayloadUpdate;
+	friend class CallbackIULinkUpdate;
+	friend class CallbackIUCommission;
+	protected:
+		Message(const std::string& category, IUAccessMode access_mode=IU_ACCESS_MESSAGE, bool read_only=true, const std::string& payload_type="MAP" );
+	public:
+		inline ~Message() {
+			IPAACA_IMPLEMENT_ME
+		}
+		static boost::shared_ptr<Message> create(const std::string& category, IUAccessMode access_mode=IU_ACCESS_MESSAGE, bool read_only=true, const std::string& payload_type="MAP" );
+	protected:
 		void _modify_links(bool is_delta, const LinkMap& new_links, const LinkMap& links_to_remove, const std::string& writer_name = "");
 		void _modify_payload(bool is_delta, const std::map<std::string, std::string>& new_items, const std::vector<std::string>& keys_to_remove, const std::string& writer_name = "");
 	protected:
 		void _internal_commit(const std::string& writer_name = "");
 	public:
-	typedef boost::shared_ptr<IU> ptr;
+	typedef boost::shared_ptr<Message> ptr;
 };//}}}
 
 class RemotePushIU: public IUInterface {//{{{
@@ -579,6 +605,33 @@ class RemotePushIU: public IUInterface {//{{{
 		void _apply_commission();
 		void _apply_retraction();
 	typedef boost::shared_ptr<RemotePushIU> ptr;
+};//}}}
+class RemoteMessage: public IUInterface {//{{{
+	friend class Buffer;
+	friend class InputBuffer;
+	friend class OutputBuffer;
+	friend class IUConverter;
+	public:
+		Payload _payload;
+	protected:
+		RemoteMessage();
+		static boost::shared_ptr<RemoteMessage> create();
+	public:
+		inline ~RemoteMessage() {
+			IPAACA_IMPLEMENT_ME
+		}
+		inline Payload& payload() { return _payload; }
+		inline const Payload& const_payload() const { return _payload; }
+		void commit();
+	protected:
+		void _modify_links(bool is_delta, const LinkMap& new_links, const LinkMap& links_to_remove, const std::string& writer_name = "");
+		void _modify_payload(bool is_delta, const std::map<std::string, std::string>& new_items, const std::vector<std::string>& keys_to_remove, const std::string& writer_name = "");
+	protected:
+		void _apply_update(IUPayloadUpdate::ptr update);
+		void _apply_link_update(IULinkUpdate::ptr update);
+		void _apply_commission();
+		void _apply_retraction();
+	typedef boost::shared_ptr<RemoteMessage> ptr;
 };//}}}
 
 class Exception: public std::exception//{{{
