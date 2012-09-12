@@ -434,7 +434,13 @@ void OutputBuffer::add(IU::ptr iu)
 	if (_iu_store.count(iu->uid()) > 0) {
 		throw IUPublishedError();
 	}
-	_iu_store[iu->uid()] = iu;
+	if (iu->is_published()) {
+		throw IUPublishedError();
+	}
+	if (iu->access_mode() != IU_ACCESS_MESSAGE) {
+		// (for Message-type IUs: do not actually store them)
+		_iu_store[iu->uid()] = iu;
+	}
 	iu->_associate_with_buffer(this); //shared_from_this());
 	_publish_iu(iu);
 }
@@ -620,6 +626,12 @@ void InputBuffer::_handle_iu_events(EventPtr event)
 			call_iu_event_handlers(iu, false, IU_ADDED, iu->category() );
 		}
 		//IPAACA_INFO( "New RemotePushIU state: " << (*iu) )
+	} else if (type == "ipaaca::RemoteMessage") {
+		boost::shared_ptr<RemoteMessage> iu = boost::static_pointer_cast<RemoteMessage>(event->getData());
+		//_iu_store[iu->uid()] = iu;
+		//iu->_set_buffer(this);
+		call_iu_event_handlers(iu, false, IU_MESSAGE, iu->category() );
+		//_iu_store.erase(iu->uid());
 	} else {
 		RemotePushIUStore::iterator it;
 		if (type == "ipaaca::IUPayloadUpdate") {
@@ -851,6 +863,40 @@ void IU::_internal_commit(const std::string& writer_name)
 	_revision_lock.unlock();
 }
 //}}}
+// Message//{{{
+Message::ptr Message::create(const std::string& category, IUAccessMode access_mode, bool read_only, const std::string& payload_type)
+{
+	Message::ptr iu = Message::ptr(new Message(category, access_mode, read_only, payload_type)); /* params */ //));
+	iu->_payload.initialize(iu);
+	return iu;
+}
+
+Message::Message(const std::string& category, IUAccessMode access_mode, bool read_only, const std::string& payload_type)
+: IU(category, access_mode, read_only, payload_type)
+{
+}
+
+void Message::_modify_links(bool is_delta, const LinkMap& new_links, const LinkMap& links_to_remove, const std::string& writer_name)
+{
+	if (is_published()) {
+		IPAACA_INFO("Info: modifying a Message after sending has no global effects")
+	}
+}
+void Message::_modify_payload(bool is_delta, const std::map<std::string, std::string>& new_items, const std::vector<std::string>& keys_to_remove, const std::string& writer_name)
+{
+	if (is_published()) {
+		IPAACA_INFO("Info: modifying a Message after sending has no global effects")
+	}
+}
+
+void Message::_internal_commit(const std::string& writer_name)
+{
+	if (is_published()) {
+		IPAACA_INFO("Info: committing to a Message after sending has no global effects")
+	}
+	
+}
+//}}}
 
 // RemotePushIU//{{{
 
@@ -967,21 +1013,73 @@ void RemotePushIU::_apply_retraction()
 {
 	_retracted = true;
 }
-void Payload::_remotely_enforced_wipe()
+//}}}
+
+// RemoteMessage//{{{
+
+RemoteMessage::ptr RemoteMessage::create()
 {
-	_store.clear();
+	RemoteMessage::ptr iu = RemoteMessage::ptr(new RemoteMessage(/* params */));
+	iu->_payload.initialize(iu);
+	return iu;
 }
-void Payload::_remotely_enforced_delitem(const std::string& k)
+RemoteMessage::RemoteMessage()
 {
-	_store.erase(k);
+	// nothing
 }
-void Payload::_remotely_enforced_setitem(const std::string& k, const std::string& v)
+void RemoteMessage::_modify_links(bool is_delta, const LinkMap& new_links, const LinkMap& links_to_remove, const std::string& writer_name)
 {
-	_store[k] = v;
+	IPAACA_INFO("Info: modifying a RemoteMessage only has local effects")
+}
+void RemoteMessage::_modify_payload(bool is_delta, const std::map<std::string, std::string>& new_items, const std::vector<std::string>& keys_to_remove, const std::string& writer_name)
+{
+	IPAACA_INFO("Info: modifying a RemoteMessage only has local effects")
+}
+void RemoteMessage::commit()
+{
+	IPAACA_INFO("Info: committing to a RemoteMessage only has local effects")
+}
+
+void RemoteMessage::_apply_link_update(IULinkUpdate::ptr update)
+{
+	IPAACA_WARNING("Warning: should never be called: RemoteMessage::_apply_link_update")
+	_revision = update->revision;
+	if (update->is_delta) {
+		_add_and_remove_links(update->new_links, update->links_to_remove);
+	} else {
+		_replace_links(update->new_links);
+	}
+}
+void RemoteMessage::_apply_update(IUPayloadUpdate::ptr update)
+{
+	IPAACA_WARNING("Warning: should never be called: RemoteMessage::_apply_update")
+	_revision = update->revision;
+	if (update->is_delta) {
+		for (std::vector<std::string>::const_iterator it=update->keys_to_remove.begin(); it!=update->keys_to_remove.end(); ++it) {
+			_payload._remotely_enforced_delitem(*it);
+		}
+		for (std::map<std::string, std::string>::const_iterator it=update->new_items.begin(); it!=update->new_items.end(); ++it) {
+			_payload._remotely_enforced_setitem(it->first, it->second);
+		}
+	} else {
+		_payload._remotely_enforced_wipe();
+		for (std::map<std::string, std::string>::const_iterator it=update->new_items.begin(); it!=update->new_items.end(); ++it) {
+			_payload._remotely_enforced_setitem(it->first, it->second);
+		}
+	}
+}
+void RemoteMessage::_apply_commission()
+{
+	IPAACA_WARNING("Warning: should never be called: RemoteMessage::_apply_commission")
+	_committed = true;
+}
+void RemoteMessage::_apply_retraction()
+{
+	IPAACA_WARNING("Warning: should never be called: RemoteMessage::_apply_retraction")
+	_retracted = true;
 }
 
 //}}}
-
 
 
 
@@ -993,25 +1091,25 @@ PayloadEntryProxy::PayloadEntryProxy(Payload* payload, const std::string& key)
 }
 PayloadEntryProxy& PayloadEntryProxy::operator=(const std::string& value)
 {
-	std::cout << "operator=(string)" << std::endl;
+	//std::cout << "operator=(string)" << std::endl;
 	_payload->set(_key, value);
 	return *this;
 }
 PayloadEntryProxy& PayloadEntryProxy::operator=(const char* value)
 {
-	std::cout << "operator=(const char*)" << std::endl;
+	//std::cout << "operator=(const char*)" << std::endl;
 	_payload->set(_key, value);
 	return *this;
 }
 PayloadEntryProxy& PayloadEntryProxy::operator=(double value)
 {
-	std::cout << "operator=(double)" << std::endl;
+	//std::cout << "operator=(double)" << std::endl;
 	_payload->set(_key, boost::lexical_cast<std::string>(value));
 	return *this;
 }
 PayloadEntryProxy& PayloadEntryProxy::operator=(bool value)
 {
-	std::cout << "operator=(bool)" << std::endl;
+	//std::cout << "operator=(bool)" << std::endl;
 	_payload->set(_key, boost::lexical_cast<std::string>(value));
 	return *this;
 }
@@ -1026,11 +1124,13 @@ PayloadEntryProxy::operator bool()
 }
 PayloadEntryProxy::operator long()
 {
-	return boost::lexical_cast<long>(operator std::string().c_str());
+	//return boost::lexical_cast<long>(operator std::string().c_str());
+	return atof(operator std::string().c_str());
 }
 PayloadEntryProxy::operator double()
 {
-	return boost::lexical_cast<double>(operator std::string().c_str());
+	//return boost::lexical_cast<double>(operator std::string().c_str());
+	return atol(operator std::string().c_str());
 }
 //}}}
 
@@ -1075,6 +1175,19 @@ inline std::string Payload::get(const std::string& k) {
 	if (_store.count(k)>0) return _store[k];
 	else return IPAACA_PAYLOAD_DEFAULT_STRING_VALUE;
 }
+void Payload::_remotely_enforced_wipe()
+{
+	_store.clear();
+}
+void Payload::_remotely_enforced_delitem(const std::string& k)
+{
+	_store.erase(k);
+}
+void Payload::_remotely_enforced_setitem(const std::string& k, const std::string& v)
+{
+	_store[k] = v;
+}
+
 //}}}
 
 // IUConverter//{{{
@@ -1098,7 +1211,19 @@ std::string IUConverter::serialize(const AnnotatedData& data, std::string& wire)
 	pbo->set_payload_type(obj->payload_type());
 	pbo->set_owner_name(obj->owner_name());
 	pbo->set_committed(obj->committed());
-	pbo->set_access_mode(ipaaca::protobuf::IU::PUSH); // TODO
+	ipaaca::protobuf::IU_AccessMode a_m;
+	switch(obj->access_mode()) {
+		case IU_ACCESS_PUSH:
+			a_m = ipaaca::protobuf::IU_AccessMode_PUSH;
+			break;
+		case IU_ACCESS_REMOTE:
+			a_m = ipaaca::protobuf::IU_AccessMode_REMOTE;
+			break;
+		case IU_ACCESS_MESSAGE:
+			a_m = ipaaca::protobuf::IU_AccessMode_MESSAGE;
+			break;
+	}
+	pbo->set_access_mode(a_m);
 	pbo->set_read_only(obj->read_only());
 	for (std::map<std::string, std::string>::const_iterator it=obj->_payload._store.begin(); it!=obj->_payload._store.end(); ++it) {
 		protobuf::PayloadItem* item = pbo->add_payload();
@@ -1150,6 +1275,34 @@ AnnotatedData IUConverter::deserialize(const std::string& wireSchema, const std:
 			}
 			//return std::make_pair(getDataType(), obj);
 			return std::make_pair("ipaaca::RemotePushIU", obj);
+			break;
+			}
+		case IU_ACCESS_MESSAGE:
+			{
+			// Create a "Message-type IU"
+			boost::shared_ptr<RemoteMessage> obj = RemoteMessage::create();
+			// transfer pbo data to obj
+			obj->_uid = pbo->uid();
+			obj->_revision = pbo->revision();
+			obj->_category = pbo->category();
+			obj->_payload_type = pbo->payload_type();
+			obj->_owner_name = pbo->owner_name();
+			obj->_committed = pbo->committed();
+			obj->_read_only = pbo->read_only();
+			obj->_access_mode = IU_ACCESS_MESSAGE;
+			for (int i=0; i<pbo->payload_size(); i++) {
+				const protobuf::PayloadItem& it = pbo->payload(i);
+				obj->_payload._store[it.key()] = it.value();
+			}
+			for (int i=0; i<pbo->links_size(); i++) {
+				const protobuf::LinkSet& pls = pbo->links(i);
+				LinkSet& ls = obj->_links._links[pls.type()];
+				for (int j=0; j<pls.targets_size(); j++) {
+					ls.insert(pls.targets(j));
+				}
+			}
+			//return std::make_pair(getDataType(), obj);
+			return std::make_pair("ipaaca::RemoteMessage", obj);
 			break;
 			}
 		default:

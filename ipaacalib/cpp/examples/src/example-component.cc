@@ -12,7 +12,7 @@
 // 'Component' (the concept does not exist anymore in ipaaca2).
 //
 
-#include <ipaaca.h>
+#include <ipaaca/ipaaca.h>
 #include <typeinfo>
 
 using namespace ipaaca;
@@ -73,7 +73,12 @@ void LegacyComponent::handle_iu_event(IUInterface::ptr iu, IUEventType event_typ
 	
 	} else {
 		// event on a remote IU
-		if (event_type == IU_ADDED) {
+		if (event_type == IU_MESSAGE) {
+			std::cout << "[Received new Message!]" << std::endl;
+			
+			std::string description = iu->payload()["description"];
+			std::cout << "[ Current description: " << description << "]" << std::endl;
+		} else if (event_type == IU_ADDED) {
 			std::cout << "[Received new IU!]" << std::endl;
 			
 			/// new Payload class enables dynamic typing to some degree (numeric default 0)
@@ -125,7 +130,7 @@ void LegacyComponent::publish_reply_iu(const std::string& text, const std::strin
 }
 
 void LegacyComponent::publish_hello_world() {
-	IU::ptr iu = IU::create( "myCategoryInterest"); //helloWorld" );
+	IU::ptr iu = Message::create( "myCategoryInterest"); //helloWorld" );
 	iu->payload()["description"] = "Hello world";
 	_out_buf->add(iu);
 }
