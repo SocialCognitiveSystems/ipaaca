@@ -150,6 +150,20 @@ class Lock
 		}
 };
 
+/// Stack-based lock holder. Create in a new stack frame
+///  (i.e.  {}-block) and it will obtain the lock and
+///  auto-release in on exiting the stack frame.
+class Locker
+{
+	protected:
+		Lock* _lock;
+	private:
+		inline Locker(): _lock(NULL) { } // not available
+	public:
+		inline Locker(Lock& lock): _lock(&lock) { _lock->lock(); }
+		inline ~Locker() { _lock->unlock(); }
+};
+
 typedef std::set<std::string> LinkSet;
 typedef std::map<std::string, LinkSet> LinkMap;
 class SmartLinkMap {
