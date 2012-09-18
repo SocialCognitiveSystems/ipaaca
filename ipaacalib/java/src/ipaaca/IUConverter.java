@@ -56,12 +56,18 @@ public class IUConverter implements Converter<ByteBuffer>
             links.add(LinkSet.newBuilder().setType(entry.getKey()).addAllTargets(entry.getValue()).build());
         }
 
+        IU.AccessMode accessMode = IU.AccessMode.PUSH;
+        if(iua instanceof RemoteMessageIU || iua instanceof LocalMessageIU)
+        {
+            accessMode = IU.AccessMode.MESSAGE;
+        }
         IU iu = IU.newBuilder().setUid(iua.getUid()).setRevision(iua.getRevision()).setCategory(iua.getCategory())
-                .setOwnerName(iua.getOwnerName()).setCommitted(iua.isCommitted()).setAccessMode(IU.AccessMode.PUSH) // TODO for other access modes (also in Python version)
+                .setOwnerName(iua.getOwnerName()).setCommitted(iua.isCommitted()).setAccessMode(accessMode)
                 .setReadOnly(iua.isReadOnly()).setPayloadType("MAP").addAllPayload(payloadItems).addAllLinks(links).build();
         return new WireContents<ByteBuffer>(ByteBuffer.wrap(iu.toByteArray()), "ipaaca-iu");
     }
 
+    
     @Override
     public UserData<?> deserialize(String wireSchema, ByteBuffer buffer) throws ConversionException
     {
@@ -78,24 +84,36 @@ public class IUConverter implements Converter<ByteBuffer>
         if (iu.getAccessMode() == IU.AccessMode.PUSH)
         {
             RemotePushIU iuout = new RemotePushIU(iu.getUid());
-            iuout.setCategory(iu.getCategory());
-            iuout.committed = iu.getCommitted();
-            iuout.setOwnerName(iu.getOwnerName());
-            iuout.setRevision(iu.getRevision());
-            iuout.setReadOnly(iu.getReadOnly());
-            iuout.payload = new Payload(iuout, iu.getPayloadList());
-            SetMultimap<String, String> links = HashMultimap.create();
-            for (LinkSet ls : iu.getLinksList())
-            {
-                links.putAll(ls.getType(), ls.getTargetsList());
-            }
-            iuout.setLinksLocally(links);
+            copyIU(iu, iuout);
             return new UserData<RemotePushIU>(iuout, RemotePushIU.class);
+        }
+        else if(iu.getAccessMode() == IU.AccessMode.MESSAGE)
+        {
+            RemoteMessageIU iuout = new RemoteMessageIU(iu.getUid());
+            copyIU(iu,iuout);
+            return new UserData<RemoteMessageIU>(iuout, RemoteMessageIU.class);
         }
         else
         {
-            throw new RuntimeException("We can only handle IUs with access mode 'PUSH' for now!");
+            throw new RuntimeException("Trying to deserialize IU with accesmode: "+iu.getAccessMode()+". " +
+            		"We can only handle IUs with access mode 'PUSH' or 'MESSAGE' for now!");
         }
+    }
+
+    private void copyIU(IU iu, AbstractIU iuout)
+    {
+        iuout.setCategory(iu.getCategory());
+        iuout.committed = iu.getCommitted();
+        iuout.setOwnerName(iu.getOwnerName());
+        iuout.setRevision(iu.getRevision());
+        iuout.setReadOnly(iu.getReadOnly());
+        iuout.payload = new Payload(iuout, iu.getPayloadList());
+        SetMultimap<String, String> links = HashMultimap.create();
+        for (LinkSet ls : iu.getLinksList())
+        {
+            links.putAll(ls.getType(), ls.getTargetsList());
+        }
+        iuout.setLinksLocally(links);
     }
 
 }

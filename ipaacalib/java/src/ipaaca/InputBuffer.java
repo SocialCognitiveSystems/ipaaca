@@ -32,6 +32,7 @@ public class InputBuffer extends Buffer
     private Set<String> categoryInterests = new HashSet<String>();
     private final static Logger logger = LoggerFactory.getLogger(InputBuffer.class.getName());
     private IUStore<RemotePushIU> iuStore = new IUStore<RemotePushIU>();
+    private IUStore<RemoteMessageIU> messageStore = new IUStore<RemoteMessageIU>();
 
     public void close()
     {
@@ -184,7 +185,14 @@ public class InputBuffer extends Buffer
      */
     private void handleIUEvents(Event event)
     {
-        if (event.getData() instanceof RemotePushIU)
+        if(event.getData() instanceof RemoteMessageIU)
+        {
+            RemoteMessageIU rm = (RemoteMessageIU) event.getData();
+            messageStore.put(rm.getUid(), rm);
+            callIuEventHandlers(rm.getUid(),false, IUEventType.ADDED, rm.getCategory());
+            messageStore.remove(rm.getUid());
+        }
+        else if (event.getData() instanceof RemotePushIU)
         {
             RemotePushIU rp = (RemotePushIU) event.getData();
             // a new IU
@@ -269,7 +277,14 @@ public class InputBuffer extends Buffer
     @Override
     public AbstractIU getIU(String iuid)
     {
-        return iuStore.get(iuid);
+        if(iuStore.get(iuid)!=null)
+        {
+            return iuStore.get(iuid);
+        }
+        else
+        {
+            return messageStore.get(iuid);
+        }
     }
 
     public Collection<RemotePushIU> getIUs()
