@@ -1292,7 +1292,7 @@ AnnotatedData IUConverter::deserialize(const std::string& wireSchema, const std:
 			return std::make_pair("ipaaca::RemotePushIU", obj);
 			break;
 			}
-		/*case IU_ACCESS_MESSAGE:
+		case IU_ACCESS_MESSAGE:
 			{
 			// Create a "Message-type IU"
 			boost::shared_ptr<RemoteMessage> obj = RemoteMessage::create();
@@ -1319,7 +1319,7 @@ AnnotatedData IUConverter::deserialize(const std::string& wireSchema, const std:
 			//return std::make_pair(getDataType(), obj);
 			return std::make_pair("ipaaca::RemoteMessage", obj);
 			break;
-			} */
+			} 
 		default:
 			// other cases not handled yet! ( TODO )
 			throw NotImplementedError();
@@ -1395,6 +1395,34 @@ AnnotatedData MessageConverter::deserialize(const std::string& wireSchema, const
 	pbo->ParseFromString(wire);
 	IUAccessMode mode = static_cast<IUAccessMode>(pbo->access_mode());
 	switch(mode) {
+		case IU_ACCESS_PUSH:
+			{
+			// Create a "remote push IU"
+			boost::shared_ptr<RemotePushIU> obj = RemotePushIU::create();
+			// transfer pbo data to obj
+			obj->_uid = pbo->uid();
+			obj->_revision = pbo->revision();
+			obj->_category = pbo->category();
+			obj->_payload_type = pbo->payload_type();
+			obj->_owner_name = pbo->owner_name();
+			obj->_committed = pbo->committed();
+			obj->_read_only = pbo->read_only();
+			obj->_access_mode = IU_ACCESS_PUSH;
+			for (int i=0; i<pbo->payload_size(); i++) {
+				const protobuf::PayloadItem& it = pbo->payload(i);
+				obj->_payload._store[it.key()] = it.value();
+			}
+			for (int i=0; i<pbo->links_size(); i++) {
+				const protobuf::LinkSet& pls = pbo->links(i);
+				LinkSet& ls = obj->_links._links[pls.type()];
+				for (int j=0; j<pls.targets_size(); j++) {
+					ls.insert(pls.targets(j));
+				}
+			}
+			//return std::make_pair(getDataType(), obj);
+			return std::make_pair("ipaaca::RemotePushIU", obj);
+			break;
+			}
 		case IU_ACCESS_MESSAGE:
 			{
 			// Create a "Message-type IU"

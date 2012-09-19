@@ -611,6 +611,7 @@ class RemotePushIU: public IUInterface {//{{{
 	friend class InputBuffer;
 	friend class OutputBuffer;
 	friend class IUConverter;
+	friend class MessageConverter;
 	public:
 		Payload _payload;
 	protected:
