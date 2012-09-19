@@ -103,6 +103,9 @@ class PayloadEntryProxy;
 class Payload;
 class IUInterface;
 class IU;
+class Message;
+class IUConverter;
+class MessageConverter;
 class RemotePushIU;
 class IULinkUpdate;
 class IULinkUpdateConverter;
@@ -171,6 +174,7 @@ class SmartLinkMap {
 	friend class IUInterface;
 	friend class IU;
 	friend class IUConverter;
+	friend class MessageConverter;
 	public:
 		const LinkSet& get_links(const std::string& key);
 		const LinkMap& get_all_links();
@@ -365,6 +369,13 @@ class IUConverter: public rsb::converter::Converter<std::string> {//{{{
 		rsb::AnnotatedData deserialize(const std::string& wireSchema, const std::string& wire);
 };//}}}
 
+class MessageConverter: public rsb::converter::Converter<std::string> {//{{{
+	public:
+		MessageConverter();
+		std::string serialize(const rsb::AnnotatedData& data, std::string& wire);
+		rsb::AnnotatedData deserialize(const std::string& wireSchema, const std::string& wire);
+};//}}}
+
 class IUPayloadUpdate {//{{{
 	public:
 		std::string uid;
@@ -449,6 +460,7 @@ class Payload//{{{
 	friend class RemotePushIU;
 	friend class RemoteMessage;
 	friend class IUConverter;
+	friend class MessageConverter;
 	friend class CallbackIUPayloadUpdate;
 	protected:
 		std::string _owner_name;
@@ -477,6 +489,7 @@ class Payload//{{{
 
 class IUInterface {//{{{
 	friend class IUConverter;
+	friend class MessageConverter;
 	friend std::ostream& operator<<(std::ostream& os, const IUInterface& obj);
 	protected:
 		IUInterface();
@@ -625,6 +638,7 @@ class RemoteMessage: public IUInterface {//{{{
 	friend class InputBuffer;
 	friend class OutputBuffer;
 	friend class IUConverter;
+	friend class MessageConverter;
 	public:
 		Payload _payload;
 	protected:

@@ -24,6 +24,9 @@ void Initializer::initialize_ipaaca_rsb_if_needed()
 	boost::shared_ptr<IUConverter> iu_converter(new IUConverter());
 	converterRepository<std::string>()->registerConverter(iu_converter);
 	
+	boost::shared_ptr<MessageConverter> message_converter(new MessageConverter());
+	converterRepository<std::string>()->registerConverter(message_converter);
+	
 	boost::shared_ptr<IUPayloadUpdateConverter> payload_update_converter(new IUPayloadUpdateConverter());
 	converterRepository<std::string>()->registerConverter(payload_update_converter);
 	
@@ -1277,6 +1280,100 @@ AnnotatedData IUConverter::deserialize(const std::string& wireSchema, const std:
 			return std::make_pair("ipaaca::RemotePushIU", obj);
 			break;
 			}
+		/*case IU_ACCESS_MESSAGE:
+			{
+			// Create a "Message-type IU"
+			boost::shared_ptr<RemoteMessage> obj = RemoteMessage::create();
+			// transfer pbo data to obj
+			obj->_uid = pbo->uid();
+			obj->_revision = pbo->revision();
+			obj->_category = pbo->category();
+			obj->_payload_type = pbo->payload_type();
+			obj->_owner_name = pbo->owner_name();
+			obj->_committed = pbo->committed();
+			obj->_read_only = pbo->read_only();
+			obj->_access_mode = IU_ACCESS_MESSAGE;
+			for (int i=0; i<pbo->payload_size(); i++) {
+				const protobuf::PayloadItem& it = pbo->payload(i);
+				obj->_payload._store[it.key()] = it.value();
+			}
+			for (int i=0; i<pbo->links_size(); i++) {
+				const protobuf::LinkSet& pls = pbo->links(i);
+				LinkSet& ls = obj->_links._links[pls.type()];
+				for (int j=0; j<pls.targets_size(); j++) {
+					ls.insert(pls.targets(j));
+				}
+			}
+			//return std::make_pair(getDataType(), obj);
+			return std::make_pair("ipaaca::RemoteMessage", obj);
+			break;
+			} */
+		default:
+			// other cases not handled yet! ( TODO )
+			throw NotImplementedError();
+	}
+}
+
+//}}}
+// MessageConverter//{{{
+
+MessageConverter::MessageConverter()
+: Converter<std::string> ("ipaaca::Message", "ipaaca-messageiu", true)
+{
+}
+
+std::string MessageConverter::serialize(const AnnotatedData& data, std::string& wire)
+{
+	// Ensure that DATA actually holds a datum of the data-type we expect.
+	assert(data.first == getDataType()); // "ipaaca::Message"
+	// NOTE: a dynamic_pointer_cast cannot be used from void*
+	boost::shared_ptr<const Message> obj = boost::static_pointer_cast<const Message> (data.second);
+	boost::shared_ptr<protobuf::IU> pbo(new protobuf::IU());
+	// transfer obj data to pbo
+	pbo->set_uid(obj->uid());
+	pbo->set_revision(obj->revision());
+	pbo->set_category(obj->category());
+	pbo->set_payload_type(obj->payload_type());
+	pbo->set_owner_name(obj->owner_name());
+	pbo->set_committed(obj->committed());
+	ipaaca::protobuf::IU_AccessMode a_m;
+	switch(obj->access_mode()) {
+		case IU_ACCESS_PUSH:
+			a_m = ipaaca::protobuf::IU_AccessMode_PUSH;
+			break;
+		case IU_ACCESS_REMOTE:
+			a_m = ipaaca::protobuf::IU_AccessMode_REMOTE;
+			break;
+		case IU_ACCESS_MESSAGE:
+			a_m = ipaaca::protobuf::IU_AccessMode_MESSAGE;
+			break;
+	}
+	pbo->set_access_mode(a_m);
+	pbo->set_read_only(obj->read_only());
+	for (std::map<std::string, std::string>::const_iterator it=obj->_payload._store.begin(); it!=obj->_payload._store.end(); ++it) {
+		protobuf::PayloadItem* item = pbo->add_payload();
+		item->set_key(it->first);
+		item->set_value(it->second);
+		item->set_type("str"); // FIXME other types than str (later)
+	}
+	for (LinkMap::const_iterator it=obj->_links._links.begin(); it!=obj->_links._links.end(); ++it) {
+		protobuf::LinkSet* links = pbo->add_links();
+		links->set_type(it->first);
+		for (std::set<std::string>::const_iterator it2=it->second.begin(); it2!=it->second.end(); ++it2) {
+			links->add_targets(*it2);
+		}
+	}
+	pbo->SerializeToString(&wire);
+	return getWireSchema();
+
+}
+
+AnnotatedData MessageConverter::deserialize(const std::string& wireSchema, const std::string& wire) {
+	assert(wireSchema == getWireSchema()); // "ipaaca-iu"
+	boost::shared_ptr<protobuf::IU> pbo(new protobuf::IU());
+	pbo->ParseFromString(wire);
+	IUAccessMode mode = static_cast<IUAccessMode>(pbo->access_mode());
+	switch(mode) {
 		case IU_ACCESS_MESSAGE:
 			{
 			// Create a "Message-type IU"
