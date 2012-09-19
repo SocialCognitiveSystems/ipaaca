@@ -39,6 +39,7 @@ class LegacyComponent {
 		void handle_iu_event(IUInterface::ptr iu, IUEventType event_type, bool local);
 		/// example publishing function to produce a 'grounded' IU
 		void publish_reply_iu(const std::string& text, const std::string& received_iu_uid);
+		void publish_reply_message(const std::string& text, const std::string& received_iu_uid);
 		void publish_hello_world();
 };
 
@@ -78,6 +79,9 @@ void LegacyComponent::handle_iu_event(IUInterface::ptr iu, IUEventType event_typ
 			
 			std::string description = iu->payload()["description"];
 			std::cout << "[ Current description: " << description << "]" << std::endl;
+			
+			/// let's also react by emitting an IU ourselves (function below)
+			publish_reply_iu("important-result", iu->uid());
 		} else if (event_type == IU_ADDED) {
 			std::cout << "[Received new IU!]" << std::endl;
 			
@@ -90,7 +94,7 @@ void LegacyComponent::handle_iu_event(IUInterface::ptr iu, IUEventType event_typ
 			std::cout << "[ Current description: " << description << "]" << std::endl;
 			
 			/// let's also react by emitting an IU ourselves (function below)
-			publish_reply_iu("important-result", iu->uid());
+			publish_reply_message("important-result", iu->uid());
 		
 		} else if (event_type == IU_UPDATED) {
 			std::cout << "[Received IU payload update for IU " << iu->uid() << "]" << std::endl;
@@ -126,6 +130,12 @@ void LegacyComponent::publish_reply_iu(const std::string& text, const std::strin
 	///   "GRIN" is a convention for the "grounded-in" function of the GAM.
 	iu->add_link("GRIN", received_iu_uid);
 	/// add to output buffer ( = "publish")
+	_out_buf->add(iu);
+}
+void LegacyComponent::publish_reply_message(const std::string& text, const std::string& received_iu_uid) {
+	IU::ptr iu = Message::create( "myResultCategory" );
+	iu->payload()["description"] = "SomeResult";
+	iu->add_link("GRIN", received_iu_uid);
 	_out_buf->add(iu);
 }
 

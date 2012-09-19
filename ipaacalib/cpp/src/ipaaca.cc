@@ -1202,6 +1202,7 @@ IUConverter::IUConverter()
 
 std::string IUConverter::serialize(const AnnotatedData& data, std::string& wire)
 {
+	//std::cout << "serialize" << std::endl;
 	// Ensure that DATA actually holds a datum of the data-type we expect.
 	assert(data.first == getDataType()); // "ipaaca::IU"
 	// NOTE: a dynamic_pointer_cast cannot be used from void*
@@ -1242,11 +1243,22 @@ std::string IUConverter::serialize(const AnnotatedData& data, std::string& wire)
 		}
 	}
 	pbo->SerializeToString(&wire);
-	return getWireSchema();
+	switch(obj->access_mode()) {
+		case IU_ACCESS_PUSH:
+			//std::cout << "Requesting to send as ipaaca-iu" << std::endl;
+			return "ipaaca-iu";
+		case IU_ACCESS_MESSAGE:
+			//std::cout << "Requesting to send as ipaaca-messageiu" << std::endl;
+			return "ipaaca-messageiu";
+		default:
+			//std::cout << "Requesting to send as default" << std::endl;
+			return getWireSchema();
+	}
 
 }
 
 AnnotatedData IUConverter::deserialize(const std::string& wireSchema, const std::string& wire) {
+	//std::cout << "deserialize" << std::endl;
 	assert(wireSchema == getWireSchema()); // "ipaaca-iu"
 	boost::shared_ptr<protobuf::IU> pbo(new protobuf::IU());
 	pbo->ParseFromString(wire);
@@ -1315,6 +1327,7 @@ AnnotatedData IUConverter::deserialize(const std::string& wireSchema, const std:
 }
 
 //}}}
+
 // MessageConverter//{{{
 
 MessageConverter::MessageConverter()
@@ -1364,7 +1377,15 @@ std::string MessageConverter::serialize(const AnnotatedData& data, std::string& 
 		}
 	}
 	pbo->SerializeToString(&wire);
-	return getWireSchema();
+	switch(obj->access_mode()) {
+		case IU_ACCESS_PUSH:
+			return "ipaaca-iu";
+		case IU_ACCESS_MESSAGE:
+			return "ipaaca-messageiu";
+		default:
+			//std::cout << "Requesting to send as default" << std::endl;
+			return getWireSchema();
+	}
 
 }
 
