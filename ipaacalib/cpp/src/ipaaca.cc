@@ -470,7 +470,10 @@ Informer<AnyType>::Ptr OutputBuffer::_get_informer(const std::string& category)
 boost::shared_ptr<IU> OutputBuffer::remove(const std::string& iu_uid)
 {
 	IUStore::iterator it = _iu_store.find(iu_uid);
-	if (it == _iu_store.end()) throw IUNotFoundError();
+	if (it == _iu_store.end()) {
+		IPAACA_WARNING("Removal of IU " << iu_uid << " requested, but not present in our OutputBuffer")
+		//throw IUNotFoundError();
+	}
 	IU::ptr iu = it->second;
 	_retract_iu(iu);
 	_iu_store.erase(iu_uid);
