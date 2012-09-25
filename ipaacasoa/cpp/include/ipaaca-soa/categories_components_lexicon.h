@@ -14,6 +14,9 @@
 //
 //  please indicate sub-categories (e.g. component-specific data) and/or add descriptions
 
+/// component connect / run notification
+const std::string CAL__COMPONENT_NOTIFY = "componentNotify";
+
 /// execution request for MURML string
 const std::string CAT__MURML_DATA = "murmldata";
 const std::string CAT__MURML_FILE = "murmlfile";
