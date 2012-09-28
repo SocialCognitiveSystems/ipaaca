@@ -129,6 +129,18 @@ class RemotePushIUStore: public std::map<std::string, boost::shared_ptr<RemotePu
 {
 };
 
+class Exception: public std::exception//{{{
+{
+	protected:
+		std::string _description;
+	public:
+		inline Exception(const std::string& description=""): _description(description) { }
+		inline ~Exception() throw() { }
+		const char* what() const throw() {
+			return _description.c_str();
+		}
+};//}}}
+
 /// a reentrant lock/mutex
 class Lock
 {
@@ -163,8 +175,29 @@ class Locker
 	private:
 		inline Locker(): _lock(NULL) { } // not available
 	public:
-		inline Locker(Lock& lock): _lock(&lock) { _lock->lock(); }
-		inline ~Locker() { _lock->unlock(); }
+		inline Locker(Lock& lock): _lock(&lock) {
+			//std::cout << "-- Locker: lock" << std::endl;
+			_lock->lock();
+		}
+		inline ~Locker() {
+			//std::cout << "-- Locker: unlock" << std::endl;
+			_lock->unlock();
+		}
+};
+class PthreadMutexLocker
+{
+	protected:
+		pthread_mutex_t* _lock;
+	private:
+		inline PthreadMutexLocker(): _lock(NULL) { } // not available
+	public:
+		inline PthreadMutexLocker(pthread_mutex_t* lock): _lock(lock) {
+			if (!lock) throw Exception("PthreadMutexLocker got a NULL mutex!");
+			pthread_mutex_lock(_lock);
+		}
+		inline ~PthreadMutexLocker() {
+			pthread_mutex_unlock(_lock);
+		}
 };
 
 typedef std::set<std::string> LinkSet;
@@ -663,17 +696,6 @@ class RemoteMessage: public IUInterface {//{{{
 	typedef boost::shared_ptr<RemoteMessage> ptr;
 };//}}}
 
-class Exception: public std::exception//{{{
-{
-	protected:
-		std::string _description;
-		inline Exception(const std::string& description=""): _description(description) { }
-	public:
-		inline ~Exception() throw() { }
-		const char* what() const throw() {
-			return _description.c_str();
-		}
-};//}}}
 class IUNotFoundError: public Exception//{{{
 {
 	public:
