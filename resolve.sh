@@ -28,7 +28,11 @@ for P in $REQ $OPT; do
 	files=(../$P/dist/scripts/*);
 	[ "$files" ] && cp -a ../$P/dist/scripts/* deps/scripts/
 	files=(../$P/dist/python/*.zip);
-	[ "$files" ] && for zipfile in ../$P/dist/python/*.zip ../$P/dist/*.py.zip; do
+	[ "$files" ] && for zipfile in ../$P/dist/python/*.zip; do
+		unzip -oqq $zipfile -d deps/python
+	done
+	files=(../$P/dist/*.py.zip);
+	[ "$files" ] && for zipfile in ../$P/dist/*.py.zip; do
 		unzip -oqq $zipfile -d deps/python
 	done
 done
