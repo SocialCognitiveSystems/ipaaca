@@ -1,6 +1,11 @@
 #!/bin/bash
 
-PACKAGES="rsb"
+# This file is deprecated.
+# Resolution is performed automatically in the soa script.
+
+eval "`grep '^REQUIRED=\|^OPTIONAL=' DEPS.txt`"
+REQ="$REQUIRED"
+OPT="$OPTIONAL"
 
 shopt -q nullglob || resetnullglob=1
 shopt -s nullglob
@@ -12,7 +17,8 @@ mkdir -p deps/lib
 mkdir -p deps/include
 mkdir -p deps/scripts
 mkdir -p deps/python
-for P in $PACKAGES; do
+for P in $REQ $OPT; do
+	echo "Importing from $P ..."
 	files=(../$P/dist/bin/*);
 	[ "$files" ] && cp -a ../$P/dist/bin/* deps/bin/
 	files=(../$P/dist/lib/*);
@@ -25,7 +31,12 @@ for P in $PACKAGES; do
 	[ "$files" ] && for zipfile in ../$P/dist/python/*.zip; do
 		unzip -oqq $zipfile -d deps/python
 	done
+	files=(../$P/dist/*.py.zip);
+	[ "$files" ] && for zipfile in ../$P/dist/*.py.zip; do
+		unzip -oqq $zipfile -d deps/python
+	done
 done
+echo "Done."
 
 [ "$resetdotglob" ] && shopt -u dotglob
 [ "$resetnullglob" ] && shopt -u nullglob
