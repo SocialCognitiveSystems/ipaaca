@@ -8,6 +8,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.EnumSet;
 import java.util.Set;
 
 import org.junit.Before;
@@ -24,7 +25,8 @@ import com.google.common.collect.ImmutableSet;
  */
 public class JavaPythonTest
 {
-
+    private StoringEventHandler storeHandler = new StoringEventHandler();
+    
     @BeforeClass
     public static void setupStatic()
     {
@@ -35,19 +37,20 @@ public class JavaPythonTest
 
     private static final String PYTHON_PREAMBLE = "import sys\n" 
             + "sys.path.insert(0, '../python/build/')\n"
-            + "sys.path.insert(0, '../python/lib/')\n" 
+            + "sys.path.insert(0, '../python/lib/')\n"             
+            + "sys.path.insert(0, '../../deps/python/')\n"
             + "import ipaaca, time\n";
 
     @Before
     public void setup()
     {
         Set<String> categories = new ImmutableSet.Builder<String>().add("JavaPythonTest").build();
-        inBuffer = new InputBuffer("javaside", categories);
+        inBuffer = new InputBuffer("javaside", categories);        
     }
 
-    private void printRuntimeErrors(Process p) throws IOException
+    private String getRuntimeErrors(Process p) throws IOException
     {
-
+        StringBuffer errors = new StringBuffer();
         InputStream in = p.getInputStream();
         BufferedInputStream buf = new BufferedInputStream(in);
         InputStreamReader inread = new InputStreamReader(buf);
@@ -63,12 +66,12 @@ public class JavaPythonTest
         {
             if (p.waitFor() != 0)
             {
-                System.err.println("exit value = " + p.exitValue());
+                errors.append("exit value = " + p.exitValue()+"\n");
             }
         }
         catch (InterruptedException e)
         {
-            System.err.println(e);
+            errors.append(e);
         }
 
         in = p.getErrorStream();
@@ -78,15 +81,15 @@ public class JavaPythonTest
         // Read the ls output
         while ((line = bufferedreader.readLine()) != null)
         {
-            System.out.println(line);
+            errors.append(line);
         }
+        return errors.toString();
     }
 
-    private boolean runPythonProgram(String pypr) throws IOException
+    private void runPythonProgram(String pypr) throws IOException
     {
         Process p = Runtime.getRuntime().exec(new String[] { "python", "-c", pypr });
-        printRuntimeErrors(p);
-        return p.exitValue()==0;
+        assertTrue(getRuntimeErrors(p), p.exitValue()==0);
     }
 
     @Test
@@ -99,7 +102,7 @@ public class JavaPythonTest
                 + "iu.payload = {'data':'Hello from Python!'}\n" 
                 + "time.sleep(0.1)\n" 
                 + "ob.add(iu)\n";
-        assertTrue(runPythonProgram(pypr));
+        runPythonProgram(pypr);
 
         Thread.sleep(200);
         assertEquals(1, inBuffer.getIUs().size());
@@ -118,7 +121,7 @@ public class JavaPythonTest
                 + "time.sleep(0.1)\n"
                 + "iu.payload = {'data':'Hello from Python!'}\n";
                 
-        assertTrue(runPythonProgram(pypr));
+        runPythonProgram(pypr);
 
         Thread.sleep(200);
         assertEquals(1, inBuffer.getIUs().size());
@@ -135,7 +138,7 @@ public class JavaPythonTest
                 +"iu.add_links('testtype',['dummy1','dummy2'])\n"
                 + "time.sleep(0.1)\n" 
                 + "ob.add(iu)\n";
-        assertTrue(runPythonProgram(pypr));
+        runPythonProgram(pypr);
         Thread.sleep(200);
         assertEquals(1, inBuffer.getIUs().size());
         AbstractIU iu = inBuffer.getIUs().iterator().next();
@@ -153,7 +156,7 @@ public class JavaPythonTest
                 + "time.sleep(0.1)\n"        
                 +"iu.add_links('testtype',['dummy1','dummy2'])\n";
                 
-        assertTrue(runPythonProgram(pypr));
+        runPythonProgram(pypr);
         Thread.sleep(200);
         assertEquals(1, inBuffer.getIUs().size());
         AbstractIU iu = inBuffer.getIUs().iterator().next();
@@ -169,7 +172,7 @@ public class JavaPythonTest
                 + "ob.add(iu)\n"
                 + "time.sleep(0.1)\n"
                 + "iu.commit()\n";
-        assertTrue(runPythonProgram(pypr));
+        runPythonProgram(pypr);
         Thread.sleep(200);
         assertEquals(1, inBuffer.getIUs().size());
         AbstractIU iu = inBuffer.getIUs().iterator().next();
@@ -181,15 +184,31 @@ public class JavaPythonTest
     {
         String pypr = PYTHON_PREAMBLE 
                 +"ob = ipaaca.OutputBuffer('pythonside')\n"
-                +"iu = ipaaca.IU('JavaPythonTest')\n"
+                +"iu = ipaaca.IU('JavaPythonTest')\n"                
                 +"iu.commit()\n"
                 +"time.sleep(0.1)\n"
                 +"ob.add(iu)\n";
                 
-        assertTrue(runPythonProgram(pypr));
+        runPythonProgram(pypr);
         Thread.sleep(200);
         assertEquals(1, inBuffer.getIUs().size());
         AbstractIU iu = inBuffer.getIUs().iterator().next();
         assertTrue(iu.isCommitted());
+    }
+    
+    @Test
+    public void testMessageFromPython()throws IOException, InterruptedException
+    {
+        inBuffer.registerHandler(new IUEventHandler(storeHandler,EnumSet.of(IUEventType.ADDED),ImmutableSet.of("JavaPythonTest")));
+        String pypr = PYTHON_PREAMBLE 
+                +"ob = ipaaca.OutputBuffer('pythonside')\n"
+                +"iu = ipaaca.Message('JavaPythonTest')\n"
+                +"iu.payload = {'data':'Hello from Python!'}\n"
+                +"time.sleep(0.1)\n"
+                +"ob.add(iu)\n";
+        runPythonProgram(pypr);
+        Thread.sleep(200);
+        assertEquals(1,storeHandler.getAddedIUs().size());
+        assertEquals("Hello from Python!", storeHandler.getAddedIUs().get(0).getPayload().get("data"));
     }
 }

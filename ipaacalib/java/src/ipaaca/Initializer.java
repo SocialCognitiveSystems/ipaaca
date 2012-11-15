@@ -25,12 +25,12 @@ public final class Initializer
         DefaultConverterRepository.getDefaultConverterRepository().addConverter(
                 new IUConverter(new ConverterSignature("ipaaca-iu", RemotePushIU.class)));
         DefaultConverterRepository.getDefaultConverterRepository().addConverter(
-                new IUConverter(new ConverterSignature("ipaaca-localiu", LocalIU.class)));        
+         new IUConverter(new ConverterSignature("ipaaca-localiu", LocalIU.class)));
         DefaultConverterRepository.getDefaultConverterRepository().addConverter(
                 new IUConverter(new ConverterSignature("ipaaca-messageiu", RemoteMessageIU.class)));
         DefaultConverterRepository.getDefaultConverterRepository().addConverter(
                 new IUConverter(new ConverterSignature("ipaaca-localmessageiu", LocalMessageIU.class)));
-        
+         
         DefaultConverterRepository.getDefaultConverterRepository().addConverter(new PayloadConverter());
         DefaultConverterRepository.getDefaultConverterRepository().addConverter(new LinkUpdateConverter());
 
