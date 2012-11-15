@@ -8,6 +8,8 @@ using namespace rsb::filter;
 using namespace rsb::converter;
 using namespace rsb::patterns;
 
+#define VERBOSE_HANDLERS 0
+
 // util and init//{{{
 
 bool Initializer::_initialized = false;
@@ -238,7 +240,13 @@ void IUEventHandler::call(Buffer* buffer, boost::shared_ptr<IUInterface> iu, boo
 	if (_condition_met(event_type, category)) {
 		//IUInterface::ptr iu = buffer->get(uid);
 		//if (iu) {
+#if VERBOSE_HANDLERS == 1
+			std::cout << "[" << pthread_self() << " handler ENTER]" << std::endl;
+#endif
 			_function(iu, event_type, local);
+#if VERBOSE_HANDLERS == 1
+			std::cout << "[" << pthread_self() << " handler EXIT]" << std::endl;
+#endif
 		//}
 	}
 }
