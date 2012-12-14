@@ -5,12 +5,12 @@ import ipaaca.protobuf.Ipaaca.IUPayloadUpdate;
 import ipaaca.protobuf.Ipaaca.LinkSet;
 import ipaaca.protobuf.Ipaaca.PayloadItem;
 
-import java.util.UUID;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.UUID;
 
 import com.google.common.collect.SetMultimap;
 

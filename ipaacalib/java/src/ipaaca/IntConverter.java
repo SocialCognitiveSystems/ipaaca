@@ -3,6 +3,7 @@ package ipaaca;
 import ipaaca.protobuf.Ipaaca.IntMessage;
 
 import java.nio.ByteBuffer;
+
 import rsb.converter.ConversionException;
 import rsb.converter.Converter;
 import rsb.converter.ConverterSignature;

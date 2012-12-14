@@ -10,15 +10,15 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map.Entry;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.SetMultimap;
-import com.google.protobuf.InvalidProtocolBufferException;
-
 import rsb.converter.ConversionException;
 import rsb.converter.Converter;
 import rsb.converter.ConverterSignature;
 import rsb.converter.UserData;
 import rsb.converter.WireContents;
+
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.SetMultimap;
+import com.google.protobuf.InvalidProtocolBufferException;
 
 /**
  * Serializes AbstractIUs into protocolbuffer IUs and vice versa.
