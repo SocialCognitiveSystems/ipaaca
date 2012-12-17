@@ -1,12 +1,5 @@
 package ipaaca;
 
-import rsb.Factory;
-import rsb.Informer;
-import rsb.InitializeException;
-import rsb.RSBException;
-import rsb.patterns.DataCallback;
-import rsb.patterns.LocalServer;
-
 import ipaaca.protobuf.Ipaaca;
 import ipaaca.protobuf.Ipaaca.IUCommission;
 import ipaaca.protobuf.Ipaaca.IULinkUpdate;
@@ -19,6 +12,13 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import rsb.Factory;
+import rsb.Informer;
+import rsb.InitializeException;
+import rsb.RSBException;
+import rsb.patterns.DataCallback;
+import rsb.patterns.LocalServer;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.SetMultimap;

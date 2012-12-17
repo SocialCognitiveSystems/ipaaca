@@ -1,11 +1,17 @@
 package ipaaca;
 
-import static org.junit.Assert.*;
+import static ipaaca.IUTestUtil.assertEqualIU;
+import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import java.util.EnumSet;
 import java.util.Set;
 
-import static org.hamcrest.collection.IsIterableContainingInAnyOrder.*;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -13,8 +19,6 @@ import org.junit.Test;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-
-import static ipaaca.IUTestUtil.*;
 
 /**
  * Integration test cases for IPAACA.

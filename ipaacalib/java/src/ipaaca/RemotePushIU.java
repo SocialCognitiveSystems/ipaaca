@@ -16,10 +16,10 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.SetMultimap;
-
 import rsb.RSBException;
 import rsb.patterns.RemoteServer;
+
+import com.google.common.collect.SetMultimap;
 
 /**
  * A remote IU with access mode 'PUSH'.
