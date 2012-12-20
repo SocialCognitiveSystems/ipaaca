@@ -121,7 +121,7 @@ public class ComponentNotifier
         this.inBuffer = inBuffer;
     }
 
-    public void initialize()
+    public synchronized void initialize()
     {
         if(!isInitialized)
         {
