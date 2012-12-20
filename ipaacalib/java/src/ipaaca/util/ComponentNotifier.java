@@ -9,6 +9,7 @@ import ipaaca.LocalMessageIU;
 import ipaaca.OutputBuffer;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
@@ -39,7 +40,7 @@ public class ComponentNotifier
     private final ImmutableSet<String> sendCategories;
     private final ImmutableSet<String> receiveCategories;
     private final InputBuffer inBuffer;
-    private List<HandlerFunctor> handlers = new ArrayList<HandlerFunctor>();
+    private List<HandlerFunctor> handlers = Collections.synchronizedList(new ArrayList<HandlerFunctor>());
     private volatile boolean isInitialized = false;
     private final BlockingQueue<String> receiverQueue = new LinkedBlockingQueue<>();
     
@@ -51,9 +52,12 @@ public class ComponentNotifier
             if(iu.getPayload().get(NAME).equals(componentName))return; //don't re-notify self
             String receivers[] = iu.getPayload().get(RECEIVE_CATEGORIES).split("\\s*,\\s*");
             receiverQueue.addAll(ImmutableSet.copyOf(receivers));
-            for (HandlerFunctor h : handlers)
+            synchronized(handlers)
             {
-                h.handle(iu, type, local);
+                for (HandlerFunctor h : handlers)
+                {
+                    h.handle(iu, type, local);
+                }
             }
             if (iu.getPayload().get(STATE).equals("new"))
             {

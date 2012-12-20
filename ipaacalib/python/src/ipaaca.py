@@ -1086,7 +1086,7 @@ class Buffer(object):
 		for_event_types -- a list of event types or None if handler should
 			be called for all event types
 		for_categories -- a list of category names or None if handler should
-			be called for all categoires
+			be called for all categories
 		
 		 """
 		handler = IUEventHandler(handler_function=handler_function, for_event_types=for_event_types, for_categories=for_categories)
