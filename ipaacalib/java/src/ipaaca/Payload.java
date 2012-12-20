@@ -235,4 +235,10 @@ public class Payload implements Map<String, String>
     {
         return map.values();
     }
+    
+    @Override
+    public String toString()
+    {
+        return map.toString();
+    }
 }

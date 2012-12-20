@@ -10,10 +10,14 @@ import ipaaca.OutputBuffer;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
 /**
@@ -29,6 +33,7 @@ public class ComponentNotifier
     public static final String RECEIVE_CATEGORIES = "recv_categories";
     public static final String STATE = "state";
     public static final String NAME = "name";
+    public static final String FUNCTION = "function";
     private final OutputBuffer outBuffer;
     private final String componentName;
     private final String componentFunction;
@@ -36,13 +41,17 @@ public class ComponentNotifier
     private final ImmutableSet<String> receiveCategories;
     private final InputBuffer inBuffer;
     private List<HandlerFunctor> handlers = new ArrayList<HandlerFunctor>();
-
+    private volatile boolean isInitialized = false;
+    private final BlockingQueue<String> receiverQueue = new LinkedBlockingQueue<>();
+    
     private class ComponentNotifyHandler implements HandlerFunctor
     {
         @Override
         public void handle(AbstractIU iu, IUEventType type, boolean local)
         {
             if(iu.getPayload().get(NAME).equals(componentName))return; //don't re-notify self
+            String receivers[] = iu.getPayload().get(RECEIVE_CATEGORIES).split("\\s*,\\s*");
+            receiverQueue.addAll(ImmutableSet.copyOf(receivers));
             for (HandlerFunctor h : handlers)
             {
                 h.handle(iu, type, local);
@@ -60,6 +69,34 @@ public class ComponentNotifier
     public void addNotificationHandler(HandlerFunctor h)
     {
         handlers.add(h);
+    }
+    
+    /**
+     * Wait until the receivers are registered for categories
+     */
+    public void waitForReceivers(ImmutableSet<String> categories)
+    {
+        Set<String> unhandledCategories = new HashSet<>(categories);        
+        while(!unhandledCategories.isEmpty())
+        {
+            try
+            {
+                unhandledCategories.remove(receiverQueue.take());
+                
+            }
+            catch (InterruptedException e)
+            {
+                Thread.interrupted();
+            }            
+        }
+    }
+    
+    /**
+     * Wait until receivers are registered for all categories sent by the component
+     */
+    public void waitForReceivers()
+    {
+        waitForReceivers(sendCategories);
     }
 
     private void submitNotify(boolean isNew)
@@ -87,8 +124,12 @@ public class ComponentNotifier
 
     public void initialize()
     {
-        inBuffer.registerHandler(new IUEventHandler(new ComponentNotifyHandler(), EnumSet.of(IUEventType.ADDED), ImmutableSet
-                .of(NOTIFY_CATEGORY)));
-        submitNotify(true);
+        if(!isInitialized)
+        {
+            inBuffer.registerHandler(new IUEventHandler(new ComponentNotifyHandler(), EnumSet.of(IUEventType.ADDED), ImmutableSet
+                    .of(NOTIFY_CATEGORY)));
+            submitNotify(true);
+            isInitialized = true;
+        }
     }
 }

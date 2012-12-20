@@ -1,6 +1,12 @@
-package ipaaca;
+package ipaaca.util;
 
 import static org.junit.Assert.assertEquals;
+import ipaaca.AbstractIU;
+import ipaaca.HandlerFunctor;
+import ipaaca.IUEventType;
+import ipaaca.Initializer;
+import ipaaca.InputBuffer;
+import ipaaca.OutputBuffer;
 import ipaaca.util.ComponentNotifier;
 
 import java.util.Set;

@@ -239,4 +239,10 @@ public class LocalIU extends AbstractIU
             getOutputBuffer().sendIUPayloadUpdate(this, update);
         }
     }
+    
+    @Override
+    public String toString()
+    {
+        return "LocalIU with category: "+this.getCategory() + "\nowner: "+getOwnerName()+"\npayload: "+this.getPayload();
+    }
 }

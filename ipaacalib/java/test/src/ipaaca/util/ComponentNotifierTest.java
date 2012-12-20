@@ -1,14 +1,22 @@
-package ipaaca;
+package ipaaca.util;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.doAnswer;
-import ipaaca.util.ComponentNotifier;
+import ipaaca.AbstractIU;
+import ipaaca.IUEventHandler;
+import ipaaca.IUEventType;
+import ipaaca.InputBuffer;
+import ipaaca.LocalIU;
+import ipaaca.OutputBuffer;
+import ipaaca.Payload;
 
 import java.util.Set;
 
@@ -91,12 +99,63 @@ public class ComponentNotifierTest
         assertEquals("componentNotify", iu.getCategory());
         assertEquals("old", iu.getPayload().get("state"));
     }
-    
+
     @Test
     public void testNoNotifyAtNotifyOld() throws Exception
     {
-        sendNotify("old", ImmutableSet.of("testsnd1"));        
+        sendNotify("old", ImmutableSet.of("testsnd1"));
         ArgumentCaptor<LocalIU> argument = ArgumentCaptor.forClass(LocalIU.class);
-        verify(mockOutBuffer,times(1)).add(argument.capture());        
+        verify(mockOutBuffer, times(1)).add(argument.capture());
+    }
+
+    private class WaitForFinish extends Thread
+    {
+        public volatile boolean waitFinish = false;
+
+        public void run()
+        {
+            notifier.waitForReceivers();
+            waitFinish = true;
+        }
+
+    }
+
+    @Test
+    public void testWait() throws InterruptedException
+    {
+        WaitForFinish wff = new WaitForFinish();
+        wff.start();
+        Thread.sleep(200);
+        assertFalse(wff.waitFinish);        
+        sendNotify("new",SEND_CAT);
+        Thread.sleep(200);
+        assertTrue(wff.waitFinish);
+    }
+    
+    @Test
+    public void testWaitWrongCats() throws InterruptedException
+    {
+        WaitForFinish wff = new WaitForFinish();
+        wff.start();
+        Thread.sleep(200);
+        assertFalse(wff.waitFinish);        
+        sendNotify("new",RECV_CAT);
+        Thread.sleep(200);
+        assertFalse(wff.waitFinish);
+    }
+    
+    @Test
+    public void testWaitIncremental()throws InterruptedException
+    {
+        WaitForFinish wff = new WaitForFinish();
+        wff.start();
+        Thread.sleep(200);
+        assertFalse(wff.waitFinish);        
+        sendNotify("new",ImmutableSet.of("testsnd1", "testsnd2"));
+        Thread.sleep(200);
+        assertFalse(wff.waitFinish);
+        sendNotify("new",ImmutableSet.of("testsnd3"));
+        Thread.sleep(200);
+        assertTrue(wff.waitFinish);        
     }
 }

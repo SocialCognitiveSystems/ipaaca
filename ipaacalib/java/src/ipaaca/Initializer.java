@@ -15,9 +15,11 @@ public final class Initializer
     private Initializer()
     {
     }
-
-    public static void initializeIpaacaRsb()
+    private static volatile boolean initialized = false;
+    
+    public synchronized static void initializeIpaacaRsb()
     {
+        if(initialized)return;
         DefaultConverterRepository.getDefaultConverterRepository().addConverter(new IntConverter());
         DefaultConverterRepository.getDefaultConverterRepository().addConverter(
                 new ProtocolBufferConverter<IUCommission>(IUCommission.getDefaultInstance()));
@@ -33,6 +35,6 @@ public final class Initializer
          
         DefaultConverterRepository.getDefaultConverterRepository().addConverter(new PayloadConverter());
         DefaultConverterRepository.getDefaultConverterRepository().addConverter(new LinkUpdateConverter());
-
+        initialized = true;
     }
 }
