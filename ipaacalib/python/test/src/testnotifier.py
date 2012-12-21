@@ -30,8 +30,8 @@ class IUCategoryMatcher(BaseMatcher):
         
 class ComponentNotifierTest(unittest.TestCase):
 
-    RECV_CAT = {"testrec1", "testrc2"}
-    SEND_CAT = {"testsnd1", "testsnd2", "testsnd3"}
+    RECV_CAT = set(["testrec1", "testrc2"])
+    SEND_CAT = set(["testsnd1", "testsnd2", "testsnd3"])
     def setUp(self):
         self.mockOutBuffer = mock()
         self.mockInBuffer = mock()
