@@ -60,7 +60,7 @@ class ComponentNotifierTest(unittest.TestCase):
         #        IsIterableContainingInAnyOrder.containsInAnyOrder(SEND_CAT.toArray(new String[0])));
       
     def testNotifyAtNotifyNew(self):
-        self._sendNotify("new", {"testsnd1"});
+        self._sendNotify("new", set(["testsnd1"]));
         verify(self.mockOutBuffer, times(2)).add(any())
         #TODO: python mockito cannot yet use hamcrest matchers, so cannot easily test if the message is correct :(
         #ArgumentCaptor<LocalIU> argument = ArgumentCaptor.forClass(LocalIU.class);
@@ -70,7 +70,7 @@ class ComponentNotifierTest(unittest.TestCase):
         #assertEquals("old", iu.getPayload().get("state"));
     
     def testNoNotifyAtNotifyOld(self):
-        self._sendNotify("old", {"testsnd1"});
+        self._sendNotify("old", set(["testsnd1"]));
         verify(self.mockOutBuffer, times(1)).add(any())
 
 class MyListener(object):
