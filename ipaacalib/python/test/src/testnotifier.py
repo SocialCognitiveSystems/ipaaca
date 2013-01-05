@@ -87,7 +87,7 @@ class ComponentNotifierIntegrationTest(unittest.TestCase):
         pass
     
     def _setupCompNotifier(self, idx, sendList, recvList):
-        inBuffer = InputBuffer(idx+"in", {ComponentNotifier.NOTIFY_CATEGORY})
+        inBuffer = InputBuffer(idx+"in", set([ComponentNotifier.NOTIFY_CATEGORY]))
         outBuffer = OutputBuffer(idx+"out")
         return ComponentNotifier(idx, "testfunction", sendList, recvList, outBuffer, inBuffer)
 
@@ -103,8 +103,8 @@ class ComponentNotifierIntegrationTest(unittest.TestCase):
 #        self.assertEquals(0, listener.numCalled);
     
     def testTwo(self):
-        notifier1 = self._setupCompNotifier("not1", {"a1", "b1"}, {"a3", "b2"});
-        notifier2 = self._setupCompNotifier("not2", {"a2", "b2"}, {"a3", "b1"});
+        notifier1 = self._setupCompNotifier("not1", set(["a1", "b1"]), set(["a3", "b2"]));
+        notifier2 = self._setupCompNotifier("not2", set(["a2", "b2"]), set(["a3", "b1"]));
         listener1 = MyListener()
         listener2 = MyListener()
         notifier1.add_notification_handler(listener1.handle)
