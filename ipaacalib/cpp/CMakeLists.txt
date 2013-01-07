@@ -62,6 +62,7 @@ set (SOURCE
 	src/ipaaca.cc
 	src/ipaaca-cmdline-parser.cc
 	src/ipaaca-string-utils.cc
+	src/util/notifier.cc
 	build/ipaaca/ipaaca.pb.cc
 	)
 

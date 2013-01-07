@@ -50,15 +50,15 @@ class ComponentNotifier(object):
             self.outBuffer.add(notifyIU)
     
     def _handle_iu_event(self, iu, event_type, local):
-        print("handle, iuname:"+iu.payload[ComponentNotifier.NAME]+" component name: "+self.componentName+" state "+iu.payload[ComponentNotifier.STATE])
+        #print("handle, iuname:"+iu.payload[ComponentNotifier.NAME]+" component name: "+self.componentName+" state "+iu.payload[ComponentNotifier.STATE])
         if iu.payload[ComponentNotifier.NAME] == self.componentName:
             return
         with self.notificationHandlerLock:
             for h in self.notificationHandlers:
                 h(iu, event_type, local)
         if iu.payload[ComponentNotifier.STATE] == "new":
-            print("submitting")
-            self._submit_notify(False)            
+            #print("submitting")
+            self._submit_notify(False)
 
     def add_notification_handler(self, handler):
         with self.notificationHandlerLock:
