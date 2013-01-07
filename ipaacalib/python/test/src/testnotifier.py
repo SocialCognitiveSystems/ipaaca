@@ -9,12 +9,12 @@ from mockito import verify
 from mockito import any
 from mockito import when
 from mockito import times
-from notifier import ComponentNotifier
 from hamcrest.core.base_matcher import BaseMatcher
 from ipaaca import IUEventType
 from ipaaca import Message
 from ipaaca import InputBuffer
 from ipaaca import OutputBuffer
+from ipaaca.util.notifier import ComponentNotifier
 import time
 import os
 
@@ -120,4 +120,5 @@ class ComponentNotifierIntegrationTest(unittest.TestCase):
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']
     unittest.main()
-    os._exit(0) 
+    os._exit(0)
+

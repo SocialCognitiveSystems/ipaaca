@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 '''
 Created on Dec 20, 2012
 
@@ -68,8 +70,5 @@ class ComponentNotifier(object):
                 self.inBuffer.register_handler(self._handle_iu_event, [IUEventType.MESSAGE], ComponentNotifier.NOTIFY_CATEGORY)
                 self._submit_notify(True)
                 self.initialized = True
-            
-    
-    
-            
-        
+
+
