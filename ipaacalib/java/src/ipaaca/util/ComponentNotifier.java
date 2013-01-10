@@ -42,7 +42,7 @@ public class ComponentNotifier
     private final InputBuffer inBuffer;
     private List<HandlerFunctor> handlers = Collections.synchronizedList(new ArrayList<HandlerFunctor>());
     private volatile boolean isInitialized = false;
-    private final BlockingQueue<String> receiverQueue = new LinkedBlockingQueue<>();
+    private final BlockingQueue<String> receiverQueue = new LinkedBlockingQueue<String>();
     
     private class ComponentNotifyHandler implements HandlerFunctor
     {
@@ -79,7 +79,7 @@ public class ComponentNotifier
      */
     public void waitForReceivers(ImmutableSet<String> categories)
     {
-        Set<String> unhandledCategories = new HashSet<>(categories);        
+        Set<String> unhandledCategories = new HashSet<String>(categories);        
         while(!unhandledCategories.isEmpty())
         {
             try

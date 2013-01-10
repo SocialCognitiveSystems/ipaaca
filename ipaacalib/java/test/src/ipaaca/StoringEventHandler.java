@@ -10,7 +10,7 @@ import java.util.List;
  */
 public class StoringEventHandler implements HandlerFunctor
 {
-    private List<AbstractIU> addedIUs = new ArrayList<>();
+    private List<AbstractIU> addedIUs = new ArrayList<AbstractIU>();
 
     public List<AbstractIU> getAddedIUs()
     {
