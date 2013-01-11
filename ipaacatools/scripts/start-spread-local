@@ -5,6 +5,15 @@ if [ -d /vol/soa/opt64/spread ]; then
 	/vol/soa/opt64/spread/current/sbin/spread -n localhost &
 else
 	echo "Starting local-only spread daemon for ipaaca ..."
-	spread -n localhost &
+	spr=`which spread`
+	[ $? -eq 0 ] || {
+		echo spread not found in PATH - searching in /usr/sbin and /usr/local/sbin
+		spr=''
+		[ -e /usr/local/sbin/spread ] && spr="/usr/local/sbin/spread"
+		[ -e /usr/sbin/spread ] && spr="/usr/sbin/spread"
+		[ "$spr" = "" ] && echo "Could not find spread"
+		echo $spr
+	}
+	${spr} -n localhost &
 fi
 
