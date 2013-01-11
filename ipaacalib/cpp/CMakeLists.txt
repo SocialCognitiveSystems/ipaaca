@@ -6,6 +6,9 @@ project (ipaaca_cpp)
 ## use the following line to enable console debug messages in ipaaca
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DIPAACA_DEBUG_MESSAGES")
 
+# expose the full RSB api in the headers (set only in ipaaca itself)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DIPAACA_EXPOSE_FULL_RSB_API")
+
 # find cmake modules locally too
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMakeModules)
 
@@ -18,8 +21,15 @@ find_package(Protobuf REQUIRED)
 link_directories(${PROTOBUF_LIBRARY_DIRS})
 include_directories(${PROTOBUF_INCLUDE_DIRS})
 
-#set(PROTOLIBS protobuf)
-set(RSBLIBS rsc rsbcore)
+##set(PROTOLIBS protobuf)
+#set(RSBLIBS rsc rsbcore)
+
+# add for for each new rsb version
+include_directories( ${PROJECT_SOURCE_DIR}/../../deps/include/rsc0.8 )
+include_directories( ${PROJECT_SOURCE_DIR}/../../deps/include/rsb0.8 )
+# change for each new rsb version
+set(RSBLIBS rsc.0.8 rsb.0.8)
+
 
 #set(LIBS ${LIBS} ${BOOSTLIBS} ${PROTOLIBS} ${RSBLIBS})
 #set(LIBS ${LIBS} ${PROTOLIBS} ${RSBLIBS})
@@ -56,6 +66,7 @@ include_directories( ${PROJECT_SOURCE_DIR}/include )
 # add lib and include directory from pulled dependencies
 include_directories( ${PROJECT_SOURCE_DIR}/../../deps/include )
 link_directories( ${PROJECT_SOURCE_DIR}/../../deps/lib )
+
 
 # specify source files for ipaaca (auto-generated ones are in build/ )
 set (SOURCE

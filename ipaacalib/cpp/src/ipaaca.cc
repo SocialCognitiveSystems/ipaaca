@@ -20,8 +20,9 @@ bool Initializer::initialized() { return _initialized; }
 void Initializer::initialize_ipaaca_rsb_if_needed()
 {
 	if (_initialized) return;
-	ParticipantConfig config = ParticipantConfig::fromConfiguration();
-	Factory::getInstance().setDefaultParticipantConfig(config);
+	// RYT FIXME This configuration stuff has been simply removed in rsb!
+	//ParticipantConfig config = ParticipantConfig::fromConfiguration();
+	//Factory::getInstance().setDefaultParticipantConfig(config);
 	
 	boost::shared_ptr<IUConverter> iu_converter(new IUConverter());
 	converterRepository<std::string>()->registerConverter(iu_converter);

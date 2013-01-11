@@ -23,6 +23,17 @@
 #define IPAACA_TODO(i) ;
 #endif
 
+#ifdef IPAACA_EXPOSE_FULL_RSB_API
+#include <rsc/runtime/TypeStringTools.h>
+#include <rsb/Factory.h>
+#include <rsb/Handler.h>
+#include <rsb/Event.h>
+#include <rsb/converter/Repository.h>
+#include <rsb/converter/ProtocolBufferConverter.h>
+#include <rsb/converter/Converter.h>
+#include <rsb/rsbexports.h>
+#endif
+
 
 /// marking pure virtual functions for extra readability
 #define _IPAACA_ABSTRACT_
@@ -41,25 +52,10 @@
 #include <boost/pointer_cast.hpp>
 #include <boost/lexical_cast.hpp>
 
-#include <rsc/runtime/TypeStringTools.h>
-#include <rsb/Factory.h>
-#include <rsb/Handler.h>
-#include <rsb/Event.h>
-#include <rsb/converter/Repository.h>
-#include <rsb/converter/ProtocolBufferConverter.h>
-#include <rsb/converter/Converter.h>
-#include <rsb/rsbexports.h>
-
 #include <ipaaca/ipaaca.pb.h>
 
 #include <pthread.h>
 #include <uuid/uuid.h>
-
-//using namespace boost;
-//using namespace rsb;
-//using namespace rsb::filter;
-//using namespace rsb::converter;
-//using namespace rsb::patterns;
 
 namespace ipaaca {
 
@@ -104,18 +100,28 @@ class Payload;
 class IUInterface;
 class IU;
 class Message;
-class IUConverter;
-class MessageConverter;
 class RemotePushIU;
 class IULinkUpdate;
-class IULinkUpdateConverter;
 class IUPayloadUpdate;
-class IUPayloadUpdateConverter;
 class IUStore;
 class FrozenIUStore;
 class Buffer;
 class InputBuffer;
 class OutputBuffer;
+
+//class InputBufferRsbAdaptor;
+//class OutputBufferRsbAdaptor;
+
+class CallbackIUPayloadUpdate;
+class CallbackIULinkUpdate;
+class CallbackIUCommission;
+class CallbackIURetraction;
+
+class IUConverter;
+class MessageConverter;
+class IUPayloadUpdateConverter;
+class IULinkUpdateConverter;
+class IntConverter;
 
 /// generate a UUID as an ASCII string
 std::string generate_uuid_string();
@@ -277,47 +283,21 @@ class Buffer { //: public boost::enable_shared_from_this<Buffer> {//{{{
 };
 //}}}
 
-class CallbackIUPayloadUpdate: public rsb::patterns::Server::Callback<IUPayloadUpdate, int> {
-	protected:
-		Buffer* _buffer;
-	public:
-		CallbackIUPayloadUpdate(Buffer* buffer);
-		boost::shared_ptr<int> call(const std::string& methodName, boost::shared_ptr<IUPayloadUpdate> update);
-};
-class CallbackIULinkUpdate: public rsb::patterns::Server::Callback<IULinkUpdate, int> {
-	protected:
-		Buffer* _buffer;
-	public:
-		CallbackIULinkUpdate(Buffer* buffer);
-	public:
-		boost::shared_ptr<int> call(const std::string& methodName, boost::shared_ptr<IULinkUpdate> update);
-};
-class CallbackIUCommission: public rsb::patterns::Server::Callback<protobuf::IUCommission, int> {
-	protected:
-		Buffer* _buffer;
-	public:
-		CallbackIUCommission(Buffer* buffer);
-	public:
-		boost::shared_ptr<int> call(const std::string& methodName, boost::shared_ptr<protobuf::IUCommission> update);
-};
-class CallbackIURetraction: public rsb::patterns::Server::Callback<protobuf::IURetraction, int> {
-	protected:
-		Buffer* _buffer;
-	public:
-		CallbackIURetraction(Buffer* buffer);
-	public:
-		boost::shared_ptr<int> call(const std::string& methodName, boost::shared_ptr<protobuf::IURetraction> update);
-};
-
 class OutputBuffer: public Buffer { //, public boost::enable_shared_from_this<OutputBuffer>  {//{{{
 	friend class IU;
 	friend class RemotePushIU;
+	friend class OutputBufferRsbAdaptor;
 	protected:
 	protected:
-		std::map<std::string, rsb::Informer<rsb::AnyType>::Ptr> _informer_store;
+		//OutputBufferRsbAdaptor _rsb;
 		IUStore _iu_store;
 		Lock _iu_id_counter_lock;
+#ifdef IPAACA_EXPOSE_FULL_RSB_API
+	protected:
+		std::map<std::string, rsb::Informer<rsb::AnyType>::Ptr> _informer_store;
 		rsb::patterns::ServerPtr _server;
+		rsb::Informer<rsb::AnyType>::Ptr _get_informer(const std::string& category);
+#endif
 	protected:
 		// informing functions
 		void _send_iu_link_update(IUInterface* iu, bool is_delta, revision_t revision, const LinkMap& new_links, const LinkMap& links_to_remove, const std::string& writer_name="undef");
@@ -327,10 +307,8 @@ class OutputBuffer: public Buffer { //, public boost::enable_shared_from_this<Ou
 		// _remote_update_links(IULinkUpdate)
 		// _remote_update_payload(IUPayloadUpdate)
 		// _remote_commit(protobuf::IUCommission)
-	protected:
 		void _publish_iu(boost::shared_ptr<IU> iu);
 		void _retract_iu(boost::shared_ptr<IU> iu);
-		rsb::Informer<rsb::AnyType>::Ptr _get_informer(const std::string& category);
 	protected:
 		OutputBuffer(const std::string& basename);
 		void _initialize_server();
@@ -351,10 +329,17 @@ class OutputBuffer: public Buffer { //, public boost::enable_shared_from_this<Ou
 class InputBuffer: public Buffer { //, public boost::enable_shared_from_this<InputBuffer>  {//{{{
 	friend class IU;
 	friend class RemotePushIU;
+	friend class InputBufferRsbAdaptor;
+		//InputBufferRsbAdaptor _rsb;
+#ifdef IPAACA_EXPOSE_FULL_RSB_API
 	protected:
 		std::map<std::string, rsb::ListenerPtr> _listener_store;
 		std::map<std::string, rsb::patterns::RemoteServerPtr> _remote_server_store;
 		RemotePushIUStore _iu_store;  // TODO genericize
+		rsb::patterns::RemoteServerPtr _get_remote_server(const std::string& unique_server_name);
+		rsb::ListenerPtr _create_category_listener_if_needed(const std::string& category);
+		void _handle_iu_events(rsb::EventPtr event);
+#endif
 	protected:
 		inline void _send_iu_link_update(IUInterface* iu, bool is_delta, revision_t revision, const LinkMap& new_links, const LinkMap& links_to_remove, const std::string& writer_name="undef")
 		{
@@ -368,10 +353,6 @@ class InputBuffer: public Buffer { //, public boost::enable_shared_from_this<Inp
 		{
 			IPAACA_WARNING("(ERROR) InputBuffer::_send_iu_commission() should never be invoked")
 		}
-	protected:
-		rsb::patterns::RemoteServerPtr _get_remote_server(const std::string& unique_server_name);
-		rsb::ListenerPtr _create_category_listener_if_needed(const std::string& category);
-		void _handle_iu_events(rsb::EventPtr event);
 	protected:
 		InputBuffer(const std::string& basename, const std::set<std::string>& category_interests);
 		InputBuffer(const std::string& basename, const std::vector<std::string>& category_interests);
@@ -395,20 +376,6 @@ class InputBuffer: public Buffer { //, public boost::enable_shared_from_this<Inp
 };
 //}}}
 
-class IUConverter: public rsb::converter::Converter<std::string> {//{{{
-	public:
-		IUConverter();
-		std::string serialize(const rsb::AnnotatedData& data, std::string& wire);
-		rsb::AnnotatedData deserialize(const std::string& wireSchema, const std::string& wire);
-};//}}}
-
-class MessageConverter: public rsb::converter::Converter<std::string> {//{{{
-	public:
-		MessageConverter();
-		std::string serialize(const rsb::AnnotatedData& data, std::string& wire);
-		rsb::AnnotatedData deserialize(const std::string& wireSchema, const std::string& wire);
-};//}}}
-
 class IUPayloadUpdate {//{{{
 	public:
 		std::string uid;
@@ -419,12 +386,6 @@ class IUPayloadUpdate {//{{{
 		std::vector<std::string> keys_to_remove;
 	friend std::ostream& operator<<(std::ostream& os, const IUPayloadUpdate& obj);
 	typedef boost::shared_ptr<IUPayloadUpdate> ptr;
-};//}}}
-class IUPayloadUpdateConverter: public rsb::converter::Converter<std::string> {//{{{
-	public:
-		IUPayloadUpdateConverter();
-		std::string serialize(const rsb::AnnotatedData& data, std::string& wire);
-		rsb::AnnotatedData deserialize(const std::string& wireSchema, const std::string& wire);
 };//}}}
 
 class IULinkUpdate {//{{{
@@ -438,20 +399,8 @@ class IULinkUpdate {//{{{
 	friend std::ostream& operator<<(std::ostream& os, const IULinkUpdate& obj);
 	typedef boost::shared_ptr<IULinkUpdate> ptr;
 };//}}}
-class IULinkUpdateConverter: public rsb::converter::Converter<std::string> {//{{{
-	public:
-		IULinkUpdateConverter();
-		std::string serialize(const rsb::AnnotatedData& data, std::string& wire);
-		rsb::AnnotatedData deserialize(const std::string& wireSchema, const std::string& wire);
-};//}}}
 
 
-class IntConverter: public rsb::converter::Converter<std::string> {//{{{
-	public:
-		IntConverter();
-		std::string serialize(const rsb::AnnotatedData& data, std::string& wire);
-		rsb::AnnotatedData deserialize(const std::string& wireSchema, const std::string& wire);
-};//}}}
 
 class Initializer
 {
@@ -768,6 +717,72 @@ class NotImplementedError: public Exception//{{{
 			_description = "NotImplementedError";
 		}
 };//}}}
+
+#ifdef IPAACA_EXPOSE_FULL_RSB_API
+class CallbackIUPayloadUpdate: public rsb::patterns::Server::Callback<IUPayloadUpdate, int> {//{{{
+	protected:
+		Buffer* _buffer;
+	public:
+		CallbackIUPayloadUpdate(Buffer* buffer);
+		boost::shared_ptr<int> call(const std::string& methodName, boost::shared_ptr<IUPayloadUpdate> update);
+};//}}}
+class CallbackIULinkUpdate: public rsb::patterns::Server::Callback<IULinkUpdate, int> {//{{{
+	protected:
+		Buffer* _buffer;
+	public:
+		CallbackIULinkUpdate(Buffer* buffer);
+	public:
+		boost::shared_ptr<int> call(const std::string& methodName, boost::shared_ptr<IULinkUpdate> update);
+};//}}}
+class CallbackIUCommission: public rsb::patterns::Server::Callback<protobuf::IUCommission, int> {//{{{
+	protected:
+		Buffer* _buffer;
+	public:
+		CallbackIUCommission(Buffer* buffer);
+	public:
+		boost::shared_ptr<int> call(const std::string& methodName, boost::shared_ptr<protobuf::IUCommission> update);
+};//}}}
+class CallbackIURetraction: public rsb::patterns::Server::Callback<protobuf::IURetraction, int> {//{{{
+	protected:
+		Buffer* _buffer;
+	public:
+		CallbackIURetraction(Buffer* buffer);
+	public:
+		boost::shared_ptr<int> call(const std::string& methodName, boost::shared_ptr<protobuf::IURetraction> update);
+};//}}}
+
+class IUConverter: public rsb::converter::Converter<std::string> {//{{{
+	public:
+		IUConverter();
+		std::string serialize(const rsb::AnnotatedData& data, std::string& wire);
+		rsb::AnnotatedData deserialize(const std::string& wireSchema, const std::string& wire);
+};//}}}
+class MessageConverter: public rsb::converter::Converter<std::string> {//{{{
+	public:
+		MessageConverter();
+		std::string serialize(const rsb::AnnotatedData& data, std::string& wire);
+		rsb::AnnotatedData deserialize(const std::string& wireSchema, const std::string& wire);
+};//}}}
+class IUPayloadUpdateConverter: public rsb::converter::Converter<std::string> {//{{{
+	public:
+		IUPayloadUpdateConverter();
+		std::string serialize(const rsb::AnnotatedData& data, std::string& wire);
+		rsb::AnnotatedData deserialize(const std::string& wireSchema, const std::string& wire);
+};//}}}
+class IULinkUpdateConverter: public rsb::converter::Converter<std::string> {//{{{
+	public:
+		IULinkUpdateConverter();
+		std::string serialize(const rsb::AnnotatedData& data, std::string& wire);
+		rsb::AnnotatedData deserialize(const std::string& wireSchema, const std::string& wire);
+};//}}}
+class IntConverter: public rsb::converter::Converter<std::string> {//{{{
+	public:
+		IntConverter();
+		std::string serialize(const rsb::AnnotatedData& data, std::string& wire);
+		rsb::AnnotatedData deserialize(const std::string& wireSchema, const std::string& wire);
+};//}}}
+#endif
+
 
 // additional misc classes ( Command line options )//{{{
 class CommandLineOptions {
