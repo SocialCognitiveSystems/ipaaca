@@ -22,7 +22,7 @@ void Initializer::initialize_ipaaca_rsb_if_needed()
 	if (_initialized) return;
 	// RYT FIXME This configuration stuff has been simply removed in rsb!
 	//ParticipantConfig config = ParticipantConfig::fromConfiguration();
-	//Factory::getInstance().setDefaultParticipantConfig(config);
+	//getFactory().setDefaultParticipantConfig(config);
 	
 	boost::shared_ptr<IUConverter> iu_converter(new IUConverter());
 	converterRepository<std::string>()->registerConverter(iu_converter);
@@ -66,12 +66,12 @@ std::string generate_uuid_string()
 
 /*
 void init_inprocess_too() {
-	//ParticipantConfig config = Factory::getInstance().getDefaultParticipantConfig();
+	//ParticipantConfig config = getFactory().getDefaultParticipantConfig();
 	ParticipantConfig config = ParticipantConfig::fromFile("rsb.cfg");
 	//ParticipantConfig::Transport inprocess = config.getTransport("inprocess");
 	//inprocess.setEnabled(true);
 	//config.addTransport(inprocess);
-	Factory::getInstance().setDefaultParticipantConfig(config);
+	getFactory().setDefaultParticipantConfig(config);
 }
 */
 //}}}
@@ -375,7 +375,7 @@ OutputBuffer::OutputBuffer(const std::string& basename)
 }
 void OutputBuffer::_initialize_server()
 {
-	_server = Factory::getInstance().createServer( Scope( _unique_name ) );
+	_server = getFactory().createServer( Scope( _unique_name ) );
 	_server->registerMethod("updatePayload", Server::CallbackPtr(new CallbackIUPayloadUpdate(this)));
 	_server->registerMethod("updateLinks", Server::CallbackPtr(new CallbackIULinkUpdate(this)));
 	_server->registerMethod("commit", Server::CallbackPtr(new CallbackIUCommission(this)));
@@ -471,7 +471,7 @@ Informer<AnyType>::Ptr OutputBuffer::_get_informer(const std::string& category)
 	} else {
 		//IPAACA_INFO("Making new informer for category " << category)
 		std::string scope_string = "/ipaaca/category/" + category;
-		Informer<AnyType>::Ptr informer = Factory::getInstance().createInformer<AnyType> ( Scope(scope_string));
+		Informer<AnyType>::Ptr informer = getFactory().createInformer<AnyType> ( Scope(scope_string));
 		_informer_store[category] = informer;
 		return informer;
 	}
@@ -597,7 +597,7 @@ RemoteServerPtr InputBuffer::_get_remote_server(const std::string& unique_server
 {
 	std::map<std::string, RemoteServerPtr>::iterator it = _remote_server_store.find(unique_server_name);
 	if (it!=_remote_server_store.end()) return it->second;
-	RemoteServerPtr remote_server = Factory::getInstance().createRemoteServer(Scope(unique_server_name));
+	RemoteServerPtr remote_server = getFactory().createRemoteServer(Scope(unique_server_name));
 	_remote_server_store[unique_server_name] = remote_server;
 	return remote_server;
 }
@@ -608,7 +608,7 @@ ListenerPtr InputBuffer::_create_category_listener_if_needed(const std::string& 
 	if (it!=_listener_store.end()) return it->second;
 	//IPAACA_INFO("Creating a new listener for category " << category)
 	std::string scope_string = "/ipaaca/category/" + category;
-	ListenerPtr listener = Factory::getInstance().createListener( Scope(scope_string) );
+	ListenerPtr listener = getFactory().createListener( Scope(scope_string) );
 	HandlerPtr event_handler = HandlerPtr(
 			new EventFunctionHandler(
 				boost::bind(&InputBuffer::_handle_iu_events, this, _1)
