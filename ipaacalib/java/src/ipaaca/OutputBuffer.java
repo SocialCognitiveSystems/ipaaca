@@ -315,7 +315,10 @@ public class OutputBuffer extends Buffer
         {
             throw new IUPublishedException(iu);
         }
-        iuStore.put(iu.getUid(), iu);
+        if(!(iu instanceof LocalMessageIU))
+        {
+            iuStore.put(iu.getUid(), iu);
+        }
         iu.setBuffer(this);
         publishIU(iu);
     }
