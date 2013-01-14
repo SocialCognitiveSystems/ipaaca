@@ -4,8 +4,8 @@
    <artifact type="py.zip" ext="py.zip"/>
    </publications>
    <dependencies>
-      <dependency org="google" name="protobuf" rev="latest.release"/>
-      <dependency org="rsb" name="rsb" rev="latest.release"/>
+      <dependency org="google" name="protobuf-python" rev="latest.release"/>
+      <dependency org="rsb" name="rsb-python" rev="latest.release"/>
    </dependencies>
 
 </ivy-module>
