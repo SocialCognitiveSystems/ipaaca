@@ -57,6 +57,8 @@
 #include <pthread.h>
 #include <uuid/uuid.h>
 
+#include <set>
+
 namespace ipaaca {
 
 typedef uint32_t revision_t;
