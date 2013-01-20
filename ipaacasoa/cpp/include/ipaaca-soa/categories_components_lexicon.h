@@ -62,6 +62,9 @@ const std::string CAT__GUI_DATA = "guidata";
 const std::string CAT__SCH3_GESTURE = "sch3gesture";
 const std::string CAT__SCH3_OPTIONS = "sch3options";
 
+/// Ogre/Qt GuiController (relay key events, configure that)
+const std::string CAT__OGRE_GUI_CONTROLLER = "ogreguicontroller";
+
 
 //
 // UNDOCUMENTED CATEGORIES
