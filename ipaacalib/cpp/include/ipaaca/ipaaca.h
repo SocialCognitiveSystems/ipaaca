@@ -47,6 +47,10 @@
 
 #include <iostream>
 
+// for logger
+#include <iomanip>
+#include <sys/time.h>
+
 #include <boost/bind.hpp>
 #include <boost/function.hpp>
 #include <boost/shared_ptr.hpp>
@@ -842,6 +846,9 @@ class IUEventFunctionHandler: public rsb::EventFunctionHandler {
 };
 */
 //}}}
+
+Lock& logger_lock();
+#define LOG_IPAACA_CONSOLE(msg) { ipaaca::Locker logging_locker(ipaaca::logger_lock()); timeval logging_tim; gettimeofday(&logging_tim, NULL); double logging_t1=logging_tim.tv_sec+(logging_tim.tv_usec/1000000.0); std::cout << "[LOG] " << std::setprecision(15) << logging_t1 << " : " << msg << std::endl; }
 
 } // of namespace ipaaca
 

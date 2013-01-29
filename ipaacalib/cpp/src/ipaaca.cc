@@ -10,6 +10,11 @@ using namespace rsb::patterns;
 
 #define VERBOSE_HANDLERS 0
 
+Lock& logger_lock() {
+    static Lock lock;
+    return lock;
+}
+
 // util and init//{{{
 
 bool Initializer::_initialized = false;

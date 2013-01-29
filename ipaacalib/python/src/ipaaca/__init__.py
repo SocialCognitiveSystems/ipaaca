@@ -1250,6 +1250,7 @@ class OutputBuffer(Buffer):
 		#self._category_interests.append(iu_category)
 		#logger.info("Added category listener for "+iu_category)
 		#return cat_listener
+		pass
 	
 	# hbuschme: IUs now have their Ids assigned on creation
 	#def _generate_iu_uid(self):
