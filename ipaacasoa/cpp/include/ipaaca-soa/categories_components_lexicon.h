@@ -45,6 +45,8 @@ const std::string CAT__CONTROLLER_WII = "wiiinput";
 const std::string CAT__CALENDAR_CONTROL = "calendarcontrol";
 /// (OgreCanvas:) sending updates to generic Canvas component
 const std::string CAT__CANVAS_CONTROL = "canvascontrol";
+/// (OgreCameraController:) sending camera control commands
+const std::string CAT__CAMERA_CONTROL = "cameracontrol";
 /// (OgreVideoCall:) sending control commands to the video call component
 const std::string CAT__VIDEOCALL_CONTROL = "videocallcontrol";
 /// (OgreTrafficLight:) sending updates to GUI traffic light
