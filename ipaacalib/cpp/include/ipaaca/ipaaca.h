@@ -51,11 +51,13 @@
 #include <iomanip>
 #include <sys/time.h>
 
+#ifndef Q_MOC_RUN
 #include <boost/bind.hpp>
 #include <boost/function.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/pointer_cast.hpp>
 #include <boost/lexical_cast.hpp>
+#endif
 
 #include <ipaaca/ipaaca.pb.h>
 
