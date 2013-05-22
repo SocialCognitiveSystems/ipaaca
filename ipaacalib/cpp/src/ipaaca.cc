@@ -650,6 +650,7 @@ void InputBuffer::_handle_iu_events(EventPtr event)
 		boost::shared_ptr<RemoteMessage> iu = boost::static_pointer_cast<RemoteMessage>(event->getData());
 		//_iu_store[iu->uid()] = iu;
 		//iu->_set_buffer(this);
+		//std::cout << "REFCNT after cast, before calling handlers: " << iu.use_count() << std::endl;
 		call_iu_event_handlers(iu, false, IU_MESSAGE, iu->category() );
 		//_iu_store.erase(iu->uid());
 	} else {
@@ -1158,7 +1159,7 @@ PayloadEntryProxy::operator double()
 
 void Payload::initialize(boost::shared_ptr<IUInterface> iu)
 {
-	_iu = iu;
+	_iu = boost::weak_ptr<IUInterface>(iu);
 }
 
 PayloadEntryProxy Payload::operator[](const std::string& key)
@@ -1175,20 +1176,20 @@ inline void Payload::_internal_set(const std::string& k, const std::string& v, c
 	std::map<std::string, std::string> _new;
 	std::vector<std::string> _remove;
 	_new[k]=v;
-	_iu->_modify_payload(true, _new, _remove, writer_name );
+	_iu.lock()->_modify_payload(true, _new, _remove, writer_name );
 	_store[k] = v;
 }
 inline void Payload::_internal_remove(const std::string& k, const std::string& writer_name) {
 	std::map<std::string, std::string> _new;
 	std::vector<std::string> _remove;
 	_remove.push_back(k);
-	_iu->_modify_payload(true, _new, _remove, writer_name );
+	_iu.lock()->_modify_payload(true, _new, _remove, writer_name );
 	_store.erase(k);
 }
 void Payload::_internal_replace_all(const std::map<std::string, std::string>& new_contents, const std::string& writer_name)
 {
 	std::vector<std::string> _remove;
-	_iu->_modify_payload(false, new_contents, _remove, writer_name );
+	_iu.lock()->_modify_payload(false, new_contents, _remove, writer_name );
 	_store = new_contents;
 }
 inline std::string Payload::get(const std::string& k) {
@@ -1313,6 +1314,7 @@ AnnotatedData IUConverter::deserialize(const std::string& wireSchema, const std:
 			{
 			// Create a "Message-type IU"
 			boost::shared_ptr<RemoteMessage> obj = RemoteMessage::create();
+			//std::cout << "REFCNT after create: " << obj.use_count() << std::endl;
 			// transfer pbo data to obj
 			obj->_uid = pbo->uid();
 			obj->_revision = pbo->revision();

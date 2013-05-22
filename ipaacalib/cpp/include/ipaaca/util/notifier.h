@@ -9,7 +9,7 @@
 #define _IPAACA_COMP_NOTIF_FUNCTION  "function"
 #define _IPAACA_COMP_NOTIF_STATE     "state"
 #define _IPAACA_COMP_NOTIF_SEND_CATS "send_categories"
-#define _IPAACA_COMP_NOTIF_RECV_CATS "receive_categories"
+#define _IPAACA_COMP_NOTIF_RECV_CATS "recv_categories"
 
 #define _IPAACA_COMP_NOTIF_STATE_NEW  "new"
 #define _IPAACA_COMP_NOTIF_STATE_OLD  "old"

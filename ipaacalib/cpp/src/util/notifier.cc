@@ -73,6 +73,7 @@ void ComponentNotifier::submit_notify(const std::string& current_state)
 	iu->payload()[_IPAACA_COMP_NOTIF_SEND_CATS] = send_categories;
 	iu->payload()[_IPAACA_COMP_NOTIF_RECV_CATS] = recv_categories;
 	out_buf->add(iu);
+	//LOG_IPAACA_CONSOLE( "Sending a ComponentNotify: " << name << " " << function << " " << current_state << " " << send_categories << " " << recv_categories )
 }
 
 void ComponentNotifier::initialize() {

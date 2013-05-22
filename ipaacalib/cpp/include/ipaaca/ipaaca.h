@@ -55,6 +55,7 @@
 #include <boost/bind.hpp>
 #include <boost/function.hpp>
 #include <boost/shared_ptr.hpp>
+#include <boost/weak_ptr.hpp>
 #include <boost/pointer_cast.hpp>
 #include <boost/lexical_cast.hpp>
 #endif
@@ -456,7 +457,7 @@ class Payload//{{{
 	protected:
 		std::string _owner_name;
 		std::map<std::string, std::string> _store;
-		boost::shared_ptr<IUInterface> _iu;
+		boost::weak_ptr<IUInterface> _iu;
 	protected:
 		void initialize(boost::shared_ptr<IUInterface> iu);
 		inline void _set_owner_name(const std::string& name) { _owner_name = name; }
@@ -560,7 +561,7 @@ class IU: public IUInterface {//{{{
 		IU(const std::string& category, IUAccessMode access_mode=IU_ACCESS_PUSH, bool read_only=false, const std::string& payload_type="MAP" );
 	public:
 		inline ~IU() {
-			IPAACA_IMPLEMENT_ME
+			//IPAACA_IMPLEMENT_ME
 		}
 		static boost::shared_ptr<IU> create(const std::string& category, IUAccessMode access_mode=IU_ACCESS_PUSH, bool read_only=false, const std::string& payload_type="MAP" );
 		inline Payload& payload() { return _payload; }
@@ -585,7 +586,7 @@ class Message: public IU {//{{{
 		Message(const std::string& category, IUAccessMode access_mode=IU_ACCESS_MESSAGE, bool read_only=true, const std::string& payload_type="MAP" );
 	public:
 		inline ~Message() {
-			IPAACA_IMPLEMENT_ME
+			//IPAACA_IMPLEMENT_ME
 		}
 		static boost::shared_ptr<Message> create(const std::string& category, IUAccessMode access_mode=IU_ACCESS_MESSAGE, bool read_only=true, const std::string& payload_type="MAP" );
 	protected:
@@ -610,7 +611,7 @@ class RemotePushIU: public IUInterface {//{{{
 		static boost::shared_ptr<RemotePushIU> create();
 	public:
 		inline ~RemotePushIU() {
-			IPAACA_IMPLEMENT_ME
+			//IPAACA_IMPLEMENT_ME
 		}
 		inline Payload& payload() { return _payload; }
 		inline const Payload& const_payload() const { return _payload; }
@@ -638,7 +639,7 @@ class RemoteMessage: public IUInterface {//{{{
 		static boost::shared_ptr<RemoteMessage> create();
 	public:
 		inline ~RemoteMessage() {
-			IPAACA_IMPLEMENT_ME
+			//IPAACA_IMPLEMENT_ME
 		}
 		inline Payload& payload() { return _payload; }
 		inline const Payload& const_payload() const { return _payload; }
