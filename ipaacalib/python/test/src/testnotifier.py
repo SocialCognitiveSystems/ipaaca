@@ -3,7 +3,12 @@ Created on Dec 20, 2012
 
 @author: hvanwelbergen
 '''
+
+import os
+import time
 import unittest
+
+
 from mockito import mock
 from mockito import verify
 from mockito import any
@@ -14,9 +19,7 @@ from ipaaca import IUEventType
 from ipaaca import Message
 from ipaaca import InputBuffer
 from ipaaca import OutputBuffer
-from ipaaca.util.notifier import ComponentNotifier
-import time
-import os
+from ipaaca.util import ComponentNotifier
 
 class IUCategoryMatcher(BaseMatcher):
     def __init__(self, expected_cat):
