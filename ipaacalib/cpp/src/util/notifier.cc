@@ -5,13 +5,15 @@ namespace util {
 
 ComponentNotifier::~ComponentNotifier() 
 {
+	LOG_IPAACA_CONSOLE("~ComponentNotifier")
 	if (initialized) {
-		submit_notify(_IPAACA_COMP_NOTIF_STATE_DOWN);
+		LOG_IPAACA_CONSOLE("  - notifying")
+		go_down();
 	}
 }
 
 ComponentNotifier::ComponentNotifier(const std::string& componentName, const std::string& componentFunction, const std::set<std::string>& sendCategories, const std::set<std::string>& recvCategories)
-: initialized(false), name(componentName), function(componentFunction)
+: initialized(false), gone_down(false), name(componentName), function(componentFunction)
 {
 	send_categories = ipaaca::str_join(sendCategories, ",");
 	recv_categories = ipaaca::str_join(recvCategories, ",");
@@ -82,6 +84,14 @@ void ComponentNotifier::initialize() {
 		initialized = true;
 		in_buf->register_handler(boost::bind(&ComponentNotifier::handle_iu_event, this, _1, _2, _3));
 		submit_notify(_IPAACA_COMP_NOTIF_STATE_NEW);
+	}
+}
+
+void ComponentNotifier::go_down() {
+	Locker locker(lock);
+	if (initialized && (!gone_down)) {
+		gone_down = true;
+		submit_notify(_IPAACA_COMP_NOTIF_STATE_DOWN);
 	}
 }
 

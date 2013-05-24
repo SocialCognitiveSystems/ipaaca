@@ -156,6 +156,17 @@ class Exception: public std::exception//{{{
 			return _description.c_str();
 		}
 };//}}}
+class Abort: public std::exception//{{{
+{
+	protected:
+		std::string _description;
+	public:
+		inline Abort(const std::string& description=""): _description(description) { }
+		inline ~Abort() throw() { }
+		const char* what() const throw() {
+			return _description.c_str();
+		}
+};//}}}
 
 /// a reentrant lock/mutex
 class Lock

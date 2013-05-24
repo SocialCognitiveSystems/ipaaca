@@ -33,11 +33,12 @@ class ComponentNotifier {
 	public:
 		void add_notification_handler(ipaaca::IUEventHandlerFunction function);
 		void initialize();
+		void go_down();
 	protected:
 		ipaaca::OutputBuffer::ptr out_buf;
 		ipaaca::InputBuffer::ptr in_buf;
 		ipaaca::Lock lock;
-		bool initialized;
+		bool initialized, gone_down;
 		std::vector<ipaaca::IUEventHandlerFunction> _handlers;
 	protected:
 		std::string name;
