@@ -54,7 +54,7 @@ public class LocalIU extends AbstractIU
     // self.owner_name = buffer.unique_name
     // self._payload.owner_name = buffer.unique_name
     //
-    public void setBuffer(OutputBuffer buffer)
+    protected void setBuffer(OutputBuffer buffer)
     {
         if (outputBuffer != null)
         {

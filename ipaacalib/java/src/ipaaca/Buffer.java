@@ -103,7 +103,7 @@ public abstract class Buffer
     /**
      * Call registered IU event handler functions registered for this event_type and category.
      */
-    public void callIuEventHandlers(String uid, boolean local, IUEventType type, String category)
+    protected void callIuEventHandlers(String uid, boolean local, IUEventType type, String category)
     {
         for (IUEventHandler h : eventHandlers)
         {
