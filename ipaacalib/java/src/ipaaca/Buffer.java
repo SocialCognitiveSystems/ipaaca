@@ -1,7 +1,9 @@
 package ipaaca;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -63,9 +65,34 @@ public abstract class Buffer
     // """
     // handler = IUEventHandler(handler_function=handler_function, for_event_types=for_event_types, for_categories=for_categories)
     // self._iu_event_handlers.append(handler)
+
     public void registerHandler(IUEventHandler handler)
     {
         eventHandlers.add(handler);
+    }
+   
+    public void registerHandler(HandlerFunctor func) {
+    	IUEventHandler handler;
+    	handler = new IUEventHandler(func);
+    	registerHandler(handler);
+    }
+    
+    public void registerHandler(HandlerFunctor func, Set<String> categories) {
+    	IUEventHandler handler;
+    	handler = new IUEventHandler(func, categories);
+    	registerHandler(handler);
+    }
+    
+    public void registerHandler(HandlerFunctor func, EnumSet<IUEventType> eventTypes) {
+    	IUEventHandler handler;
+    	handler = new IUEventHandler(func, eventTypes);
+    	registerHandler(handler);
+    }
+   
+    public void registerHandler(HandlerFunctor func, EnumSet<IUEventType> eventTypes, Set<String> categories) {
+    	IUEventHandler handler;
+    	handler = new IUEventHandler(func, eventTypes, categories);
+    	registerHandler(handler);
     }
 
     // def call_iu_event_handlers(self, uid, local, event_type, category):
@@ -76,7 +103,7 @@ public abstract class Buffer
     /**
      * Call registered IU event handler functions registered for this event_type and category.
      */
-    public void callIuEventHandlers(String uid, boolean local, IUEventType type, String category)
+    protected void callIuEventHandlers(String uid, boolean local, IUEventType type, String category)
     {
         for (IUEventHandler h : eventHandlers)
         {

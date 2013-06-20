@@ -1,6 +1,7 @@
 package ipaaca;
 
 import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -32,6 +33,27 @@ public class IUEventHandler
     // self._for_categories = (
     // None if for_categories is None else
     // (for_categories[:] if hasattr(for_categories, '__iter__') else [for_categories]))
+    
+    public IUEventHandler(HandlerFunctor func)
+    {
+        this.handleFunctor = func;
+        this.categories = new HashSet<String>();
+        this.eventTypes = EnumSet.allOf(IUEventType.class);
+    }
+    
+    public IUEventHandler(HandlerFunctor func, Set<String> categories)
+    {
+        this.handleFunctor = func;
+        this.categories = categories;
+        this.eventTypes = EnumSet.allOf(IUEventType.class);
+    }
+    
+    public IUEventHandler(HandlerFunctor func, EnumSet<IUEventType> eventTypes)
+    {
+        this.handleFunctor = func;
+        this.eventTypes = eventTypes;
+        this.categories = new HashSet<String>();
+    }
 
     public IUEventHandler(HandlerFunctor func, EnumSet<IUEventType> eventTypes, Set<String> categories)
     {
@@ -57,7 +79,13 @@ public class IUEventHandler
      */
     private boolean conditionMet(IUEventType type, String category)
     {
-        return eventTypes.contains(type) && categories.contains(category);
+    	if (this.categories.isEmpty()) { // match any category
+    		return this.eventTypes.contains(type);
+    	}
+    	else
+    	{
+    		return this.eventTypes.contains(type) && this.categories.contains(category);
+    	}
     }
 
     // def call(self, buffer, iu_uid, local, event_type, category):

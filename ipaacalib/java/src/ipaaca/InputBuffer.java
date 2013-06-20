@@ -80,7 +80,7 @@ public class InputBuffer extends Buffer
     // remote_server = rsb.createRemoteServer(rsb.Scope(str(iu.owner_name)))
     // self._remote_server_store[iu.owner_name] = remote_server
     // return remote_server
-    public RemoteServer getRemoteServer(AbstractIU iu)
+    protected RemoteServer getRemoteServer(AbstractIU iu)
     {
         if (remoteServerStore.containsKey(iu.getOwnerName()))
         {

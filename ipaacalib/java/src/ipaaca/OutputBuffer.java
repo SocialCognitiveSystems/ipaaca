@@ -327,7 +327,7 @@ public class OutputBuffer extends Buffer
     // '''Publish an IU.'''
     // informer = self._get_informer(iu._category)
     // informer.publishData(iu)
-    public void publishIU(AbstractIU iu)
+    private void publishIU(AbstractIU iu)
     {
         Informer<Object> informer = getInformer(iu.getCategory());
         try
@@ -364,7 +364,7 @@ public class OutputBuffer extends Buffer
      *            to enable remote components to filter out updates that originated
      *            from their own operations
      */
-    public void sendIUCommission(AbstractIU iu, String writerName)
+    protected void sendIUCommission(AbstractIU iu, String writerName)
     {
         IUCommission iuc = Ipaaca.IUCommission.newBuilder().setUid(iu.getUid()).setRevision(iu.getRevision())
                 .setWriterName(iu.getOwnerName() != null ? iu.getOwnerName() : writerName).build();
@@ -406,7 +406,7 @@ public class OutputBuffer extends Buffer
     // informer = self._get_informer(iu._category)
     // informer.publishData(payload_update)
 
-    public void sendIUPayloadUpdate(AbstractIU iu, IUPayloadUpdate update)
+    protected void sendIUPayloadUpdate(AbstractIU iu, IUPayloadUpdate update)
     {
         Informer<Object> informer = getInformer(iu.getCategory());
         try
@@ -419,7 +419,7 @@ public class OutputBuffer extends Buffer
         }
     }
 
-    public void sendIULinkUpdate(AbstractIU iu, IULinkUpdate update)
+    protected void sendIULinkUpdate(AbstractIU iu, IULinkUpdate update)
     {
         Informer<Object> informer = getInformer(iu.getCategory());
         try

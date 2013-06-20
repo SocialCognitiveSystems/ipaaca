@@ -38,6 +38,15 @@ public class LocalIU extends AbstractIU
         payload = new Payload(this);
     }
 
+    public LocalIU(String category)
+    {
+        super(UUID.randomUUID().toString());
+        this.category = category;
+        revision = 1;
+        payload = new Payload(this); 
+    }
+    
+    
     // def _set_buffer(self, buffer):
     // if self._buffer is not None:
     // raise Exception('The IU is already in a buffer, cannot move it.')
@@ -45,7 +54,7 @@ public class LocalIU extends AbstractIU
     // self.owner_name = buffer.unique_name
     // self._payload.owner_name = buffer.unique_name
     //
-    public void setBuffer(OutputBuffer buffer)
+    protected void setBuffer(OutputBuffer buffer)
     {
         if (outputBuffer != null)
         {
