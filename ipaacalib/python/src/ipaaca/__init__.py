@@ -132,6 +132,7 @@ class IUNotFoundError(Exception):
 
 class Payload(dict):
 	def __init__(self, iu, writer_name=None, new_payload=None, omit_init_update_message=False):
+		self.iu = iu
 		pl1 = {} if new_payload is None else new_payload
 		pl = {}
 		for k,v in pl1.items():
@@ -140,7 +141,6 @@ class Payload(dict):
 			if type(v)==str:
 				v=unicode(v,'utf8')
 			pl[k] = v
-		self.iu = iu
 		# NOTE omit_init_update_message is necessary to prevent checking for
 		#   exceptions and sending updates in the case where we just receive
 		#   a whole new payload from the remote side and overwrite it locally.
@@ -148,6 +148,16 @@ class Payload(dict):
 			self.iu._modify_payload(is_delta=False, new_items=pl, keys_to_remove=[], writer_name=writer_name)
 		for k, v in pl.items():
 			dict.__setitem__(self, k, v)
+
+	def merge(self, payload, writer_name=None):
+		for k, v in payload:
+			if type(k)==str:
+				k=unicode(k,'utf8')
+			if type(v)==str:
+				v=unicode(v,'utf8')
+		self.iu._modify_payload(is_delta=True, new_items=payload, keys_to_remove=[], writer_name=writer_name)
+		return dict.update(payload) # batch update
+
 	def __setitem__(self, k, v, writer_name=None):
 		if type(k)==str:
 			k=unicode(k,'utf8')
