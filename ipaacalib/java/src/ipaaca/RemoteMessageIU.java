@@ -3,6 +3,7 @@ package ipaaca;
 import ipaaca.protobuf.Ipaaca.PayloadItem;
 
 import java.util.List;
+import java.util.Map;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -47,6 +48,15 @@ public class RemoteMessageIU extends AbstractIU
     {
         payload.put(key,value);
         log.info("Info: modifying a RemoteMessage only has local effects");
+    }
+    
+    void putIntoPayload(Map<? extends String, ? extends String> newItems, String writer) {
+    	for (Map.Entry<? extends String, ? extends String> item : newItems.entrySet())
+    	{
+    		payload.put(item.getKey(), item.getValue());
+    	    //System.out.println(entry.getKey() + "/" + entry.getValue());
+    	}
+    	log.info("Info: modifying a RemoteMessage only has local effects");
     }
 
     @Override

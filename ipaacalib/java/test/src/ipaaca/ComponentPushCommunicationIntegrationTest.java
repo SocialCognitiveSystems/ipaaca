@@ -10,6 +10,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.Set;
 
 import org.junit.After;
@@ -168,6 +169,42 @@ public class ComponentPushCommunicationIntegrationTest
         assertEquals("newvalue3", localIU.getPayload().get("newkey3"));
         assertEquals(0,component2EventHandler.getNumberOfUpdateEvents(iuIn.getUid()));
         assertEquals(1,component1EventHandler.getNumberOfUpdateEvents(localIU.getUid()));
+    }
+    
+    @Test
+    public void testSetAllPayload() throws InterruptedException
+    {
+    	outBuffer.add(localIU);
+    	Thread.sleep(200);
+    	AbstractIU iuIn = inBuffer.getIU(localIU.getUid());
+    	
+    	HashMap<String, String> payloadUpdate = new HashMap<String, String>();
+    	payloadUpdate.put("chunk11", "item1");
+    	payloadUpdate.put("chunk12", "item2");
+    	payloadUpdate.put("chunk13", "item3");
+    	payloadUpdate.put("chunk14", "item4");
+    	int oldRev = iuIn.getRevision();
+    	localIU.getPayload().merge(payloadUpdate);
+    	Thread.sleep(200);
+    	assertEquals(oldRev + 1, iuIn.getRevision());
+    	assertTrue(iuIn.getPayload().containsKey("chunk11"));
+    	assertTrue(iuIn.getPayload().containsKey("chunk12"));
+    	assertTrue(iuIn.getPayload().containsKey("chunk13"));
+    	assertTrue(iuIn.getPayload().containsKey("chunk14"));
+    	
+    	HashMap<String, String> payloadUpdate2 = new HashMap<String, String>();
+    	payloadUpdate2.put("chunk21", "item5");
+    	payloadUpdate2.put("chunk22", "item6");
+    	payloadUpdate2.put("chunk13", "item3-changed");
+    	payloadUpdate2.put("chunk14", "item4-changed");
+    	int oldRev2 = iuIn.getRevision();
+    	iuIn.getPayload().merge(payloadUpdate2);
+    	Thread.sleep(200);
+    	assertEquals(oldRev2 + 1, localIU.getRevision());
+    	assertTrue(localIU.getPayload().containsKey("chunk21"));
+    	assertTrue(localIU.getPayload().containsKey("chunk22"));
+    	assertEquals("item3-changed", localIU.getPayload().get("chunk13"));
+    	assertEquals("item4-changed", localIU.getPayload().get("chunk14"));
     }
     
     @Test

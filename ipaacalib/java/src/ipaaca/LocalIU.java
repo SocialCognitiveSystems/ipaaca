@@ -2,12 +2,14 @@ package ipaaca;
 
 import ipaaca.protobuf.Ipaaca.IULinkUpdate;
 import ipaaca.protobuf.Ipaaca.IUPayloadUpdate;
+import ipaaca.protobuf.Ipaaca.IUPayloadUpdate.Builder;
 import ipaaca.protobuf.Ipaaca.LinkSet;
 import ipaaca.protobuf.Ipaaca.PayloadItem;
 
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
@@ -200,6 +202,34 @@ public class LocalIU extends AbstractIU
                         .build();
                 IUPayloadUpdate update = IUPayloadUpdate.newBuilder().setUid(getUid()).setRevision(getRevision()).setIsDelta(true)
                         .setWriterName(writer == null ? getOwnerName() : writer).addNewItems(newItem).build();
+                getOutputBuffer().sendIUPayloadUpdate(this, update);
+            }
+        }
+    }
+    
+    @Override
+    void putIntoPayload(Map<? extends String, ? extends String> newItems, String writer)
+    {
+        synchronized (getRevisionLock())
+        {
+            // set item locally
+            if (isCommitted())
+            {
+                throw new IUCommittedException(this);
+            }
+            increaseRevisionNumber();
+            if (isPublished())
+            {
+            	Builder builder = IUPayloadUpdate.newBuilder().setUid(getUid()).setRevision(getRevision()).setIsDelta(true)
+                        .setWriterName(writer == null ? getOwnerName() : writer);
+            	for (Map.Entry<? extends String, ? extends String> item : newItems.entrySet())
+            	{
+            		PayloadItem newItem = PayloadItem.newBuilder().setKey(item.getKey()).setValue(item.getValue()).setType("") // TODO: fix this, default in .proto?
+                            .build();
+            		builder.addNewItems(newItem);
+            	    
+            	}
+            	IUPayloadUpdate update = builder.build();
                 getOutputBuffer().sendIUPayloadUpdate(this, update);
             }
         }

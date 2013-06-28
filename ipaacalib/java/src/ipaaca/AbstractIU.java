@@ -209,6 +209,8 @@ public abstract class AbstractIU
     abstract void setPayload(List<PayloadItem> newItems, String writerName);
 
     abstract void putIntoPayload(String key, String value, String writer);
+    
+    abstract void putIntoPayload(Map<? extends String, ? extends String> newItems, String writer);
 
     abstract void removeFromPayload(Object key, String writer);
 

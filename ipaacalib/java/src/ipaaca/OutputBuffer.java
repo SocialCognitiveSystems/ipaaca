@@ -153,14 +153,20 @@ public class OutputBuffer extends Buffer
             {
                 iu.getPayload().remove(k, update.getWriterName());
             }
-            for (PayloadItem pli : update.getNewItemsList())
+            if (update.getNewItemsList().size() > 0) 
             {
-                iu.getPayload().put(pli.getKey(), pli.getValue(), update.getWriterName());
+            	HashMap<String, String> payloadUpdate = new HashMap<String, String>();
+
+            	for (PayloadItem pli : update.getNewItemsList())
+            	{
+            		payloadUpdate.put(pli.getKey(), pli.getValue());
+            		//    //iu.getPayload().put(pli.getKey(), pli.getValue(), update.getWriterName());
+            	}
+            	iu.getPayload().putAll(payloadUpdate, update.getWriterName());
             }
         }
         else
         {
-
             iu.setPayload(update.getNewItemsList(), update.getWriterName());
         }
         callIuEventHandlers(update.getUid(), true, IUEventType.UPDATED, iu.getCategory());

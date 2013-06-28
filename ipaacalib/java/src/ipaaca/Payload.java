@@ -216,9 +216,20 @@ public class Payload implements Map<String, String>
         return put(key, value, null);
     }
 
-    public void putAll(Map<? extends String, ? extends String> m)
+    
+    public void putAll(Map<? extends String, ? extends String> newItems)
     {
-        throw new RuntimeException("Not implemented");
+        putAll(newItems);
+    }
+
+    public void putAll(Map<? extends String, ? extends String> newItems, String writer)
+    {
+        iu.putIntoPayload(newItems, writer);
+   		map.putAll(newItems);
+    }
+    
+    public void merge(Map<? extends String, ? extends String> items) {
+    	putAll(items, null);
     }
 
     public String remove(Object key)

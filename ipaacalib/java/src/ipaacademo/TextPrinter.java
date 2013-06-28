@@ -31,6 +31,8 @@ public class TextPrinter
             case COMMITTED: System.out.println("IU committed");  break;
             case UPDATED: System.out.println("IU updated "+iu.getPayload()); break;
             case LINKSUPDATED: System.out.println("IU links updated"); break;
+            case RETRACTED: break;
+            case DELETED: break;
             }            
         }
         

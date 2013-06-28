@@ -6,10 +6,12 @@ import ipaaca.protobuf.Ipaaca.IULinkUpdate;
 import ipaaca.protobuf.Ipaaca.IUPayloadUpdate;
 import ipaaca.protobuf.Ipaaca.LinkSet;
 import ipaaca.protobuf.Ipaaca.PayloadItem;
+import ipaaca.protobuf.Ipaaca.IUPayloadUpdate.Builder;
 
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
@@ -91,6 +93,47 @@ public class RemotePushIU extends AbstractIU
             throw new IUUpdateFailedException(this);
         }
         setRevision(newRevision);
+    }
+
+    @Override
+    void putIntoPayload(Map<? extends String, ? extends String> newItems, String writer)
+    {
+        if (isCommitted())
+        {
+            throw new IUCommittedException(this);
+        }
+        if (isReadOnly())
+        {
+            throw new IUReadOnlyException(this);
+        }
+    	Builder builder = IUPayloadUpdate.newBuilder().setUid(getUid()).setRevision(getRevision()).setIsDelta(true)
+                .setWriterName(getBuffer().getUniqueName());
+    	for (Map.Entry<? extends String, ? extends String> item : newItems.entrySet())
+    	{
+    		PayloadItem newItem = PayloadItem.newBuilder().setKey(item.getKey()).setValue(item.getValue()).setType("") // TODO: fix this, default in .proto?
+                    .build();
+    		builder.addNewItems(newItem);
+    	    
+    	}
+    	IUPayloadUpdate update = builder.build();
+        
+        RemoteServer server = getInputBuffer().getRemoteServer(this);
+        logger.debug("Remote server has methods {}", server.getMethods());
+        int newRevision;
+        try
+        {
+            newRevision = (Integer) server.call("updatePayload", update);
+        }
+        catch (RSBException e)
+        {
+            throw new RuntimeException(e);
+        }
+        if (newRevision == 0)
+        {
+            throw new IUUpdateFailedException(this);
+        }
+        System.err.print("************************ "); System.err.println(newRevision);
+        setRevision(newRevision);	
     }
 
     // def commit(self):
