@@ -291,6 +291,7 @@ CallbackIUCommission::CallbackIUCommission(Buffer* buffer): _buffer(buffer) { }
 
 boost::shared_ptr<int> CallbackIUPayloadUpdate::call(const std::string& methodName, boost::shared_ptr<IUPayloadUpdate> update)
 {
+	//std::cout << "-- Received a modify_payload with " << update->new_items.size() << " keys to merge." << std::endl;
 	IUInterface::ptr iui = _buffer->get(update->uid);
 	if (! iui) {
 		IPAACA_WARNING("Remote InBuffer tried to spuriously write non-existent IU " << update->uid)
@@ -304,15 +305,17 @@ boost::shared_ptr<int> CallbackIUPayloadUpdate::call(const std::string& methodNa
 		return boost::shared_ptr<int>(new int(0));
 	}
 	if (update->is_delta) {
+		// FIXME FIXME this is an unsolved problem atm: deletes in a delta update are
+		// sent individually. We should have something like _internal_merge_and_remove
 		for (std::vector<std::string>::const_iterator it=update->keys_to_remove.begin(); it!=update->keys_to_remove.end(); ++it) {
 			iu->payload()._internal_remove(*it, update->writer_name); //_buffer->unique_name());
 		}
-		for (std::map<std::string, std::string>::const_iterator it=update->new_items.begin(); it!=update->new_items.end(); ++it) {
-			iu->payload()._internal_set(it->first, it->second, update->writer_name); //_buffer->unique_name());
-		}
+		// but it is solved for pure merges:
+		iu->payload()._internal_merge(update->new_items, update->writer_name);
 	} else {
 		iu->payload()._internal_replace_all(update->new_items, update->writer_name); //_buffer->unique_name());
 	}
+	//std::cout << "-- Calling update handler due to remote write." << std::endl;
 	_buffer->call_iu_event_handlers(iu, true, IU_UPDATED, iu->category());
 	revision_t revision = iu->revision();
 	iu->_revision_lock.unlock();
@@ -859,6 +862,7 @@ void IU::_modify_payload(bool is_delta, const std::map<std::string, std::string>
 	}
 	_increase_revision_number();
 	if (is_published()) {
+		//std::cout << "Sending a payload update with " << new_items.size() << " entries to merge." << std::endl;
 		_buffer->_send_iu_payload_update(this, is_delta, _revision, new_items, keys_to_remove, writer_name);
 	}
 	_revision_lock.unlock();
@@ -956,6 +960,7 @@ void RemotePushIU::_modify_links(bool is_delta, const LinkMap& new_links, const 
 }
 void RemotePushIU::_modify_payload(bool is_delta, const std::map<std::string, std::string>& new_items, const std::vector<std::string>& keys_to_remove, const std::string& writer_name)
 {
+	//std::cout << "-- Sending a modify_payload with " << new_items.size() << " keys to merge." << std::endl;
 	if (_committed) {
 		throw IUCommittedError();
 	}
@@ -1191,6 +1196,15 @@ void Payload::_internal_replace_all(const std::map<std::string, std::string>& ne
 	std::vector<std::string> _remove;
 	_iu.lock()->_modify_payload(false, new_contents, _remove, writer_name );
 	_store = new_contents;
+}
+void Payload::_internal_merge(const std::map<std::string, std::string>& contents_to_merge, const std::string& writer_name)
+{
+	std::vector<std::string> _remove;
+	_iu.lock()->_modify_payload(true, contents_to_merge, _remove, writer_name );
+	_store.insert(contents_to_merge.begin(), contents_to_merge.end());
+	//for (std::map<std::string, std::string>::iterator it = contents_to_merge.begin(); it!=contents_to_merge.end(); i++) {
+	//	_store[it->first] = it->second;
+	//}
 }
 inline std::string Payload::get(const std::string& k) {
 	if (_store.count(k)>0) return _store[k];

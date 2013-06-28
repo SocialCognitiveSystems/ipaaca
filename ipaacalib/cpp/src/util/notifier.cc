@@ -5,9 +5,8 @@ namespace util {
 
 ComponentNotifier::~ComponentNotifier() 
 {
-	LOG_IPAACA_CONSOLE("~ComponentNotifier")
+	//LOG_IPAACA_CONSOLE("~ComponentNotifier")
 	if (initialized) {
-		LOG_IPAACA_CONSOLE("  - notifying")
 		go_down();
 	}
 }

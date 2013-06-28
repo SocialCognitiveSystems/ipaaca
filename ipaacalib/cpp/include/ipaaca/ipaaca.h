@@ -476,6 +476,7 @@ class Payload//{{{
 		void _remotely_enforced_delitem(const std::string& k);
 		void _remotely_enforced_setitem(const std::string& k, const std::string& v);
 		void _internal_replace_all(const std::map<std::string, std::string>& new_contents, const std::string& writer_name="");
+		void _internal_merge(const std::map<std::string, std::string>& contents_to_merge, const std::string& writer_name="");
 		void _internal_set(const std::string& k, const std::string& v, const std::string& writer_name="");
 		void _internal_remove(const std::string& k, const std::string& writer_name="");
 	public:
@@ -485,6 +486,7 @@ class Payload//{{{
 		operator std::map<std::string, std::string>();
 		inline void set(const std::map<std::string, std::string>& all_elems) { _internal_replace_all(all_elems); }
 		inline void set(const std::string& k, const std::string& v) { _internal_set(k, v); }
+		inline void merge(const std::map<std::string, std::string>& elems_to_merge) { _internal_merge(elems_to_merge); }
 		inline void remove(const std::string& k) { _internal_remove(k); }
 		std::string get(const std::string& k);
 	typedef boost::shared_ptr<Payload> ptr;
