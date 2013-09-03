@@ -1,3 +1,35 @@
+/*
+ * This file is part of IPAACA, the
+ *  "Incremental Processing Architecture
+ *   for Artificial Conversational Agents".  
+ *
+ * Copyright (c) 2009-2013 Sociable Agents Group
+ *                         CITEC, Bielefeld University   
+ *
+ * http://opensource.cit-ec.de/projects/ipaaca/
+ * http://purl.org/net/ipaaca
+ *
+ * This file may be licensed under the terms of of the
+ * GNU Lesser General Public License Version 3 (the ``LGPL''),
+ * or (at your option) any later version.
+ *
+ * Software distributed under the License is distributed
+ * on an ``AS IS'' basis, WITHOUT WARRANTY OF ANY KIND, either
+ * express or implied. See the LGPL for the specific language
+ * governing rights and limitations.
+ *
+ * You should have received a copy of the LGPL along with this
+ * program. If not, go to http://www.gnu.org/licenses/lgpl.html
+ * or write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.  
+ *
+ * The development of this software was supported by the
+ * Excellence Cluster EXC 277 Cognitive Interaction Technology.
+ * The Excellence Cluster EXC 277 is a grant of the Deutsche
+ * Forschungsgemeinschaft (DFG) in the context of the German
+ * Excellence Initiative.
+ */
+
 #ifndef __IPAACA_H__
 #define __IPAACA_H__
 
@@ -476,6 +508,7 @@ class Payload//{{{
 		void _remotely_enforced_delitem(const std::string& k);
 		void _remotely_enforced_setitem(const std::string& k, const std::string& v);
 		void _internal_replace_all(const std::map<std::string, std::string>& new_contents, const std::string& writer_name="");
+		void _internal_merge(const std::map<std::string, std::string>& contents_to_merge, const std::string& writer_name="");
 		void _internal_set(const std::string& k, const std::string& v, const std::string& writer_name="");
 		void _internal_remove(const std::string& k, const std::string& writer_name="");
 	public:
@@ -485,6 +518,7 @@ class Payload//{{{
 		operator std::map<std::string, std::string>();
 		inline void set(const std::map<std::string, std::string>& all_elems) { _internal_replace_all(all_elems); }
 		inline void set(const std::string& k, const std::string& v) { _internal_set(k, v); }
+		inline void merge(const std::map<std::string, std::string>& elems_to_merge) { _internal_merge(elems_to_merge); }
 		inline void remove(const std::string& k) { _internal_remove(k); }
 		std::string get(const std::string& k);
 	typedef boost::shared_ptr<Payload> ptr;
