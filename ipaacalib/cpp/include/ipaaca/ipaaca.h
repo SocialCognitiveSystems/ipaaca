@@ -459,6 +459,7 @@ class Initializer
 {
 	public:
 		static void initialize_ipaaca_rsb_if_needed();
+		static void initialize_updated_default_config();
 		static bool initialized();
 	protected:
 		static bool _initialized;

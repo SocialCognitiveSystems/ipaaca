@@ -32,6 +32,7 @@
 
 #include <ipaaca/ipaaca.h>
 #include <cstdlib>
+#include <glob.h>
 
 namespace ipaaca {
 
@@ -57,6 +58,9 @@ bool Initializer::initialized() { return _initialized; }
 void Initializer::initialize_ipaaca_rsb_if_needed()
 {
 	if (_initialized) return;
+
+	initialize_updated_default_config();
+
 	// RYT FIXME This configuration stuff has been simply removed in rsb!
 	//ParticipantConfig config = ParticipantConfig::fromConfiguration();
 	//getFactory().setDefaultParticipantConfig(config);
@@ -84,6 +88,35 @@ void Initializer::initialize_ipaaca_rsb_if_needed()
 	
 	_initialized = true;
 	//IPAACA_TODO("initialize all converters")
+}
+
+void Initializer::initialize_updated_default_config()
+{
+	// quick hack to iterate through the pwd parents
+	// and find the closest rsb plugin dir
+	//
+	// but only if not yet defined
+	const char* plugin_path = getenv("RSB_PLUGINS_CPP_PATH");
+	if (!plugin_path) {
+		LOG_IPAACA_CONSOLE("RSB_PLUGINS_CPP_PATH not set; looking here and up to 7 dirs up.")
+		std::string pathstr = "./";
+		for (int i=0; i<   8 /* depth EIGHT (totally arbitrary..) */  ; i++) {
+			std::string where_str = pathstr+"deps/lib/rsb*/plugins";
+			const char* where = where_str.c_str();
+			glob_t g;
+			glob(where, 0, NULL, &g);
+			if (g.gl_pathc>0) {
+				const char* found_path = g.gl_pathv[0];
+				LOG_IPAACA_CONSOLE("Found an RSB plugin dir which will be used automatically: " << found_path)
+				setenv("RSB_PLUGINS_CPP_PATH", found_path, 1);
+				break;
+			} // else keep going
+			globfree(&g);
+			pathstr += "../";
+		}
+	} else {
+		LOG_IPAACA_CONSOLE("RSB_PLUGINS_CPP_PATH already defined: " << plugin_path)
+	}
 }
 
 std::string generate_uuid_string()
