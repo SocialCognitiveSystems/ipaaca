@@ -10,6 +10,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,6 +20,7 @@ import rsb.Factory;
 import rsb.Handler;
 import rsb.InitializeException;
 import rsb.Listener;
+import rsb.RSBException;
 import rsb.Scope;
 import rsb.patterns.RemoteServer;
 
@@ -25,6 +28,7 @@ import rsb.patterns.RemoteServer;
  * An InputBuffer that holds remote IUs.
  * @author hvanwelbergen
  */
+@Slf4j
 public class InputBuffer extends Buffer
 {
     private Map<String, RemoteServer> remoteServerStore = new HashMap<String, RemoteServer>();
@@ -38,11 +42,33 @@ public class InputBuffer extends Buffer
     {
         for (Listener listener : listenerStore.values())
         {
-            listener.deactivate();
+            try
+            {
+                listener.deactivate();
+            }
+            catch (RSBException e)
+            {
+                log.warn("RSB Exception on deactive {}", e, listener.toString());
+            }
+            catch (InterruptedException e)
+            {
+                Thread.currentThread().interrupt();
+            }
         }
         for (RemoteServer remServer : remoteServerStore.values())
         {
-            remServer.deactivate();
+            try
+            {
+                remServer.deactivate();
+            }
+            catch (RSBException e)
+            {
+                log.warn("RSB Exception on RemoteServer deactivate {}", e, remServer.toString());
+            }
+            catch (InterruptedException e)
+            {
+                Thread.currentThread().interrupt();
+            }
         }
     }
 
@@ -96,6 +122,10 @@ public class InputBuffer extends Buffer
         {
             throw new RuntimeException(e);
         }
+        catch (RSBException e)
+        {
+            throw new RuntimeException(e);
+        }
         remoteServerStore.put(iu.getOwnerName(), remoteServer);
         return remoteServer;
     }
@@ -115,16 +145,35 @@ public class InputBuffer extends Buffer
         {
             return listenerStore.get(category);
         }
-        Listener listener = Factory.getInstance().createListener(new Scope("/ipaaca/category/" + category));
+        Listener listener;
+        try
+        {
+            listener = Factory.getInstance().createListener(new Scope("/ipaaca/category/" + category));
+        }
+        catch (InitializeException e1)
+        {
+            throw new RuntimeException(e1);
+        }
         listenerStore.put(category, listener);
         categoryInterests.add(category);
-        listener.addHandler(new InputHandler(), true);
+        try
+        {
+            listener.addHandler(new InputHandler(), true);
+        }
+        catch (InterruptedException e1)
+        {
+            Thread.currentThread().interrupt();
+        }
         logger.info("Added category listener for {}", category);
         try
         {
             listener.activate();
         }
         catch (InitializeException e)
+        {
+            throw new RuntimeException(e);
+        }
+        catch (RSBException e)
         {
             throw new RuntimeException(e);
         }
@@ -185,11 +234,11 @@ public class InputBuffer extends Buffer
      */
     private void handleIUEvents(Event event)
     {
-        if(event.getData() instanceof RemoteMessageIU)
+        if (event.getData() instanceof RemoteMessageIU)
         {
             RemoteMessageIU rm = (RemoteMessageIU) event.getData();
             messageStore.put(rm.getUid(), rm);
-            callIuEventHandlers(rm.getUid(),false, IUEventType.ADDED, rm.getCategory());
+            callIuEventHandlers(rm.getUid(), false, IUEventType.ADDED, rm.getCategory());
             messageStore.remove(rm.getUid());
         }
         else if (event.getData() instanceof RemotePushIU)
@@ -277,7 +326,7 @@ public class InputBuffer extends Buffer
     @Override
     public AbstractIU getIU(String iuid)
     {
-        if(iuStore.get(iuid)!=null)
+        if (iuStore.get(iuid) != null)
         {
             return iuStore.get(iuid);
         }

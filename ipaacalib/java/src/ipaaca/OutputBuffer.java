@@ -10,6 +10,8 @@ import ipaaca.protobuf.Ipaaca.PayloadItem;
 import java.util.HashMap;
 import java.util.Map;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,6 +29,7 @@ import com.google.common.collect.SetMultimap;
  * An OutputBuffer that holds local IUs.
  * @author hvanwelbergen
  */
+@Slf4j
 public class OutputBuffer extends Buffer
 {
 
@@ -72,10 +75,14 @@ public class OutputBuffer extends Buffer
         {
             throw new RuntimeException(e);
         }
+        catch (RSBException e)
+        {
+            throw new RuntimeException(e);
+        }
 
     }
 
-    private final class RemoteUpdatePayload implements DataCallback<Integer, IUPayloadUpdate>
+    private final class RemoteUpdatePayload extends DataCallback<Integer, IUPayloadUpdate>
     {
         @Override
         public Integer invoke(IUPayloadUpdate data) throws Throwable
@@ -86,7 +93,7 @@ public class OutputBuffer extends Buffer
 
     }
 
-    private final class RemoteUpdateLinks implements DataCallback<Integer, IULinkUpdate>
+    private final class RemoteUpdateLinks extends DataCallback<Integer, IULinkUpdate>
     {
         @Override
         public Integer invoke(IULinkUpdate data) throws Throwable
@@ -97,7 +104,7 @@ public class OutputBuffer extends Buffer
 
     }
 
-    private final class RemoteCommit implements DataCallback<Integer, IUCommission>
+    private final class RemoteCommit extends DataCallback<Integer, IUCommission>
     {
         @Override
         public Integer invoke(IUCommission data) throws Throwable
@@ -287,12 +294,19 @@ public class OutputBuffer extends Buffer
         {
             return informerStore.get(category);
         }
-        Informer<Object> informer = Factory.getInstance().createInformer("/ipaaca/category/" + category);
+        Informer<Object> informer;
+        try
+        {
+            informer = Factory.getInstance().createInformer("/ipaaca/category/" + category);
+        }
+        catch (InitializeException e1)
+        {
+            throw new RuntimeException(e1);
+        }
 
         informerStore.put(category, informer);
         logger.info("Added informer on " + category);
 
-        // XXX new in java version, apperently informers need activation and deactivation
         try
         {
             informer.activate();
@@ -446,10 +460,32 @@ public class OutputBuffer extends Buffer
 
     public void close()
     {
-        server.deactivate();
+        try
+        {
+            server.deactivate();
+        }
+        catch (RSBException e)
+        {
+            log.warn("RSBException on deactivating server in close", e);
+        }
+        catch (InterruptedException e)
+        {
+            Thread.currentThread().interrupt();
+        }
         for (Informer<?> informer : informerStore.values())
         {
-            informer.deactivate();
+            try
+            {
+                informer.deactivate();
+            }
+            catch (RSBException e)
+            {
+                log.warn("RSBException on deactivating informer {} in close", e, informer.toString());
+            }
+            catch (InterruptedException e)
+            {
+                Thread.currentThread().interrupt();
+            }
         }
     }
 }

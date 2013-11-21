@@ -14,6 +14,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -88,6 +90,14 @@ public class RemotePushIU extends AbstractIU
         {
             throw new RuntimeException(e);
         }
+        catch (ExecutionException e)
+        {
+            throw new RuntimeException(e);
+        }
+        catch (TimeoutException e)
+        {
+            throw new RuntimeException(e);
+        }
         if (newRevision == 0)
         {
             throw new IUUpdateFailedException(this);
@@ -106,17 +116,17 @@ public class RemotePushIU extends AbstractIU
         {
             throw new IUReadOnlyException(this);
         }
-    	Builder builder = IUPayloadUpdate.newBuilder().setUid(getUid()).setRevision(getRevision()).setIsDelta(true)
+        Builder builder = IUPayloadUpdate.newBuilder().setUid(getUid()).setRevision(getRevision()).setIsDelta(true)
                 .setWriterName(getBuffer().getUniqueName());
-    	for (Map.Entry<? extends String, ? extends String> item : newItems.entrySet())
-    	{
-    		PayloadItem newItem = PayloadItem.newBuilder().setKey(item.getKey()).setValue(item.getValue()).setType("") // TODO: fix this, default in .proto?
+        for (Map.Entry<? extends String, ? extends String> item : newItems.entrySet())
+        {
+            PayloadItem newItem = PayloadItem.newBuilder().setKey(item.getKey()).setValue(item.getValue()).setType("") // TODO: fix this, default in .proto?
                     .build();
-    		builder.addNewItems(newItem);
-    	    
-    	}
-    	IUPayloadUpdate update = builder.build();
-        
+            builder.addNewItems(newItem);
+
+        }
+        IUPayloadUpdate update = builder.build();
+
         RemoteServer server = getInputBuffer().getRemoteServer(this);
         logger.debug("Remote server has methods {}", server.getMethods());
         int newRevision;
@@ -128,12 +138,21 @@ public class RemotePushIU extends AbstractIU
         {
             throw new RuntimeException(e);
         }
+        catch (ExecutionException e)
+        {
+            throw new RuntimeException(e);
+        }
+        catch (TimeoutException e)
+        {
+            throw new RuntimeException(e);
+        }
         if (newRevision == 0)
         {
             throw new IUUpdateFailedException(this);
         }
-        System.err.print("************************ "); System.err.println(newRevision);
-        setRevision(newRevision);	
+        System.err.print("************************ ");
+        System.err.println(newRevision);
+        setRevision(newRevision);
     }
 
     // def commit(self):
@@ -177,6 +196,14 @@ public class RemotePushIU extends AbstractIU
                 newRevision = (Integer) server.call("commit", iuc);
             }
             catch (RSBException e)
+            {
+                throw new RuntimeException(e);
+            }
+            catch (ExecutionException e)
+            {
+                throw new RuntimeException(e);
+            }
+            catch (TimeoutException e)
             {
                 throw new RuntimeException(e);
             }
@@ -273,6 +300,14 @@ public class RemotePushIU extends AbstractIU
             newRevision = (Integer) server.call("updatePayload", iuu);
         }
         catch (RSBException e)
+        {
+            throw new RuntimeException(e);
+        }
+        catch (ExecutionException e)
+        {
+            throw new RuntimeException(e);
+        }
+        catch (TimeoutException e)
         {
             throw new RuntimeException(e);
         }
@@ -384,6 +419,14 @@ public class RemotePushIU extends AbstractIU
         {
             throw new RuntimeException(e);
         }
+        catch (ExecutionException e)
+        {
+            throw new RuntimeException(e);
+        }
+        catch (TimeoutException e)
+        {
+            throw new RuntimeException(e);
+        }
         if (newRevision == 0)
         {
             throw new IUUpdateFailedException(this);
@@ -441,6 +484,14 @@ public class RemotePushIU extends AbstractIU
             newRevision = (Integer) server.call("updateLinks", update);
         }
         catch (RSBException e)
+        {
+            throw new RuntimeException(e);
+        }
+        catch (ExecutionException e)
+        {
+            throw new RuntimeException(e);
+        }
+        catch (TimeoutException e)
         {
             throw new RuntimeException(e);
         }
