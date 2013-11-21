@@ -41,26 +41,50 @@ def my_update_handler(iu, event_type, local):
 
 if len(sys.argv)<2:
 	print "Please use the program as follows:"
-	print " "+sys.argv[0]+" <categoryname> [<payloadkey> <payloadvalue>] [<k2> <v2>] ..."
+	print " "+sys.argv[0]+" [--class IU|Message] [--timeout <sec>] <categoryname> [<payloadkey> <payloadvalue>] [<k2> <v2>] ..."
 	sys.exit(1)
 
-cate = sys.argv[1]
-idx=2
+iu_class = 'Message'
+timeout = 3.0
+idx = 1
+keep_going = True
+while keep_going:
+	keep_going = False
+	if sys.argv[idx]=='--class':
+		t = sys.argv[idx+1]
+		if t in ['Message', 'IU']:
+			iu_class = t
+		else:
+			print "Unknown IU class: "+t
+			sys.exit(1)
+		idx += 2
+		keep_going = True
+	elif sys.argv[idx]=='--timeout':
+		timeout = float(sys.argv[idx+1])
+		idx += 2
+		keep_going = True
+
+cate = sys.argv[idx]
+idx += 1
 pl={}
 while len(sys.argv)>idx+1:
 	pl[sys.argv[idx]] = sys.argv[idx+1]
 	idx+=2
 
-print "Sending Message of category "+cate
+print "Sending "+iu_class+" of category "+cate
 print " with payload "+str(pl)
 
 ob = ipaaca.OutputBuffer('IUInjector')
 ob.register_handler(my_update_handler)
-iu_top = ipaaca.Message(cate)
+iu_top = ipaaca.IU(cate)
 iu_top.payload = pl
 ob.add(iu_top)
-print "Message sent."
+print iu_class+" sent."
 
-time.sleep(0.3)
+if iu_class=="IU":
+	print "Waiting "+str(timeout)+" sec for remote modifications..."
+	time.sleep(timeout)
+else:
+	time.sleep(0.1)
 print "done."
 
