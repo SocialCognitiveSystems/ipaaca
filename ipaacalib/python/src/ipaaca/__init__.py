@@ -38,6 +38,7 @@ import threading
 import uuid
 import collections
 import copy
+import time
 
 import rsb
 import rsb.converter
@@ -258,15 +259,15 @@ class Payload(dict):
 
 	def _wait_batch_update_lock(self, timeout):
 		# wait lock with time-out http://stackoverflow.com/a/8393033
-	    with self._batch_update_cond:
-	        current_time = start_time = time.time()
-	        while current_time < start_time + timeout:
-	            if self._batch_update_lock.acquire(False):
-	                return True
-	            else:
-	                self._batch_update_cond.wait(timeout - current_time + start_time)
-	                current_time = time.time()
-	    raise IUPayloadLockTimeoutError(self.iu)
+		with self._batch_update_cond:
+			current_time = start_time = time.time()
+			while current_time < start_time + timeout:
+				if self._batch_update_lock.acquire(False):
+					return True
+				else:
+					self._batch_update_cond.wait(timeout - current_time + start_time)
+					current_time = time.time()
+		raise IUPayloadLockTimeoutError(self.iu)
 
 
 class IUInterface(object): #{{{
