@@ -1,5 +1,34 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
+# This file is part of IPAACA, the
+#  "Incremental Processing Architecture
+#   for Artificial Conversational Agents".	
+#
+# Copyright (c) 2009-2013 Sociable Agents Group
+#                         CITEC, Bielefeld University	
+#
+# http://opensource.cit-ec.de/projects/ipaaca/
+# http://purl.org/net/ipaaca
+#
+# This file may be licensed under the terms of of the
+# GNU Lesser General Public License Version 3 (the ``LGPL''),
+# or (at your option) any later version.
+#
+# Software distributed under the License is distributed
+# on an ``AS IS'' basis, WITHOUT WARRANTY OF ANY KIND, either
+# express or implied. See the LGPL for the specific language
+# governing rights and limitations.
+#
+# You should have received a copy of the LGPL along with this
+# program. If not, go to http://www.gnu.org/licenses/lgpl.html
+# or write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.	
+#
+# The development of this software was supported by the
+# Excellence Cluster EXC 277 Cognitive Interaction Technology.
+# The Excellence Cluster EXC 277 is a grant of the Deutsche
+# Forschungsgemeinschaft (DFG) in the context of the German
+# Excellence Initiative.
 
 from __future__ import print_function, division
 
@@ -144,10 +173,14 @@ class Payload(dict):
 		# NOTE omit_init_update_message is necessary to prevent checking for
 		#   exceptions and sending updates in the case where we just receive
 		#   a whole new payload from the remote side and overwrite it locally.
-		if (not omit_init_update_message) and (self.iu.buffer is not None):
-			self.iu._modify_payload(is_delta=False, new_items=pl, keys_to_remove=[], writer_name=writer_name)
 		for k, v in pl.items():
 			dict.__setitem__(self, k, v)
+		if (not omit_init_update_message) and (self.iu.buffer is not None):
+			self.iu._modify_payload(is_delta=False, new_items=pl, keys_to_remove=[], writer_name=writer_name)
+		self._update_on_every_change = True
+		self._collected_modifications = {}
+		self._collected_removals = []
+
 
 	def merge(self, payload, writer_name=None):
 		for k, v in payload:
@@ -163,16 +196,35 @@ class Payload(dict):
 			k=unicode(k,'utf8')
 		if type(v)==str:
 			v=unicode(v,'utf8')
-		self.iu._modify_payload(is_delta=True, new_items={k:v}, keys_to_remove=[], writer_name=writer_name)
-		result = dict.__setitem__(self, k, v)
+		if self._update_on_every_change:
+			self.iu._modify_payload(is_delta=True, new_items={k:v}, keys_to_remove=[], writer_name=writer_name)
+		else: # Collect additions/modifications
+			self._collected_modifications[k] = v
+		return dict.__setitem__(self, k, v)
+
 	def __delitem__(self, k, writer_name=None):
 		if type(k)==str:
 			k=unicode(k,'utf8')
-		self.iu._modify_payload(is_delta=True, new_items={}, keys_to_remove=[k], writer_name=writer_name)
-		result = dict.__delitem__(self, k)
+		if self._update_on_every_change:
+			self.iu._modify_payload(is_delta=True, new_items={}, keys_to_remove=[k], writer_name=writer_name)
+		else: # Collect additions/modifications
+			self._collected_removals.append(k)
+		return dict.__delitem__(self, k)
+	
+	# Context-manager based batch updates, not yet thread-safe (on remote updates)	
+	#def __enter__(self):
+	#	self._update_on_every_change = False
+	#
+	#def __exit__(self, type, value, traceback):
+	#	self.iu._modify_payload(is_delta=True, new_items=self._collected_modifications, keys_to_remove=self._collected_removals, writer_name=None)
+	#	self._collected_modifications = {}
+	#	self._collected_removals = []
+	#	self._update_on_every_change = True
+
 	def _remotely_enforced_setitem(self, k, v):
 		"""Sets an item when requested remotely."""
 		return dict.__setitem__(self, k, v)
+
 	def _remotely_enforced_delitem(self, k):
 		"""Deletes an item when requested remotely."""
 		return dict.__delitem__(self, k)

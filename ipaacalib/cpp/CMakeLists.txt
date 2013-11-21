@@ -25,13 +25,13 @@ include_directories(${PROTOBUF_INCLUDE_DIRS})
 #set(RSBLIBS rsc rsbcore)
 
 # add for for each new rsb version
-include_directories( ${PROJECT_SOURCE_DIR}/../../deps/include/rsc0.8 )
-include_directories( ${PROJECT_SOURCE_DIR}/../../deps/include/rsb0.8 )
+include_directories( ${PROJECT_SOURCE_DIR}/../../deps/include/rsc0.9 )
+include_directories( ${PROJECT_SOURCE_DIR}/../../deps/include/rsb0.9 )
 # change for each new rsb version
 if (DEFINED APPLE)
-set(RSBLIBS rsc.0.8 rsb.0.8)
+set(RSBLIBS rsc0.9 rsb.0.9)
 else(DEFINED APPLE)
-set(RSBLIBS ${PROJECT_SOURCE_DIR}/../../deps/lib/librsc.so.0.8 ${PROJECT_SOURCE_DIR}/../../deps/lib/librsb.so.0.8 )
+set(RSBLIBS ${PROJECT_SOURCE_DIR}/../../deps/lib/librsc0.9.so ${PROJECT_SOURCE_DIR}/../../deps/lib/librsb.so.0.9 )
 endif(DEFINED APPLE)
 
 #set(LIBS ${LIBS} ${BOOSTLIBS} ${PROTOLIBS} ${RSBLIBS})
