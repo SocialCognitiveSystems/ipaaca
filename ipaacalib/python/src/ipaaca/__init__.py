@@ -247,7 +247,7 @@ class Payload(dict):
 		self._collected_modifications = {}
 		self._collected_removals = []
 		self._update_on_every_change = True
-		self.batch_update_lock.release()
+		self._batch_update_lock.release()
 
 	def _remotely_enforced_setitem(self, k, v):
 		"""Sets an item when requested remotely."""

@@ -123,7 +123,7 @@ public class InputBuffer extends Buffer
     public InputBuffer(String owningComponentName, Set<String> categoryInterests)
     {
         super(owningComponentName);
-        uniqueName = "/ipaaca/component/" + owningComponentName + "ID" + uuid + "/IB";
+        uniqueName = "/ipaaca/component/" + getUniqueShortName() + "/IB";
 
         for (String cat : categoryInterests)
         {

@@ -46,9 +46,14 @@ public abstract class Buffer
     private final String owningComponentName;
 
     private List<IUEventHandler> eventHandlers = new ArrayList<IUEventHandler>();
-    protected final String uuid = UUID.randomUUID().toString().replaceAll("-", "");
+    protected final String uuid = UUID.randomUUID().toString().replaceAll("-", "").substring(0, 8);
     protected String uniqueName;
 
+    public String getUniqueShortName()
+    {
+    	return owningComponentName + "ID" + uuid;
+    }
+    
     public String getUniqueName()
     {
         return uniqueName;

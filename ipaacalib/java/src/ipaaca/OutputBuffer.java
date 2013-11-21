@@ -93,7 +93,7 @@ public class OutputBuffer extends Buffer
     {
         super(owningComponentName);
 
-        uniqueName = "/ipaaca/component/" + owningComponentName + "ID" + uuid + "/OB";
+        uniqueName = "/ipaaca/component/" + getUniqueShortName() + "/OB";
         logger.debug("Creating server for {}", uniqueName);
         server = Factory.getInstance().createLocalServer(uniqueName);
         try
