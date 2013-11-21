@@ -157,10 +157,15 @@ class IUNotFoundError(Exception):
 	def __init__(self, iu_uid):
 		super(IUNotFoundError, self).__init__('Lookup of IU ' + str(iu_uid) + ' failed.')
 
-class IUPayloadLockTimeoutError(Exception)
+class IUPayloadLockTimeoutError(Exception):
 	"""Error indicating that exclusive access to the Payload could not be obtained in time."""
 	def __init__(self, iu):
-		super(IUPayloadLockTimeoutError, self).__init__('Timeout while accessing payload of IU' + str(iu.uid) + '.')
+		super(IUPayloadLockTimeoutError, self).__init__('Timeout while accessing payload of IU ' + str(iu.uid) + '.')
+
+class IUPayloadLockedError(Exception):
+	"""Error indicating that exclusive access to the Payload could not be obtained because someone actually locked it."""
+	def __init__(self, iu):
+		super(IUPayloadLockedError, self).__init__('IU '+str(iu.uid)+' was locked during access attempt.')
 
 
 ## --- Generation Architecture -----------------------------------------------
