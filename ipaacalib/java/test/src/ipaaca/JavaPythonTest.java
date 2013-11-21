@@ -201,7 +201,7 @@ public class JavaPythonTest
     @Test
     public void testMessageFromPython()throws IOException, InterruptedException
     {
-        inBuffer.registerHandler(new IUEventHandler(storeHandler,EnumSet.of(IUEventType.ADDED),ImmutableSet.of("JavaPythonTest")));
+        inBuffer.registerHandler(new IUEventHandler(storeHandler,EnumSet.of(IUEventType.ADDED, IUEventType.MESSAGE),ImmutableSet.of("JavaPythonTest")));
         String pypr = PYTHON_PREAMBLE 
                 +"ob = ipaaca.OutputBuffer('pythonside')\n"
                 +"iu = ipaaca.Message('JavaPythonTest')\n"
@@ -210,7 +210,7 @@ public class JavaPythonTest
                 +"ob.add(iu)\n";
         runPythonProgram(pypr);
         Thread.sleep(200);
-        assertEquals(1,storeHandler.getAddedIUs().size());
-        assertEquals("Hello from Python!", storeHandler.getAddedIUs().get(0).getPayload().get("data"));
+        assertEquals(1,storeHandler.getMessageIUs().size());
+        assertEquals("Hello from Python!", storeHandler.getMessageIUs().get(0).getPayload().get("data"));
     }
 }
