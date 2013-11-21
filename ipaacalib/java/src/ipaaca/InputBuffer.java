@@ -270,9 +270,7 @@ public class InputBuffer extends Buffer
         {
             RemoteMessageIU rm = (RemoteMessageIU) event.getData();
             messageStore.put(rm.getUid(), rm);
-            // FIXME: this is NOT according to the other language versions!
-            // Messages must emit IUEventType.MESSAGE - not ADDED
-            callIuEventHandlers(rm.getUid(),false, IUEventType.ADDED, rm.getCategory());
+            callIuEventHandlers(rm.getUid(),false, IUEventType.MESSAGE, rm.getCategory());
             messageStore.remove(rm.getUid());
         }
         else if (event.getData() instanceof RemotePushIU)
