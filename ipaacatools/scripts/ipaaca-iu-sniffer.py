@@ -38,7 +38,8 @@ import ipaaca
 
 def my_update_handler(iu, event_type, local):
 	t=time.localtime()
-	print str(t.tm_hour)+':'+str(t.tm_min)+':'+str(t.tm_sec),
+	print "%02d:%02d:%02d"%(t.tm_hour, t.tm_min,t.tm_sec),
+	print time.time(),
 	print(event_type+': '+unicode(iu))
 
 cats = []
