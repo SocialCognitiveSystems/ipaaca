@@ -193,60 +193,80 @@ class Payload(dict):
 		self._collected_modifications = {}
 		self._collected_removals = []
 		self._update_timeout = update_timeout
+		self._batch_update_writer_name = None  # name of remote buffer or None
 		self._batch_update_lock = threading.RLock()
 		self._batch_update_cond = threading.Condition(threading.RLock())
 
 	def merge(self, payload, writer_name=None):
-		if not self._batch_update_lock.acquire(False):
-			raise IUPayloadLockedError(self.iu)
-		for k, v in payload:
+		self._batch_update_lock.acquire(True)
+		#if not self._batch_update_lock.acquire(False):
+		#	print('Someone failed a lock trying to merge '+str(payload.keys()))
+		#	raise IUPayloadLockedError(self.iu)
+		#print("Payload.merge() IN, Merging "+str(payload.keys()))
+		for k, v in payload.items():
 			if type(k)==str:
 				k=unicode(k,'utf8')
 			if type(v)==str:
 				v=unicode(v,'utf8')
 		self.iu._modify_payload(is_delta=True, new_items=payload, keys_to_remove=[], writer_name=writer_name)
 		r = dict.update(payload) # batch update
+		#print("Payload.merge() OUT")
 		self._batch_update_lock.release()
 		return r
 
 	def __setitem__(self, k, v, writer_name=None):
-		if not self._batch_update_lock.acquire(False):
-			raise IUPayloadLockedError(self.iu)
+		self._batch_update_lock.acquire(True)
+		#if not self._batch_update_lock.acquire(False):
+		#	print('Someone failed a lock trying to set '+k+' to '+v)
+		#	raise IUPayloadLockedError(self.iu)
+		#print("Payload.__setitem__() IN, Setting "+k+' to '+v)
+		#print("  by writer "+str(writer_name))
 		if type(k)==str:
 			k=unicode(k,'utf8')
 		if type(v)==str:
 			v=unicode(v,'utf8')
 		if self._update_on_every_change:
+			#print("  running _modify_payload with writer name "+str(writer_name))
 			self.iu._modify_payload(is_delta=True, new_items={k:v}, keys_to_remove=[], writer_name=writer_name)
 		else: # Collect additions/modifications
+			self._batch_update_writer_name = writer_name
 			self._collected_modifications[k] = v
 		r = dict.__setitem__(self, k, v)
+		#print("Payload.__setitem__() OUT")
 		self._batch_update_lock.release()
 		return r
 
 	def __delitem__(self, k, writer_name=None):
-		if not self._batch_update_lock.acquire(False):
-			raise IUPayloadLockedError(self.iu)
+		self._batch_update_lock.acquire(True)
+		#if not self._batch_update_lock.acquire(False):
+		#	print('Someone failed a lock trying to del '+k)
+		#	raise IUPayloadLockedError(self.iu)
+		#print("Payload.__delitem__() IN, Deleting "+k)
 		if type(k)==str:
 			k=unicode(k,'utf8')
 		if self._update_on_every_change:
 			self.iu._modify_payload(is_delta=True, new_items={}, keys_to_remove=[k], writer_name=writer_name)
 		else: # Collect additions/modifications
+			self._batch_update_writer_name = writer_name
 			self._collected_removals.append(k)
 		r = dict.__delitem__(self, k)
+		#print("Payload.__delitem__() OUT")
 		self._batch_update_lock.release()
 		return r
 	
 	# Context-manager based batch updates, not yet thread-safe (on remote updates)	
 	def __enter__(self):
+		#print('running Payload.__enter__()')
 		self._wait_batch_update_lock(self._update_timeout)
 		self._update_on_every_change = False
 	
 	def __exit__(self, type, value, traceback):
-		self.iu._modify_payload(is_delta=True, new_items=self._collected_modifications, keys_to_remove=self._collected_removals, writer_name=None)
+		#print('running Payload.__exit__()')
+		self.iu._modify_payload(is_delta=True, new_items=self._collected_modifications, keys_to_remove=self._collected_removals, writer_name=self._batch_update_writer_name)
 		self._collected_modifications = {}
 		self._collected_removals = []
 		self._update_on_every_change = True
+		self._batch_update_writer_name = None
 		self._batch_update_lock.release()
 
 	def _remotely_enforced_setitem(self, k, v):
@@ -450,6 +470,7 @@ class IU(IUInterface):#{{{
 			# FIXME: Is it actually set locally?
 			self._increase_revision_number()
 			if self.is_published:
+				#print('  _modify_payload: running send_iu_pl_upd with writer name '+str(writer_name))
 				# send update to remote holders
 				self.buffer._send_iu_payload_update(
 						self,
@@ -1296,6 +1317,9 @@ class InputBuffer(Buffer):
 					# Notify only for remotely triggered events;
 					# Discard updates that originate from this buffer
 					return
+				#else:
+				#	print('Got update written by buffer '+str(event.data.writer_name))
+					
 				if type_ is ipaaca_pb2.IUCommission:
 					# IU commit
 					iu = self._iu_store[event.data.uid]
@@ -1389,16 +1413,20 @@ class OutputBuffer(Buffer):
 		with iu.revision_lock:
 			if (update.revision != 0) and (update.revision != iu.revision):
 				# (0 means "do not pay attention to the revision number" -> "force update")
-				logger.warning("Remote write operation failed because request was out of date; IU "+str(update.uid))
+				logger.warning("Remote update_payload operation failed because request was out of date; IU "+str(update.uid))
+				logger.warning("  Writer was: "+update.writer_name)
+				logger.warning("  Requested update was: (New keys:) "+','.join(update.new_items.keys())+'  (Removed keys:) '+','.join(update.keys_to_remove))
+				logger.warning("  Referred-to revision was "+str(update.revision)+' while local revision is '+str(iu.revision))
 				return 0
 			if update.is_delta:
-
+				#print('Writing delta update by '+str(update.writer_name))
 				with iu.payload:
 					for k in update.keys_to_remove:
 						iu.payload.__delitem__(k, writer_name=update.writer_name)
 					for k,v in update.new_items.items():
 						iu.payload.__setitem__(k, v, writer_name=update.writer_name)
 			else:
+				#print('Writing non-incr update by '+str(update.writer_name))
 				iu._set_payload(update.new_items, writer_name=update.writer_name)
 				# _set_payload etc. have also incremented the revision number
 			self.call_iu_event_handlers(update.uid, local=True, event_type=IUEventType.UPDATED, category=iu.category)
@@ -1441,7 +1469,7 @@ class OutputBuffer(Buffer):
 		#if iu._uid is not None:
 		#	raise IUPublishedError(iu)
 		#iu.uid = self._generate_iu_uid()
-	 	if iu.uid in self._iu_store:
+		if iu.uid in self._iu_store:
 			raise IUPublishedError(iu)
 		if iu.buffer is not None:
 			raise IUPublishedError(iu)
@@ -1548,6 +1576,7 @@ class OutputBuffer(Buffer):
 		payload_update.writer_name = writer_name
 		informer = self._get_informer(iu._category)
 		informer.publishData(payload_update)
+		#print("  -- Sent update with writer name "+str(writer_name))
 
 
 ## --- RSB -------------------------------------------------------------------

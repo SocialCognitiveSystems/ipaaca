@@ -37,64 +37,91 @@ import threading
 import ipaaca
 
 NotificationState = ipaaca.enum(
-    NEW = 'new',
-    OLD = 'old',
-    DOWN = 'down'
-)
+		NEW = 'new',
+		OLD = 'old',
+		DOWN = 'down'
+		)
+
+class ComponentError(Exception):
+	def __init__(self, msg):
+		super(ComponentError, self).__init__(msg)
 
 class ComponentNotifier(object):
 
-    NOTIFY_CATEGORY = "componentNotify"
-    SEND_CATEGORIES = "send_categories"
-    RECEIVE_CATEGORIES = "recv_categories"
-    STATE = "state"
-    NAME = "name"
-    FUNCTION = "function"
-    
-    def __init__(self, componentName, componentFunction, sendCategories, receiveCategories, outBuffer=None, inBuffer=None):
-        self.componentName = componentName
-        self.componentFunction = componentFunction
-        self.sendCategories = frozenset(sendCategories)
-        self.receiveCategories = frozenset(receiveCategories)
-        self.inBuffer = inBuffer if inBuffer is not None else ipaaca.InputBuffer(componentName + 'Notifier')
-        self.outBuffer = outBuffer if outBuffer is not None else ipaaca.OutputBuffer(componentName + 'Notifier')
-        self.initialized = False
-        self.notificationHandlers = []
-        self.initializeLock = threading.Lock()
-        self.notificationHandlerLock = threading.Lock()
-        self.submitLock = threading.Lock()        
-    
-    def _submit_notify(self, isNew):
-        with self.submitLock:
-            notifyIU = ipaaca.Message(ComponentNotifier.NOTIFY_CATEGORY)
-            notifyIU.payload = {
-                ComponentNotifier.NAME: self.componentName,
-                ComponentNotifier.FUNCTION: self.componentFunction,
-                ComponentNotifier.SEND_CATEGORIES: ",".join(self.sendCategories),
-                ComponentNotifier.RECEIVE_CATEGORIES:  ",".join(self.receiveCategories),
-                ComponentNotifier.STATE: NotificationState.NEW if isNew else NotificationState.OLD,
-            }          
-            self.outBuffer.add(notifyIU)
-    
-    def _handle_iu_event(self, iu, event_type, local):
-        if iu.payload[ComponentNotifier.NAME] == self.componentName:
-            return
-        with self.notificationHandlerLock:
-            for h in self.notificationHandlers:
-                h(iu, event_type, local)
-        if iu.payload[ComponentNotifier.STATE] == "new":
-            #print("submitting")
-            self._submit_notify(False)
+	NOTIFY_CATEGORY = "componentNotify"
+	SEND_CATEGORIES = "send_categories"
+	RECEIVE_CATEGORIES = "recv_categories"
+	STATE = "state"
+	NAME = "name"
+	FUNCTION = "function"
 
-    def add_notification_handler(self, handler):
-        with self.notificationHandlerLock:
-            self.notificationHandlers.append(handler)
-                
-    def initialize(self):
-        with self.initializeLock:
-            if (not self.initialized):
-                self.inBuffer.register_handler(self._handle_iu_event, ipaaca.IUEventType.MESSAGE, ComponentNotifier.NOTIFY_CATEGORY)
-                self._submit_notify(isNew=True)
-                self.initialized = True
+	def __init__(self, component_name, component_function, send_categories, receive_categories, out_buffer=None, in_buffer=None):
+		self.component_name = component_name
+		self.component_function = component_function
+		self.send_categories = frozenset(send_categories)
+		self.receive_categories = frozenset(receive_categories)
+		self.in_buffer = in_buffer if in_buffer is not None else ipaaca.InputBuffer(component_name + 'Notifier')
+		self.out_buffer = out_buffer if out_buffer is not None else ipaaca.OutputBuffer(component_name + 'Notifier')
+		self.terminated = False
+		self.initialized = False
+		self.notification_handlers = []
+		self.initialize_lock = threading.Lock()
+		self.notification_handler_lock = threading.Lock()
+		self.submit_lock = threading.Lock()
+
+	def _submit_notify(self, is_new):
+		with self.submit_lock:
+			notify_iu = ipaaca.Message(ComponentNotifier.NOTIFY_CATEGORY)
+			notify_iu.payload = {
+					ComponentNotifier.NAME: self.component_name,
+					ComponentNotifier.FUNCTION: self.component_function,
+					ComponentNotifier.SEND_CATEGORIES: ",".join(self.send_categories),
+					ComponentNotifier.RECEIVE_CATEGORIES:  ",".join(self.receive_categories),
+					ComponentNotifier.STATE: NotificationState.NEW if is_new else NotificationState.OLD,
+					}          
+			self.out_buffer.add(notify_iu)
+	
+	def terminate(self):
+		with self.submit_lock:
+			if self.terminated: return
+			self.terminated = True
+			notify_iu = ipaaca.Message(ComponentNotifier.NOTIFY_CATEGORY)
+			notify_iu.payload = {
+					ComponentNotifier.NAME: self.component_name,
+					ComponentNotifier.FUNCTION: self.component_function,
+					ComponentNotifier.SEND_CATEGORIES: ",".join(self.send_categories),
+					ComponentNotifier.RECEIVE_CATEGORIES:  ",".join(self.receive_categories),
+					ComponentNotifier.STATE: NotificationState.DOWN,
+					}          
+			self.out_buffer.add(notify_iu)
+
+	def _handle_iu_event(self, iu, event_type, local):
+		if iu.payload[ComponentNotifier.NAME] == self.component_name:
+			return
+		with self.notification_handler_lock:
+			for h in self.notification_handlers:
+				h(iu, event_type, local)
+		if iu.payload[ComponentNotifier.STATE] == "new":
+			#print("submitting")
+			self._submit_notify(False)
+
+	def add_notification_handler(self, handler):
+		with self.notification_handler_lock:
+			self.notification_handlers.append(handler)
+
+	def initialize(self):
+		with self.initialize_lock:
+			if self.terminated:
+				raise ComponentError('Attempted to reinitialize component '+component_name+' after termination')
+			if (not self.initialized):
+				self.in_buffer.register_handler(self._handle_iu_event, ipaaca.IUEventType.MESSAGE, ComponentNotifier.NOTIFY_CATEGORY)
+				self._submit_notify(True)
+				self.initialized = True
+	
+	def __enter__(self):
+		self.initialize()
+	
+	def __exit__(self, t, v, tb):
+		self.terminate()
 
 
