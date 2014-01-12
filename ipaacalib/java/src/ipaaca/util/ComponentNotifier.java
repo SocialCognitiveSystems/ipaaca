@@ -161,7 +161,7 @@ public class ComponentNotifier
     {
         if(!isInitialized)
         {
-            inBuffer.registerHandler(new IUEventHandler(new ComponentNotifyHandler(), EnumSet.of(IUEventType.ADDED), ImmutableSet
+            inBuffer.registerHandler(new IUEventHandler(new ComponentNotifyHandler(), EnumSet.of(IUEventType.ADDED, IUEventType.MESSAGE), ImmutableSet
                     .of(NOTIFY_CATEGORY)));
             submitNotify(true);
             isInitialized = true;
