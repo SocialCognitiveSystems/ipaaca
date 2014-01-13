@@ -1413,10 +1413,10 @@ class OutputBuffer(Buffer):
 		with iu.revision_lock:
 			if (update.revision != 0) and (update.revision != iu.revision):
 				# (0 means "do not pay attention to the revision number" -> "force update")
-				logger.warning("Remote update_payload operation failed because request was out of date; IU "+str(update.uid))
-				logger.warning("  Writer was: "+update.writer_name)
-				logger.warning("  Requested update was: (New keys:) "+','.join(update.new_items.keys())+'  (Removed keys:) '+','.join(update.keys_to_remove))
-				logger.warning("  Referred-to revision was "+str(update.revision)+' while local revision is '+str(iu.revision))
+				logger.warning(u"Remote update_payload operation failed because request was out of date; IU "+str(update.uid))
+				logger.warning(u"  Writer was: "+update.writer_name)
+				logger.warning(u"  Requested update was: (New keys:) "+','.join(update.new_items.keys())+'  (Removed keys:) '+','.join(update.keys_to_remove))
+				logger.warning(u"  Referred-to revision was "+str(update.revision)+' while local revision is '+str(iu.revision))
 				return 0
 			if update.is_delta:
 				#print('Writing delta update by '+str(update.writer_name))
