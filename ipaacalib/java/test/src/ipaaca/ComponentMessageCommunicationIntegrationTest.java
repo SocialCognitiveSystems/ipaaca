@@ -46,7 +46,7 @@ public class ComponentMessageCommunicationIntegrationTest
 
         Set<String> categories = new ImmutableSet.Builder<String>().add(CATEGORY).build();
         inBuffer = new InputBuffer("component2", categories);
-        EnumSet<IUEventType> types = EnumSet.of(IUEventType.ADDED, IUEventType.COMMITTED, IUEventType.UPDATED);
+        EnumSet<IUEventType> types = EnumSet.of(IUEventType.ADDED, IUEventType.COMMITTED, IUEventType.UPDATED, IUEventType.MESSAGE);
         component2EventHandler = new CountingEventHandler();
         component1EventHandler = new CountingEventHandler();
         inBuffer.registerHandler(new IUEventHandler(component2EventHandler, types, categories));
@@ -75,11 +75,11 @@ public class ComponentMessageCommunicationIntegrationTest
         AbstractIU iuIn = inBuffer.getIU(localIU.getUid());
         assertNull(iuIn);
         assertThat(localIU.getLinks("INIT"), containsInAnyOrder("init1", "init2"));
-        assertEquals(1, component2EventHandler.getNumberOfAddEvents(localIU.getUid()));
-        assertEquals(0, component1EventHandler.getNumberOfAddEvents(localIU.getUid()));
-        assertEquals(1, component2EventHandler.getNumberOfAddEvents(localIU.getUid()));
-        assertEquals(0, component1EventHandler.getNumberOfAddEvents(localIU.getUid()));
-        assertEquals(localIU.getUid(), component2StoreHandler.getAddedIUs().get(0).getUid());
+        assertEquals(1, component2EventHandler.getNumberOfMessageEvents(localIU.getUid()));
+        assertEquals(0, component1EventHandler.getNumberOfMessageEvents(localIU.getUid()));
+        assertEquals(1, component2EventHandler.getNumberOfMessageEvents(localIU.getUid()));
+        assertEquals(0, component1EventHandler.getNumberOfMessageEvents(localIU.getUid()));
+        assertEquals(localIU.getUid(), component2StoreHandler.getMessageIUs().get(0).getUid());
     }
 
     @Test
@@ -90,7 +90,7 @@ public class ComponentMessageCommunicationIntegrationTest
         Thread.sleep(200);
         assertEquals(0, component1EventHandler.getNumberOfCommitEvents(localIU.getUid()));
         assertEquals(0, component2EventHandler.getNumberOfCommitEvents(localIU.getUid()));
-        assertFalse(component2StoreHandler.getAddedIUs().get(0).isCommitted());
+        assertFalse(component2StoreHandler.getMessageIUs().get(0).isCommitted());
     }
 
     @Test
@@ -101,7 +101,7 @@ public class ComponentMessageCommunicationIntegrationTest
         Thread.sleep(200);
         assertEquals(0, component1EventHandler.getNumberOfCommitEvents(localIU.getUid()));
         assertEquals(0, component2EventHandler.getNumberOfCommitEvents(localIU.getUid()));
-        assertTrue(component2StoreHandler.getAddedIUs().get(0).isCommitted());
+        assertTrue(component2StoreHandler.getMessageIUs().get(0).isCommitted());
     }
 
     @Test
@@ -109,7 +109,7 @@ public class ComponentMessageCommunicationIntegrationTest
     {
         outBuffer.add(localIU);
         Thread.sleep(200);
-        AbstractIU iuIn = component2StoreHandler.getAddedIUs().get(0);
+        AbstractIU iuIn = component2StoreHandler.getMessageIUs().get(0);
 
         iuIn.commit();
         Thread.sleep(200);
@@ -123,7 +123,7 @@ public class ComponentMessageCommunicationIntegrationTest
     {
         outBuffer.add(localIU);
         Thread.sleep(200);
-        AbstractIU iuIn = component2StoreHandler.getAddedIUs().get(0);
+        AbstractIU iuIn = component2StoreHandler.getMessageIUs().get(0);
         assertNull(iuIn.getPayload().get("key2"));
 
         localIU.getPayload().put("key2", "value2");
@@ -140,7 +140,7 @@ public class ComponentMessageCommunicationIntegrationTest
         outBuffer.add(localIU);
 
         Thread.sleep(200);
-        AbstractIU iuIn = component2StoreHandler.getAddedIUs().get(0);
+        AbstractIU iuIn = component2StoreHandler.getMessageIUs().get(0);
         assertEquals("value2", iuIn.getPayload().get("key2"));
     }
 

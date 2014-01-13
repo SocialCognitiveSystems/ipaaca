@@ -10,6 +10,7 @@ import java.util.Map;
  */
 final class CountingEventHandler implements HandlerFunctor
 {
+    private Map<String,Integer> messageEvents = new HashMap<String,Integer>();
     private Map<String,Integer> commitEvents = new HashMap<String,Integer>();
     private Map<String,Integer> addEvents = new HashMap<String,Integer>();
     private Map<String,Integer> updateEvents = new HashMap<String,Integer>();
@@ -33,6 +34,7 @@ final class CountingEventHandler implements HandlerFunctor
         case ADDED:  updateEventMap(iu.getUid(),addEvents);  break;
         case COMMITTED: updateEventMap(iu.getUid(),commitEvents); break;
         case UPDATED: updateEventMap(iu.getUid(),updateEvents); break;
+        case MESSAGE: updateEventMap(iu.getUid(),messageEvents);break;
         case DELETED:
             break;
         case LINKSUPDATED:
@@ -69,5 +71,14 @@ final class CountingEventHandler implements HandlerFunctor
             return 0;
         }
         return updateEvents.get(iu);
+    }
+    
+    public int getNumberOfMessageEvents(String iu)
+    {
+        if(!messageEvents.containsKey(iu))
+        {
+            return 0;
+        }
+        return messageEvents.get(iu);
     }
 }
