@@ -3,5 +3,6 @@
    <dependencies>
 	<dependency org="hamcrest" name="hamcrest-python" rev="latest.release"/>
         <dependency org="mockito" name="mockito-python"  rev="latest.release" />
+        <dependency org="nose" name="nose"  rev="latest.release" />
    </dependencies>
 </ivy-module>
