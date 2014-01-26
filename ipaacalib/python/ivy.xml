@@ -6,6 +6,7 @@
    <dependencies>
       <dependency org="google" name="protobuf-python" rev="latest.release"/>
       <dependency org="rsb" name="rsb-python" rev="latest.release"/>
+            <dependency org="spread" name="spread" rev="latest.release"/>
    </dependencies>
 
 </ivy-module>
