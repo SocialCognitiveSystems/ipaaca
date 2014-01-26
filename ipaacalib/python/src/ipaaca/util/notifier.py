@@ -35,6 +35,7 @@ from __future__ import print_function, with_statement
 import threading
 
 import ipaaca
+from ipaaca.util.timesync import *
 
 NotificationState = ipaaca.enum(
 		NEW = 'new',
@@ -68,6 +69,11 @@ class ComponentNotifier(object):
 		self.initialize_lock = threading.Lock()
 		self.notification_handler_lock = threading.Lock()
 		self.submit_lock = threading.Lock()
+		# clock sync code, sync slave/master pair will be installed when launched
+		self.timesync_slave = None
+		self.timesync_master = None
+		self.timesync_master_handlers = []
+		self.timesync_slave_handlers = []
 
 	def _submit_notify(self, is_new):
 		with self.submit_lock:
@@ -109,11 +115,32 @@ class ComponentNotifier(object):
 		with self.notification_handler_lock:
 			self.notification_handlers.append(handler)
 
+	def launch_timesync_slave_handlers(self, master, slave, latency, offset):
+		for h in self.timesync_slave_handlers:
+			h(master, slave, latency, offset)
+
+	def launch_timesync_master_handlers(self, master, slave, latency, offset):
+		for h in self.timesync_master_handlers:
+			h(master, slave, latency, offset)
+
+	def add_timesync_slave_handler(self, handler):
+		self.timesync_slave_handlers.append(handler)
+	
+	def add_timesync_master_handler(self, handler):
+		self.timesync_master_handlers.append(handler)
+	
+	def send_master_timesync(self):
+		#if len(self.timesync_master_handlers)==0:
+		#	print('Warning: Sending a master timesync without a registered result callback.')
+		self.timesync_master.send_master_timesync()
+	
 	def initialize(self):
 		with self.initialize_lock:
 			if self.terminated:
 				raise ComponentError('Attempted to reinitialize component '+component_name+' after termination')
 			if (not self.initialized):
+				self.timesync_slave = TimesyncSlave(component_name=self.component_name, timing_handler=self.launch_timesync_slave_handlers)
+				self.timesync_master = TimesyncMaster(component_name=self.component_name, timing_handler=self.launch_timesync_master_handlers)
 				self.in_buffer.register_handler(self._handle_iu_event, ipaaca.IUEventType.MESSAGE, ComponentNotifier.NOTIFY_CATEGORY)
 				self._submit_notify(True)
 				self.initialized = True
