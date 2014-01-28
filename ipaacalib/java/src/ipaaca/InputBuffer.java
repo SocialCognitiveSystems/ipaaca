@@ -269,8 +269,16 @@ public class InputBuffer extends Buffer
         if (event.getData() instanceof RemoteMessageIU)
         {
             RemoteMessageIU rm = (RemoteMessageIU) event.getData();
+            if (messageStore.containsKey(rm.getUid())) {
+                logger.warn("Spurious RemoteMessage event: already got this UID: "+rm.getUid());
+                return;
+            }
+            
+            //logger.info("Adding Message "+rm.getUid());
             messageStore.put(rm.getUid(), rm);
+            //logger.info("Calling handlers for Message "+rm.getUid());
             callIuEventHandlers(rm.getUid(),false, IUEventType.MESSAGE, rm.getCategory());
+            //logger.info("Removing Message "+rm.getUid());
             messageStore.remove(rm.getUid());
         }
         else if (event.getData() instanceof RemotePushIU)
