@@ -30,12 +30,17 @@
 # Forschungsgemeinschaft (DFG) in the context of the German
 # Excellence Initiative.
 
+from __future__ import print_function
+
 import logging
+import re
 import sys
 import time
+
 import ipaaca
 
 color = False
+regex = False
 max_size = 2048
 
 def highlight_if_color(s, c='1'):
@@ -62,11 +67,16 @@ def pretty_printed_iu_event(iu, event_type, local):
 	return s
 
 def my_update_handler(iu, event_type, local):
+	if regex:
+		for cat in cats: # actually now regexs, not cats
+			if re.match(cat, iu.category):
+				break
+		else:
+			return
 	t=time.localtime()
-	print pretty_printed_iu_event(iu, event_type, local)
+	print(pretty_printed_iu_event(iu, event_type, local))
 
 cats = []
-
 keep_going=True
 idx = 1
 while keep_going:
@@ -76,10 +86,14 @@ while keep_going:
 		print('  '+sys.argv[0]+' [--options] [<category1> [<category2 ...]]')
 		print('         Listen to specified categories (default: all)')
 		print('         Option --color : colorize output')
+		print('         Option --regex : match categories by regular expressions')
 		print('         Option --size-limit <size> : limit payload display, chars (def: 2048)')
 		sys.exit(0)
 	elif opt=='--color':
 		color = True
+		idx += 1
+	elif opt=='--regex':
+		regex = True
 		idx += 1
 	elif opt=='--size-limit':
 		if len(sys.argv)<idx+2:
@@ -91,13 +105,22 @@ while keep_going:
 		cats = sys.argv[idx:]
 		keep_going = False
 
-ib = ipaaca.InputBuffer('SnifferIn', [''] if len(cats)==0 else cats)
+
+ib = ipaaca.InputBuffer('SnifferIn', [''] if (len(cats) == 0 or regex) else cats)
 ib.register_handler(my_update_handler)
 
 print('')
 print('Ipaaca IU Sniffer - run with --help to see options')
-print('Listening for IU events of '+('any category...' if len(cats)==0 else 'categories: '+' '.join(cats)))
+print('Listening for IU events of ', end='') 
+if len(cats) == 0:
+	print('any category ...')
+else:
+	if regex:
+		print('whose category matches one of the regexes:')
+	else:
+		print('categories:')
+	for cat in cats:
+		print('\t' + cat)
 print('')
 while True:
 	time.sleep(1)
-
