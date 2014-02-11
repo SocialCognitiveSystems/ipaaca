@@ -31,7 +31,10 @@
  */
 
 #include <ipaaca/ipaaca.h>
+
+#ifndef WIN32
 #include <getopt.h>
+#endif
 
 namespace ipaaca {
 
@@ -114,6 +117,10 @@ void CommandLineParser::add_option(const std::string& optname, char shortoptn, b
 
 CommandLineOptions::ptr CommandLineParser::parse(int argc, char* const* argv)
 {
+#ifdef WIN32
+	LOG_IPAACA_CONSOLE("IMPLEMENT ME: command line parsing for Windows. (req'd: getopt)")
+	throw NotImplementedError();
+#else
 	int len = options.size();
 	struct option long_options[len+1];
 	int i=0;
@@ -177,6 +184,7 @@ CommandLineOptions::ptr CommandLineParser::parse(int argc, char* const* argv)
 	}
 	ensure_defaults_in( clo );
 	return clo;
+#endif
 }
 
 void CommandLineParser::ensure_defaults_in( CommandLineOptions::ptr clo )

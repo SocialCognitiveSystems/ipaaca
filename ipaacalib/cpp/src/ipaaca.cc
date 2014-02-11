@@ -32,7 +32,13 @@
 
 #include <ipaaca/ipaaca.h>
 #include <cstdlib>
+
+#ifdef WIN32
+#include <rpc.h>
+#else
+#include <uuid/uuid.h>
 #include <glob.h>
+#endif
 
 namespace ipaaca {
 
@@ -50,21 +56,23 @@ Lock& logger_lock() {
 
 // util and init//{{{
 
-bool Initializer::_initialized = false;
+IPAACA_EXPORT bool Initializer::_initialized = false;
 
 //const LinkSet EMPTY_LINK_SET = LinkSet();
 //const std::set<std::string> EMPTY_LINK_SET();
-bool Initializer::initialized() { return _initialized; }
-void Initializer::initialize_ipaaca_rsb_if_needed()
+IPAACA_EXPORT bool Initializer::initialized() { return _initialized; }
+IPAACA_EXPORT void Initializer::initialize_ipaaca_rsb_if_needed()
 {
 	if (_initialized) return;
-
+	
+	IPAACA_INFO("Calling initialize_updated_default_config()")
 	initialize_updated_default_config();
 
 	// RYT FIXME This configuration stuff has been simply removed in rsb!
 	//ParticipantConfig config = ParticipantConfig::fromConfiguration();
 	//getFactory().setDefaultParticipantConfig(config);
 	
+	IPAACA_INFO("Creating and registering Converters")
 	boost::shared_ptr<IUConverter> iu_converter(new IUConverter());
 	converterRepository<std::string>()->registerConverter(iu_converter);
 	
@@ -86,11 +94,26 @@ void Initializer::initialize_ipaaca_rsb_if_needed()
 	boost::shared_ptr<IntConverter> int_converter(new IntConverter());
 	converterRepository<std::string>()->registerConverter(int_converter);
 	
+	IPAACA_INFO("Initialization complete.")
 	_initialized = true;
 	//IPAACA_TODO("initialize all converters")
 }
 
-void Initializer::initialize_updated_default_config()
+IPAACA_EXPORT void Initializer::dump_current_default_config()
+{
+	IPAACA_INFO("--- Dumping current default participant configuration ---")
+	rsb::ParticipantConfig config = getFactory().getDefaultParticipantConfig();
+	std::set<rsb::ParticipantConfig::Transport> transports = config.getTransports();
+	for (std::set<rsb::ParticipantConfig::Transport>::const_iterator it=transports.begin(); it!=transports.end(); ++it) {
+		IPAACA_INFO( "Active transport: " << it->getName() )
+	}
+	IPAACA_INFO("--- End of configuration dump ---")
+	//ParticipantConfig::Transport inprocess = config.getTransport("inprocess");
+	//inprocess.setEnabled(true);
+	//config.addTransport(inprocess);
+}
+
+IPAACA_EXPORT void Initializer::initialize_updated_default_config()
 {
 	// quick hack to iterate through the pwd parents
 	// and find the closest rsb plugin dir
@@ -98,6 +121,10 @@ void Initializer::initialize_updated_default_config()
 	// but only if not yet defined
 	const char* plugin_path = getenv("RSB_PLUGINS_CPP_PATH");
 	if (!plugin_path) {
+#ifdef WIN32
+		LOG_IPAACA_CONSOLE("WARNING: RSB_PLUGINS_CPP_PATH not set - in Windows it has to be specified.")
+		//throw NotImplementedError();
+#else
 		LOG_IPAACA_CONSOLE("RSB_PLUGINS_CPP_PATH not set; looking here and up to 7 dirs up.")
 		std::string pathstr = "./";
 		for (int i=0; i<   8 /* depth EIGHT (totally arbitrary..) */  ; i++) {
@@ -114,23 +141,45 @@ void Initializer::initialize_updated_default_config()
 			globfree(&g);
 			pathstr += "../";
 		}
+#endif
 	} else {
 		LOG_IPAACA_CONSOLE("RSB_PLUGINS_CPP_PATH already defined: " << plugin_path)
 	}
 }
 
-std::string generate_uuid_string()
+IPAACA_EXPORT std::string generate_uuid_string()
 {
+#ifdef WIN32
+	// Windows
+	UUID uuid;
+	RPC_STATUS stat;
+	stat = UuidCreate(&uuid);
+	if (stat == RPC_S_OK) {
+		unsigned char* uuid_str = NULL;
+		stat = UuidToString(&uuid, &uuid_str);
+		if (stat == RPC_S_OK) {
+			std::string result((const char*) uuid_str, 16);
+			RpcStringFree(&uuid_str);
+			return result;
+		}
+	} else {
+		throw UUIDGenerationError();
+	}
+#else
+	// POSIX
 	uuid_t uuidt;
 	uuid_generate(uuidt);
 #ifdef __MACOSX__
+	//   (Mac)
 	uuid_string_t uuidstr;
 	uuid_unparse_lower(uuidt, uuidstr);
 	return uuidstr;
 #else
+	//   (Linux)
 	char result_c[37];
 	uuid_unparse_lower(uuidt, result_c);
 	return result_c;
+#endif
 #endif
 }
 
@@ -146,7 +195,7 @@ void init_inprocess_too() {
 */
 //}}}
 
-std::ostream& operator<<(std::ostream& os, const SmartLinkMap& obj)//{{{
+IPAACA_EXPORT std::ostream& operator<<(std::ostream& os, const SmartLinkMap& obj)//{{{
 {
 	os << "{";
 	bool first = true;
@@ -164,7 +213,7 @@ std::ostream& operator<<(std::ostream& os, const SmartLinkMap& obj)//{{{
 	return os;
 }
 //}}}
-std::ostream& operator<<(std::ostream& os, const Payload& obj)//{{{
+IPAACA_EXPORT std::ostream& operator<<(std::ostream& os, const Payload& obj)//{{{
 {
 	os << "{";
 	bool first = true;
@@ -176,7 +225,7 @@ std::ostream& operator<<(std::ostream& os, const Payload& obj)//{{{
 	return os;
 }
 //}}}
-std::ostream& operator<<(std::ostream& os, const IUInterface& obj)//{{{
+IPAACA_EXPORT std::ostream& operator<<(std::ostream& os, const IUInterface& obj)//{{{
 {
 	os << "IUInterface(uid='" << obj.uid() << "'";
 	os << ", category='" << obj.category() << "'";
@@ -191,7 +240,7 @@ std::ostream& operator<<(std::ostream& os, const IUInterface& obj)//{{{
 	return os;
 }
 //}}}
-std::ostream& operator<<(std::ostream& os, const IUPayloadUpdate& obj)//{{{
+IPAACA_EXPORT std::ostream& operator<<(std::ostream& os, const IUPayloadUpdate& obj)//{{{
 {
 	os << "PayloadUpdate(uid=" << obj.uid << ", revision=" << obj.revision;
 	os << ", writer_name=" << obj.writer_name << ", is_delta=" << (obj.is_delta?"True":"False");
@@ -211,7 +260,7 @@ std::ostream& operator<<(std::ostream& os, const IUPayloadUpdate& obj)//{{{
 	return os;
 }
 //}}}
-std::ostream& operator<<(std::ostream& os, const IULinkUpdate& obj)//{{{
+IPAACA_EXPORT std::ostream& operator<<(std::ostream& os, const IULinkUpdate& obj)//{{{
 {
 	os << "LinkUpdate(uid=" << obj.uid << ", revision=" << obj.revision;
 	os << ", writer_name=" << obj.writer_name << ", is_delta=" << (obj.is_delta?"True":"False");
@@ -246,8 +295,8 @@ std::ostream& operator<<(std::ostream& os, const IULinkUpdate& obj)//{{{
 
 // SmartLinkMap//{{{
 
-LinkSet SmartLinkMap::empty_link_set;
-void SmartLinkMap::_add_and_remove_links(const LinkMap& add, const LinkMap& remove)
+IPAACA_EXPORT LinkSet SmartLinkMap::empty_link_set;
+IPAACA_EXPORT void SmartLinkMap::_add_and_remove_links(const LinkMap& add, const LinkMap& remove)
 {
 	// remove specified links
 	for (LinkMap::const_iterator it = remove.begin(); it != remove.end(); ++it ) {
@@ -270,25 +319,25 @@ void SmartLinkMap::_add_and_remove_links(const LinkMap& add, const LinkMap& remo
 		}
 	}
 }
-void SmartLinkMap::_replace_links(const LinkMap& links)
+IPAACA_EXPORT void SmartLinkMap::_replace_links(const LinkMap& links)
 {
 	//_links.clear();
 	_links=links;
 }
-const LinkSet& SmartLinkMap::get_links(const std::string& key)
+IPAACA_EXPORT const LinkSet& SmartLinkMap::get_links(const std::string& key)
 {
 	LinkMap::const_iterator it = _links.find(key);
 	if (it==_links.end()) return empty_link_set;
 	return it->second;
 }
-const LinkMap& SmartLinkMap::get_all_links()
+IPAACA_EXPORT const LinkMap& SmartLinkMap::get_all_links()
 {
 	return _links;
 }
 //}}}
 
 // IUEventHandler//{{{
-IUEventHandler::IUEventHandler(IUEventHandlerFunction function, IUEventType event_mask, const std::string& category)
+IPAACA_EXPORT IUEventHandler::IUEventHandler(IUEventHandlerFunction function, IUEventType event_mask, const std::string& category)
 : _function(function), _event_mask(event_mask), _for_all_categories(false)
 {
 	if (category=="") {
@@ -297,7 +346,7 @@ IUEventHandler::IUEventHandler(IUEventHandlerFunction function, IUEventType even
 		_categories.insert(category);
 	}
 }
-IUEventHandler::IUEventHandler(IUEventHandlerFunction function, IUEventType event_mask, const std::set<std::string>& categories)
+IPAACA_EXPORT IUEventHandler::IUEventHandler(IUEventHandlerFunction function, IUEventType event_mask, const std::set<std::string>& categories)
 : _function(function), _event_mask(event_mask), _for_all_categories(false)
 {
 	if (categories.size()==0) {
@@ -306,7 +355,7 @@ IUEventHandler::IUEventHandler(IUEventHandlerFunction function, IUEventType even
 		_categories = categories;
 	}
 }
-void IUEventHandler::call(Buffer* buffer, boost::shared_ptr<IUInterface> iu, bool local, IUEventType event_type, const std::string& category)
+IPAACA_EXPORT void IUEventHandler::call(Buffer* buffer, boost::shared_ptr<IUInterface> iu, bool local, IUEventType event_type, const std::string& category)
 {
 	if (_condition_met(event_type, category)) {
 		//IUInterface::ptr iu = buffer->get(uid);
@@ -324,23 +373,23 @@ void IUEventHandler::call(Buffer* buffer, boost::shared_ptr<IUInterface> iu, boo
 //}}}
 
 // Buffer//{{{
-void Buffer::_allocate_unique_name(const std::string& basename, const std::string& function) {
+IPAACA_EXPORT void Buffer::_allocate_unique_name(const std::string& basename, const std::string& function) {
 	std::string uuid = ipaaca::generate_uuid_string();
 	_basename = basename;
 	_uuid = uuid.substr(0,8);
 	_unique_name = "/ipaaca/component/" + _basename + "ID" + _uuid + "/" + function;
 }
-void Buffer::register_handler(IUEventHandlerFunction function, IUEventType event_mask, const std::set<std::string>& categories)
+IPAACA_EXPORT void Buffer::register_handler(IUEventHandlerFunction function, IUEventType event_mask, const std::set<std::string>& categories)
 {
 	IUEventHandler::ptr handler = IUEventHandler::ptr(new IUEventHandler(function, event_mask, categories));
 	_event_handlers.push_back(handler);
 }
-void Buffer::register_handler(IUEventHandlerFunction function, IUEventType event_mask, const std::string& category)
+IPAACA_EXPORT void Buffer::register_handler(IUEventHandlerFunction function, IUEventType event_mask, const std::string& category)
 {
 	IUEventHandler::ptr handler = IUEventHandler::ptr(new IUEventHandler(function, event_mask, category));
 	_event_handlers.push_back(handler);
 }
-void Buffer::call_iu_event_handlers(boost::shared_ptr<IUInterface> iu, bool local, IUEventType event_type, const std::string& category)
+IPAACA_EXPORT void Buffer::call_iu_event_handlers(boost::shared_ptr<IUInterface> iu, bool local, IUEventType event_type, const std::string& category)
 {
 	//IPAACA_INFO("handling an event " << ipaaca::iu_event_type_to_str(event_type) << " for IU " << iu->uid())
 	for (std::vector<IUEventHandler::ptr>::iterator it = _event_handlers.begin(); it != _event_handlers.end(); ++it) {
@@ -350,11 +399,11 @@ void Buffer::call_iu_event_handlers(boost::shared_ptr<IUInterface> iu, bool loca
 //}}}
 
 // Callbacks for OutputBuffer//{{{
-CallbackIUPayloadUpdate::CallbackIUPayloadUpdate(Buffer* buffer): _buffer(buffer) { }
-CallbackIULinkUpdate::CallbackIULinkUpdate(Buffer* buffer): _buffer(buffer) { }
-CallbackIUCommission::CallbackIUCommission(Buffer* buffer): _buffer(buffer) { }
+IPAACA_EXPORT CallbackIUPayloadUpdate::CallbackIUPayloadUpdate(Buffer* buffer): _buffer(buffer) { }
+IPAACA_EXPORT CallbackIULinkUpdate::CallbackIULinkUpdate(Buffer* buffer): _buffer(buffer) { }
+IPAACA_EXPORT CallbackIUCommission::CallbackIUCommission(Buffer* buffer): _buffer(buffer) { }
 
-boost::shared_ptr<int> CallbackIUPayloadUpdate::call(const std::string& methodName, boost::shared_ptr<IUPayloadUpdate> update)
+IPAACA_EXPORT boost::shared_ptr<int> CallbackIUPayloadUpdate::call(const std::string& methodName, boost::shared_ptr<IUPayloadUpdate> update)
 {
 	//std::cout << "-- Received a modify_payload with " << update->new_items.size() << " keys to merge." << std::endl;
 	IUInterface::ptr iui = _buffer->get(update->uid);
@@ -387,7 +436,7 @@ boost::shared_ptr<int> CallbackIUPayloadUpdate::call(const std::string& methodNa
 	return boost::shared_ptr<int>(new int(revision));
 }
 
-boost::shared_ptr<int> CallbackIULinkUpdate::call(const std::string& methodName, boost::shared_ptr<IULinkUpdate> update)
+IPAACA_EXPORT boost::shared_ptr<int> CallbackIULinkUpdate::call(const std::string& methodName, boost::shared_ptr<IULinkUpdate> update)
 {
 	IUInterface::ptr iui = _buffer->get(update->uid);
 	if (! iui) {
@@ -411,7 +460,7 @@ boost::shared_ptr<int> CallbackIULinkUpdate::call(const std::string& methodName,
 	iu->_revision_lock.unlock();
 	return boost::shared_ptr<int>(new int(revision));
 }
-boost::shared_ptr<int> CallbackIUCommission::call(const std::string& methodName, boost::shared_ptr<protobuf::IUCommission> update)
+IPAACA_EXPORT boost::shared_ptr<int> CallbackIUCommission::call(const std::string& methodName, boost::shared_ptr<protobuf::IUCommission> update)
 {
 	IUInterface::ptr iui = _buffer->get(update->uid());
 	if (! iui) {
@@ -440,38 +489,44 @@ boost::shared_ptr<int> CallbackIUCommission::call(const std::string& methodName,
 
 // OutputBuffer//{{{
 
-OutputBuffer::OutputBuffer(const std::string& basename)
+IPAACA_EXPORT OutputBuffer::OutputBuffer(const std::string& basename)
 :Buffer(basename, "OB")
 {
+	IPAACA_INFO("Entering ...")
 	_id_prefix = _basename + "-" + _uuid + "-IU-";
 	_initialize_server();
+	IPAACA_INFO("... exiting.")
 }
-void OutputBuffer::_initialize_server()
+IPAACA_EXPORT void OutputBuffer::_initialize_server()
 {
+	IPAACA_INFO("Entering ...")
+	IPAACA_INFO("Calling createServer(\"" << _unique_name << "\")")
 	_server = getFactory().createServer( Scope( _unique_name ) );
+	IPAACA_INFO("Registering methods")
 	_server->registerMethod("updatePayload", Server::CallbackPtr(new CallbackIUPayloadUpdate(this)));
 	_server->registerMethod("updateLinks", Server::CallbackPtr(new CallbackIULinkUpdate(this)));
 	_server->registerMethod("commit", Server::CallbackPtr(new CallbackIUCommission(this)));
+	IPAACA_INFO("... exiting.")
 }
-OutputBuffer::ptr OutputBuffer::create(const std::string& basename)
+IPAACA_EXPORT OutputBuffer::ptr OutputBuffer::create(const std::string& basename)
 {
 	Initializer::initialize_ipaaca_rsb_if_needed();
 	return OutputBuffer::ptr(new OutputBuffer(basename));
 }
-IUInterface::ptr OutputBuffer::get(const std::string& iu_uid)
+IPAACA_EXPORT IUInterface::ptr OutputBuffer::get(const std::string& iu_uid)
 {
 	IUStore::iterator it = _iu_store.find(iu_uid);
 	if (it==_iu_store.end()) return IUInterface::ptr();
 	return it->second;
 }
-std::set<IUInterface::ptr> OutputBuffer::get_ius()
+IPAACA_EXPORT std::set<IUInterface::ptr> OutputBuffer::get_ius()
 {
 	std::set<IUInterface::ptr> set;
 	for (IUStore::iterator it=_iu_store.begin(); it!=_iu_store.end(); ++it) set.insert(it->second);
 	return set;
 }
 
-void OutputBuffer::_send_iu_link_update(IUInterface* iu, bool is_delta, revision_t revision, const LinkMap& new_links, const LinkMap& links_to_remove, const std::string& writer_name)
+IPAACA_EXPORT void OutputBuffer::_send_iu_link_update(IUInterface* iu, bool is_delta, revision_t revision, const LinkMap& new_links, const LinkMap& links_to_remove, const std::string& writer_name)
 {
 	IULinkUpdate* lup = new ipaaca::IULinkUpdate();
 	Informer<ipaaca::IULinkUpdate>::DataPtr ldata(lup);
@@ -487,7 +542,7 @@ void OutputBuffer::_send_iu_link_update(IUInterface* iu, bool is_delta, revision
 	informer->publish(ldata);
 }
 
-void OutputBuffer::_send_iu_payload_update(IUInterface* iu, bool is_delta, revision_t revision, const std::map<std::string, std::string>& new_items, const std::vector<std::string>& keys_to_remove, const std::string& writer_name)
+IPAACA_EXPORT void OutputBuffer::_send_iu_payload_update(IUInterface* iu, bool is_delta, revision_t revision, const std::map<std::string, std::string>& new_items, const std::vector<std::string>& keys_to_remove, const std::string& writer_name)
 {
 	IUPayloadUpdate* pup = new ipaaca::IUPayloadUpdate();
 	Informer<ipaaca::IUPayloadUpdate>::DataPtr pdata(pup);
@@ -502,7 +557,7 @@ void OutputBuffer::_send_iu_payload_update(IUInterface* iu, bool is_delta, revis
 	informer->publish(pdata);
 }
 
-void OutputBuffer::_send_iu_commission(IUInterface* iu, revision_t revision, const std::string& writer_name)
+IPAACA_EXPORT void OutputBuffer::_send_iu_commission(IUInterface* iu, revision_t revision, const std::string& writer_name)
 {
 	Informer<protobuf::IUCommission>::DataPtr data(new protobuf::IUCommission());
 	data->set_uid(iu->uid());
@@ -514,7 +569,7 @@ void OutputBuffer::_send_iu_commission(IUInterface* iu, revision_t revision, con
 	informer->publish(data);
 }
 
-void OutputBuffer::add(IU::ptr iu)
+IPAACA_EXPORT void OutputBuffer::add(IU::ptr iu)
 {
 	if (_iu_store.count(iu->uid()) > 0) {
 		throw IUPublishedError();
@@ -530,14 +585,14 @@ void OutputBuffer::add(IU::ptr iu)
 	_publish_iu(iu);
 }
 
-void OutputBuffer::_publish_iu(IU::ptr iu)
+IPAACA_EXPORT void OutputBuffer::_publish_iu(IU::ptr iu)
 {
 	Informer<AnyType>::Ptr informer = _get_informer(iu->_category);
 	Informer<ipaaca::IU>::DataPtr iu_data(iu);
 	informer->publish(iu_data);
 }
 
-Informer<AnyType>::Ptr OutputBuffer::_get_informer(const std::string& category)
+IPAACA_EXPORT Informer<AnyType>::Ptr OutputBuffer::_get_informer(const std::string& category)
 {
 	if (_informer_store.count(category) > 0) {
 		return _informer_store[category];
@@ -549,7 +604,7 @@ Informer<AnyType>::Ptr OutputBuffer::_get_informer(const std::string& category)
 		return informer;
 	}
 }
-boost::shared_ptr<IU> OutputBuffer::remove(const std::string& iu_uid)
+IPAACA_EXPORT boost::shared_ptr<IU> OutputBuffer::remove(const std::string& iu_uid)
 {
 	IUStore::iterator it = _iu_store.find(iu_uid);
 	if (it == _iu_store.end()) {
@@ -561,12 +616,12 @@ boost::shared_ptr<IU> OutputBuffer::remove(const std::string& iu_uid)
 	_iu_store.erase(iu_uid);
 	return iu;
 }
-boost::shared_ptr<IU> OutputBuffer::remove(IU::ptr iu)
+IPAACA_EXPORT boost::shared_ptr<IU> OutputBuffer::remove(IU::ptr iu)
 {
 	return remove(iu->uid()); // to make sure it is in the store
 }
 
-void OutputBuffer::_retract_iu(IU::ptr iu)
+IPAACA_EXPORT void OutputBuffer::_retract_iu(IU::ptr iu)
 {
 	Informer<protobuf::IURetraction>::DataPtr data(new protobuf::IURetraction());
 	data->set_uid(iu->uid());
@@ -579,39 +634,39 @@ void OutputBuffer::_retract_iu(IU::ptr iu)
 //}}}
 
 // InputBuffer//{{{
-InputBuffer::InputBuffer(const std::string& basename, const std::set<std::string>& category_interests)
+IPAACA_EXPORT InputBuffer::InputBuffer(const std::string& basename, const std::set<std::string>& category_interests)
 :Buffer(basename, "IB")
 {
 	for (std::set<std::string>::const_iterator it=category_interests.begin(); it!=category_interests.end(); ++it) {
 		_create_category_listener_if_needed(*it);
 	}
 }
-InputBuffer::InputBuffer(const std::string& basename, const std::vector<std::string>& category_interests)
+IPAACA_EXPORT InputBuffer::InputBuffer(const std::string& basename, const std::vector<std::string>& category_interests)
 :Buffer(basename, "IB")
 {
 	for (std::vector<std::string>::const_iterator it=category_interests.begin(); it!=category_interests.end(); ++it) {
 		_create_category_listener_if_needed(*it);
 	}
 }
-InputBuffer::InputBuffer(const std::string& basename, const std::string& category_interest1)
+IPAACA_EXPORT InputBuffer::InputBuffer(const std::string& basename, const std::string& category_interest1)
 :Buffer(basename, "IB")
 {
 	_create_category_listener_if_needed(category_interest1);
 }
-InputBuffer::InputBuffer(const std::string& basename, const std::string& category_interest1, const std::string& category_interest2)
+IPAACA_EXPORT InputBuffer::InputBuffer(const std::string& basename, const std::string& category_interest1, const std::string& category_interest2)
 :Buffer(basename, "IB")
 {
 	_create_category_listener_if_needed(category_interest1);
 	_create_category_listener_if_needed(category_interest2);
 }
-InputBuffer::InputBuffer(const std::string& basename, const std::string& category_interest1, const std::string& category_interest2, const std::string& category_interest3)
+IPAACA_EXPORT InputBuffer::InputBuffer(const std::string& basename, const std::string& category_interest1, const std::string& category_interest2, const std::string& category_interest3)
 :Buffer(basename, "IB")
 {
 	_create_category_listener_if_needed(category_interest1);
 	_create_category_listener_if_needed(category_interest2);
 	_create_category_listener_if_needed(category_interest3);
 }
-InputBuffer::InputBuffer(const std::string& basename, const std::string& category_interest1, const std::string& category_interest2, const std::string& category_interest3, const std::string& category_interest4)
+IPAACA_EXPORT InputBuffer::InputBuffer(const std::string& basename, const std::string& category_interest1, const std::string& category_interest2, const std::string& category_interest3, const std::string& category_interest4)
 :Buffer(basename, "IB")
 {
 	_create_category_listener_if_needed(category_interest1);
@@ -621,44 +676,44 @@ InputBuffer::InputBuffer(const std::string& basename, const std::string& categor
 }
 
 
-InputBuffer::ptr InputBuffer::create(const std::string& basename, const std::set<std::string>& category_interests)
+IPAACA_EXPORT InputBuffer::ptr InputBuffer::create(const std::string& basename, const std::set<std::string>& category_interests)
 {
 	Initializer::initialize_ipaaca_rsb_if_needed();
 	return InputBuffer::ptr(new InputBuffer(basename, category_interests));
 }
-InputBuffer::ptr InputBuffer::create(const std::string& basename, const std::vector<std::string>& category_interests)
+IPAACA_EXPORT InputBuffer::ptr InputBuffer::create(const std::string& basename, const std::vector<std::string>& category_interests)
 {
 	Initializer::initialize_ipaaca_rsb_if_needed();
 	return InputBuffer::ptr(new InputBuffer(basename, category_interests));
 }
-InputBuffer::ptr InputBuffer::create(const std::string& basename, const std::string& category_interest1)
+IPAACA_EXPORT InputBuffer::ptr InputBuffer::create(const std::string& basename, const std::string& category_interest1)
 {
 	Initializer::initialize_ipaaca_rsb_if_needed();
 	return InputBuffer::ptr(new InputBuffer(basename, category_interest1));
 }
-InputBuffer::ptr InputBuffer::create(const std::string& basename, const std::string& category_interest1, const std::string& category_interest2)
+IPAACA_EXPORT InputBuffer::ptr InputBuffer::create(const std::string& basename, const std::string& category_interest1, const std::string& category_interest2)
 {
 	Initializer::initialize_ipaaca_rsb_if_needed();
 	return InputBuffer::ptr(new InputBuffer(basename, category_interest1, category_interest2));
 }
-InputBuffer::ptr InputBuffer::create(const std::string& basename, const std::string& category_interest1, const std::string& category_interest2, const std::string& category_interest3)
+IPAACA_EXPORT InputBuffer::ptr InputBuffer::create(const std::string& basename, const std::string& category_interest1, const std::string& category_interest2, const std::string& category_interest3)
 {
 	Initializer::initialize_ipaaca_rsb_if_needed();
 	return InputBuffer::ptr(new InputBuffer(basename, category_interest1, category_interest2, category_interest3));
 }
-InputBuffer::ptr InputBuffer::create(const std::string& basename, const std::string& category_interest1, const std::string& category_interest2, const std::string& category_interest3, const std::string& category_interest4)
+IPAACA_EXPORT InputBuffer::ptr InputBuffer::create(const std::string& basename, const std::string& category_interest1, const std::string& category_interest2, const std::string& category_interest3, const std::string& category_interest4)
 {
 	Initializer::initialize_ipaaca_rsb_if_needed();
 	return InputBuffer::ptr(new InputBuffer(basename, category_interest1, category_interest2, category_interest3, category_interest4));
 }
 
-IUInterface::ptr InputBuffer::get(const std::string& iu_uid)
+IPAACA_EXPORT IUInterface::ptr InputBuffer::get(const std::string& iu_uid)
 {
 	RemotePushIUStore::iterator it = _iu_store.find(iu_uid); // TODO genericize
 	if (it==_iu_store.end()) return IUInterface::ptr();
 	return it->second;
 }
-std::set<IUInterface::ptr> InputBuffer::get_ius()
+IPAACA_EXPORT std::set<IUInterface::ptr> InputBuffer::get_ius()
 {
 	std::set<IUInterface::ptr> set;
 	for (RemotePushIUStore::iterator it=_iu_store.begin(); it!=_iu_store.end(); ++it) set.insert(it->second); // TODO genericize
@@ -666,7 +721,7 @@ std::set<IUInterface::ptr> InputBuffer::get_ius()
 }
 
 
-RemoteServerPtr InputBuffer::_get_remote_server(const std::string& unique_server_name)
+IPAACA_EXPORT RemoteServerPtr InputBuffer::_get_remote_server(const std::string& unique_server_name)
 {
 	std::map<std::string, RemoteServerPtr>::iterator it = _remote_server_store.find(unique_server_name);
 	if (it!=_remote_server_store.end()) return it->second;
@@ -675,13 +730,18 @@ RemoteServerPtr InputBuffer::_get_remote_server(const std::string& unique_server
 	return remote_server;
 }
 
-ListenerPtr InputBuffer::_create_category_listener_if_needed(const std::string& category)
+IPAACA_EXPORT ListenerPtr InputBuffer::_create_category_listener_if_needed(const std::string& category)
 {
+	IPAACA_INFO("Entering ...")
 	std::map<std::string, ListenerPtr>::iterator it = _listener_store.find(category);
-	if (it!=_listener_store.end()) return it->second;
-	//IPAACA_INFO("Creating a new listener for category " << category)
+	if (it!=_listener_store.end()) {
+		IPAACA_INFO("... exiting.")
+		return it->second;
+	}
+	IPAACA_INFO("Creating a new listener for category " << category)
 	std::string scope_string = "/ipaaca/category/" + category;
 	ListenerPtr listener = getFactory().createListener( Scope(scope_string) );
+	IPAACA_INFO("Adding handler")
 	HandlerPtr event_handler = HandlerPtr(
 			new EventFunctionHandler(
 				boost::bind(&InputBuffer::_handle_iu_events, this, _1)
@@ -689,19 +749,10 @@ ListenerPtr InputBuffer::_create_category_listener_if_needed(const std::string& 
 		);
 	listener->addHandler(event_handler);
 	_listener_store[category] = listener;
+	IPAACA_INFO("... exiting.")
 	return listener;
-	/*
-		'''Return (or create, store and return) a category listener.'''
-		if iu_category in self._listener_store: return self._informer_store[iu_category]
-		cat_listener = rsb.createListener(rsb.Scope("/ipaaca/category/"+str(iu_category)), config=self._participant_config)
-		cat_listener.addHandler(self._handle_iu_events)
-		self._listener_store[iu_category] = cat_listener
-		self._category_interests.append(iu_category)
-		logger.info("Added listener in scope "+"/ipaaca/category/"+iu_category)
-		return cat_listener
-	*/
 }
-void InputBuffer::_handle_iu_events(EventPtr event)
+IPAACA_EXPORT void InputBuffer::_handle_iu_events(EventPtr event)
 {
 	std::string type = event->getType();
 	if (type == "ipaaca::RemotePushIU") {
@@ -799,19 +850,19 @@ void InputBuffer::_handle_iu_events(EventPtr event)
 
 // IUInterface//{{{
 
-IUInterface::IUInterface()
+IPAACA_EXPORT IUInterface::IUInterface()
 : _buffer(NULL), _committed(false), _retracted(false)
 {
 }
 
-void IUInterface::_set_uid(const std::string& uid) {
+IPAACA_EXPORT void IUInterface::_set_uid(const std::string& uid) {
 	if (_uid != "") {
 		throw IUAlreadyHasAnUIDError();
 	}
 	_uid = uid;
 }
 
-void IUInterface::_set_buffer(Buffer* buffer) { //boost::shared_ptr<Buffer> buffer) {
+IPAACA_EXPORT void IUInterface::_set_buffer(Buffer* buffer) { //boost::shared_ptr<Buffer> buffer) {
 	if (_buffer) {
 		throw IUAlreadyInABufferError();
 	}
@@ -819,7 +870,7 @@ void IUInterface::_set_buffer(Buffer* buffer) { //boost::shared_ptr<Buffer> buff
 	
 }
 
-void IUInterface::_set_owner_name(const std::string& owner_name) {
+IPAACA_EXPORT void IUInterface::_set_owner_name(const std::string& owner_name) {
 	if (_owner_name != "") {
 		throw IUAlreadyHasAnOwnerNameError();
 	}
@@ -827,14 +878,14 @@ void IUInterface::_set_owner_name(const std::string& owner_name) {
 }
 
 /// set the buffer pointer and the owner names of IU and Payload
-void IUInterface::_associate_with_buffer(Buffer* buffer) { //boost::shared_ptr<Buffer> buffer) {
+IPAACA_EXPORT void IUInterface::_associate_with_buffer(Buffer* buffer) { //boost::shared_ptr<Buffer> buffer) {
 	_set_buffer(buffer); // will throw if already set
 	_set_owner_name(buffer->unique_name());
 	payload()._set_owner_name(buffer->unique_name());
 }
 
 /// C++-specific convenience function to add one single link
-void IUInterface::add_link(const std::string& type, const std::string& target, const std::string& writer_name)
+IPAACA_EXPORT void IUInterface::add_link(const std::string& type, const std::string& target, const std::string& writer_name)
 {
 	LinkMap none;
 	LinkMap add;
@@ -843,7 +894,7 @@ void IUInterface::add_link(const std::string& type, const std::string& target, c
 	_add_and_remove_links(add, none);
 }
 /// C++-specific convenience function to remove one single link
-void IUInterface::remove_link(const std::string& type, const std::string& target, const std::string& writer_name)
+IPAACA_EXPORT void IUInterface::remove_link(const std::string& type, const std::string& target, const std::string& writer_name)
 {
 	LinkMap none;
 	LinkMap remove;
@@ -852,7 +903,7 @@ void IUInterface::remove_link(const std::string& type, const std::string& target
 	_add_and_remove_links(none, remove);
 }
 
-void IUInterface::add_links(const std::string& type, const LinkSet& targets, const std::string& writer_name)
+IPAACA_EXPORT void IUInterface::add_links(const std::string& type, const LinkSet& targets, const std::string& writer_name)
 {
 	LinkMap none;
 	LinkMap add;
@@ -861,7 +912,7 @@ void IUInterface::add_links(const std::string& type, const LinkSet& targets, con
 	_add_and_remove_links(add, none);
 }
 
-void IUInterface::remove_links(const std::string& type, const LinkSet& targets, const std::string& writer_name)
+IPAACA_EXPORT void IUInterface::remove_links(const std::string& type, const LinkSet& targets, const std::string& writer_name)
 {
 	LinkMap none;
 	LinkMap remove;
@@ -870,13 +921,13 @@ void IUInterface::remove_links(const std::string& type, const LinkSet& targets, 
 	_add_and_remove_links(none, remove);
 }
 
-void IUInterface::modify_links(const LinkMap& add, const LinkMap& remove, const std::string& writer_name)
+IPAACA_EXPORT void IUInterface::modify_links(const LinkMap& add, const LinkMap& remove, const std::string& writer_name)
 {
 	_modify_links(true, add, remove, writer_name);
 	_add_and_remove_links(add, remove);
 }
 
-void IUInterface::set_links(const LinkMap& links, const std::string& writer_name)
+IPAACA_EXPORT void IUInterface::set_links(const LinkMap& links, const std::string& writer_name)
 {
 	LinkMap none;
 	_modify_links(false, links, none, writer_name);
@@ -886,14 +937,14 @@ void IUInterface::set_links(const LinkMap& links, const std::string& writer_name
 //}}}
 
 // IU//{{{
-IU::ptr IU::create(const std::string& category, IUAccessMode access_mode, bool read_only, const std::string& payload_type)
+IPAACA_EXPORT IU::ptr IU::create(const std::string& category, IUAccessMode access_mode, bool read_only, const std::string& payload_type)
 {
 	IU::ptr iu = IU::ptr(new IU(category, access_mode, read_only, payload_type)); /* params */ //));
 	iu->_payload.initialize(iu);
 	return iu;
 }
 
-IU::IU(const std::string& category, IUAccessMode access_mode, bool read_only, const std::string& payload_type)
+IPAACA_EXPORT IU::IU(const std::string& category, IUAccessMode access_mode, bool read_only, const std::string& payload_type)
 {
 	_revision = 1;
 	_uid = ipaaca::generate_uuid_string();
@@ -905,7 +956,7 @@ IU::IU(const std::string& category, IUAccessMode access_mode, bool read_only, co
 	_committed = false;
 }
 
-void IU::_modify_links(bool is_delta, const LinkMap& new_links, const LinkMap& links_to_remove, const std::string& writer_name)
+IPAACA_EXPORT void IU::_modify_links(bool is_delta, const LinkMap& new_links, const LinkMap& links_to_remove, const std::string& writer_name)
 {
 	_revision_lock.lock();
 	if (_committed) {
@@ -918,7 +969,7 @@ void IU::_modify_links(bool is_delta, const LinkMap& new_links, const LinkMap& l
 	}
 	_revision_lock.unlock();
 }
-void IU::_modify_payload(bool is_delta, const std::map<std::string, std::string>& new_items, const std::vector<std::string>& keys_to_remove, const std::string& writer_name)
+IPAACA_EXPORT void IU::_modify_payload(bool is_delta, const std::map<std::string, std::string>& new_items, const std::vector<std::string>& keys_to_remove, const std::string& writer_name)
 {
 	_revision_lock.lock();
 	if (_committed) {
@@ -933,12 +984,12 @@ void IU::_modify_payload(bool is_delta, const std::map<std::string, std::string>
 	_revision_lock.unlock();
 }
 
-void IU::commit()
+IPAACA_EXPORT void IU::commit()
 {
 	_internal_commit();
 }
 
-void IU::_internal_commit(const std::string& writer_name)
+IPAACA_EXPORT void IU::_internal_commit(const std::string& writer_name)
 {
 	_revision_lock.lock();
 	if (_committed) {
@@ -990,17 +1041,17 @@ void Message::_internal_commit(const std::string& writer_name)
 
 // RemotePushIU//{{{
 
-RemotePushIU::ptr RemotePushIU::create()
+IPAACA_EXPORT RemotePushIU::ptr RemotePushIU::create()
 {
 	RemotePushIU::ptr iu = RemotePushIU::ptr(new RemotePushIU(/* params */));
 	iu->_payload.initialize(iu);
 	return iu;
 }
-RemotePushIU::RemotePushIU()
+IPAACA_EXPORT RemotePushIU::RemotePushIU()
 {
 	// nothing
 }
-void RemotePushIU::_modify_links(bool is_delta, const LinkMap& new_links, const LinkMap& links_to_remove, const std::string& writer_name)
+IPAACA_EXPORT void RemotePushIU::_modify_links(bool is_delta, const LinkMap& new_links, const LinkMap& links_to_remove, const std::string& writer_name)
 {
 	if (_committed) {
 		throw IUCommittedError();
@@ -1023,7 +1074,7 @@ void RemotePushIU::_modify_links(bool is_delta, const LinkMap& new_links, const 
 		_revision = *result;
 	}
 }
-void RemotePushIU::_modify_payload(bool is_delta, const std::map<std::string, std::string>& new_items, const std::vector<std::string>& keys_to_remove, const std::string& writer_name)
+IPAACA_EXPORT void RemotePushIU::_modify_payload(bool is_delta, const std::map<std::string, std::string>& new_items, const std::vector<std::string>& keys_to_remove, const std::string& writer_name)
 {
 	//std::cout << "-- Sending a modify_payload with " << new_items.size() << " keys to merge." << std::endl;
 	if (_committed) {
@@ -1048,7 +1099,7 @@ void RemotePushIU::_modify_payload(bool is_delta, const std::map<std::string, st
 	}
 }
 
-void RemotePushIU::commit()
+IPAACA_EXPORT void RemotePushIU::commit()
 {
 	if (_read_only) {
 		throw IUReadOnlyError();
@@ -1070,7 +1121,7 @@ void RemotePushIU::commit()
 	}
 }
 
-void RemotePushIU::_apply_link_update(IULinkUpdate::ptr update)
+IPAACA_EXPORT void RemotePushIU::_apply_link_update(IULinkUpdate::ptr update)
 {
 	_revision = update->revision;
 	if (update->is_delta) {
@@ -1079,7 +1130,7 @@ void RemotePushIU::_apply_link_update(IULinkUpdate::ptr update)
 		_replace_links(update->new_links);
 	}
 }
-void RemotePushIU::_apply_update(IUPayloadUpdate::ptr update)
+IPAACA_EXPORT void RemotePushIU::_apply_update(IUPayloadUpdate::ptr update)
 {
 	_revision = update->revision;
 	if (update->is_delta) {
@@ -1096,11 +1147,11 @@ void RemotePushIU::_apply_update(IUPayloadUpdate::ptr update)
 		}
 	}
 }
-void RemotePushIU::_apply_commission()
+IPAACA_EXPORT void RemotePushIU::_apply_commission()
 {
 	_committed = true;
 }
-void RemotePushIU::_apply_retraction()
+IPAACA_EXPORT void RemotePushIU::_apply_retraction()
 {
 	_retracted = true;
 }
@@ -1108,30 +1159,30 @@ void RemotePushIU::_apply_retraction()
 
 // RemoteMessage//{{{
 
-RemoteMessage::ptr RemoteMessage::create()
+IPAACA_EXPORT RemoteMessage::ptr RemoteMessage::create()
 {
 	RemoteMessage::ptr iu = RemoteMessage::ptr(new RemoteMessage(/* params */));
 	iu->_payload.initialize(iu);
 	return iu;
 }
-RemoteMessage::RemoteMessage()
+IPAACA_EXPORT RemoteMessage::RemoteMessage()
 {
 	// nothing
 }
-void RemoteMessage::_modify_links(bool is_delta, const LinkMap& new_links, const LinkMap& links_to_remove, const std::string& writer_name)
+IPAACA_EXPORT void RemoteMessage::_modify_links(bool is_delta, const LinkMap& new_links, const LinkMap& links_to_remove, const std::string& writer_name)
 {
 	IPAACA_INFO("Info: modifying a RemoteMessage only has local effects")
 }
-void RemoteMessage::_modify_payload(bool is_delta, const std::map<std::string, std::string>& new_items, const std::vector<std::string>& keys_to_remove, const std::string& writer_name)
+IPAACA_EXPORT void RemoteMessage::_modify_payload(bool is_delta, const std::map<std::string, std::string>& new_items, const std::vector<std::string>& keys_to_remove, const std::string& writer_name)
 {
 	IPAACA_INFO("Info: modifying a RemoteMessage only has local effects")
 }
-void RemoteMessage::commit()
+IPAACA_EXPORT void RemoteMessage::commit()
 {
 	IPAACA_INFO("Info: committing to a RemoteMessage only has local effects")
 }
 
-void RemoteMessage::_apply_link_update(IULinkUpdate::ptr update)
+IPAACA_EXPORT void RemoteMessage::_apply_link_update(IULinkUpdate::ptr update)
 {
 	IPAACA_WARNING("Warning: should never be called: RemoteMessage::_apply_link_update")
 	_revision = update->revision;
@@ -1141,7 +1192,7 @@ void RemoteMessage::_apply_link_update(IULinkUpdate::ptr update)
 		_replace_links(update->new_links);
 	}
 }
-void RemoteMessage::_apply_update(IUPayloadUpdate::ptr update)
+IPAACA_EXPORT void RemoteMessage::_apply_update(IUPayloadUpdate::ptr update)
 {
 	IPAACA_WARNING("Warning: should never be called: RemoteMessage::_apply_update")
 	_revision = update->revision;
@@ -1159,12 +1210,12 @@ void RemoteMessage::_apply_update(IUPayloadUpdate::ptr update)
 		}
 	}
 }
-void RemoteMessage::_apply_commission()
+IPAACA_EXPORT void RemoteMessage::_apply_commission()
 {
 	IPAACA_WARNING("Warning: should never be called: RemoteMessage::_apply_commission")
 	_committed = true;
 }
-void RemoteMessage::_apply_retraction()
+IPAACA_EXPORT void RemoteMessage::_apply_retraction()
 {
 	IPAACA_WARNING("Warning: should never be called: RemoteMessage::_apply_retraction")
 	_retracted = true;
@@ -1176,49 +1227,49 @@ void RemoteMessage::_apply_retraction()
 
 // PayloadEntryProxy//{{{
 
-PayloadEntryProxy::PayloadEntryProxy(Payload* payload, const std::string& key)
+IPAACA_EXPORT PayloadEntryProxy::PayloadEntryProxy(Payload* payload, const std::string& key)
 : _payload(payload), _key(key)
 {
 }
-PayloadEntryProxy& PayloadEntryProxy::operator=(const std::string& value)
+IPAACA_EXPORT PayloadEntryProxy& PayloadEntryProxy::operator=(const std::string& value)
 {
 	//std::cout << "operator=(string)" << std::endl;
 	_payload->set(_key, value);
 	return *this;
 }
-PayloadEntryProxy& PayloadEntryProxy::operator=(const char* value)
+IPAACA_EXPORT PayloadEntryProxy& PayloadEntryProxy::operator=(const char* value)
 {
 	//std::cout << "operator=(const char*)" << std::endl;
 	_payload->set(_key, value);
 	return *this;
 }
-PayloadEntryProxy& PayloadEntryProxy::operator=(double value)
+IPAACA_EXPORT PayloadEntryProxy& PayloadEntryProxy::operator=(double value)
 {
 	//std::cout << "operator=(double)" << std::endl;
 	_payload->set(_key, boost::lexical_cast<std::string>(value));
 	return *this;
 }
-PayloadEntryProxy& PayloadEntryProxy::operator=(bool value)
+IPAACA_EXPORT PayloadEntryProxy& PayloadEntryProxy::operator=(bool value)
 {
 	//std::cout << "operator=(bool)" << std::endl;
 	_payload->set(_key, boost::lexical_cast<std::string>(value));
 	return *this;
 }
-PayloadEntryProxy::operator std::string()
+IPAACA_EXPORT PayloadEntryProxy::operator std::string()
 {
 	return _payload->get(_key);
 }
-PayloadEntryProxy::operator bool()
+IPAACA_EXPORT PayloadEntryProxy::operator bool()
 {
 	std::string s = operator std::string();
 	return ((s=="1")||(s=="true")||(s=="True"));
 }
-PayloadEntryProxy::operator long()
+IPAACA_EXPORT PayloadEntryProxy::operator long()
 {
 	//return boost::lexical_cast<long>(operator std::string().c_str());
 	return atof(operator std::string().c_str());
 }
-PayloadEntryProxy::operator double()
+IPAACA_EXPORT PayloadEntryProxy::operator double()
 {
 	//return boost::lexical_cast<double>(operator std::string().c_str());
 	return atol(operator std::string().c_str());
@@ -1227,42 +1278,42 @@ PayloadEntryProxy::operator double()
 
 // Payload//{{{
 
-void Payload::initialize(boost::shared_ptr<IUInterface> iu)
+IPAACA_EXPORT void Payload::initialize(boost::shared_ptr<IUInterface> iu)
 {
 	_iu = boost::weak_ptr<IUInterface>(iu);
 }
 
-PayloadEntryProxy Payload::operator[](const std::string& key)
+IPAACA_EXPORT PayloadEntryProxy Payload::operator[](const std::string& key)
 {
 	//boost::shared_ptr<PayloadEntryProxy> p(new PayloadEntryProxy(this, key));
 	return PayloadEntryProxy(this, key);
 }
-Payload::operator std::map<std::string, std::string>()
+IPAACA_EXPORT Payload::operator std::map<std::string, std::string>()
 {
 	return _store;
 }
 
-inline void Payload::_internal_set(const std::string& k, const std::string& v, const std::string& writer_name) {
+IPAACA_EXPORT inline void Payload::_internal_set(const std::string& k, const std::string& v, const std::string& writer_name) {
 	std::map<std::string, std::string> _new;
 	std::vector<std::string> _remove;
 	_new[k]=v;
 	_iu.lock()->_modify_payload(true, _new, _remove, writer_name );
 	_store[k] = v;
 }
-inline void Payload::_internal_remove(const std::string& k, const std::string& writer_name) {
+IPAACA_EXPORT inline void Payload::_internal_remove(const std::string& k, const std::string& writer_name) {
 	std::map<std::string, std::string> _new;
 	std::vector<std::string> _remove;
 	_remove.push_back(k);
 	_iu.lock()->_modify_payload(true, _new, _remove, writer_name );
 	_store.erase(k);
 }
-void Payload::_internal_replace_all(const std::map<std::string, std::string>& new_contents, const std::string& writer_name)
+IPAACA_EXPORT void Payload::_internal_replace_all(const std::map<std::string, std::string>& new_contents, const std::string& writer_name)
 {
 	std::vector<std::string> _remove;
 	_iu.lock()->_modify_payload(false, new_contents, _remove, writer_name );
 	_store = new_contents;
 }
-void Payload::_internal_merge(const std::map<std::string, std::string>& contents_to_merge, const std::string& writer_name)
+IPAACA_EXPORT void Payload::_internal_merge(const std::map<std::string, std::string>& contents_to_merge, const std::string& writer_name)
 {
 	std::vector<std::string> _remove;
 	_iu.lock()->_modify_payload(true, contents_to_merge, _remove, writer_name );
@@ -1271,19 +1322,19 @@ void Payload::_internal_merge(const std::map<std::string, std::string>& contents
 	//	_store[it->first] = it->second;
 	//}
 }
-inline std::string Payload::get(const std::string& k) {
+IPAACA_EXPORT inline std::string Payload::get(const std::string& k) {
 	if (_store.count(k)>0) return _store[k];
 	else return IPAACA_PAYLOAD_DEFAULT_STRING_VALUE;
 }
-void Payload::_remotely_enforced_wipe()
+IPAACA_EXPORT void Payload::_remotely_enforced_wipe()
 {
 	_store.clear();
 }
-void Payload::_remotely_enforced_delitem(const std::string& k)
+IPAACA_EXPORT void Payload::_remotely_enforced_delitem(const std::string& k)
 {
 	_store.erase(k);
 }
-void Payload::_remotely_enforced_setitem(const std::string& k, const std::string& v)
+IPAACA_EXPORT void Payload::_remotely_enforced_setitem(const std::string& k, const std::string& v)
 {
 	_store[k] = v;
 }
@@ -1292,12 +1343,12 @@ void Payload::_remotely_enforced_setitem(const std::string& k, const std::string
 
 // IUConverter//{{{
 
-IUConverter::IUConverter()
-: Converter<std::string> ("ipaaca::IU", "ipaaca-iu", true)
+IPAACA_EXPORT IUConverter::IUConverter()
+: Converter<std::string> ("class ipaaca::IU", "ipaaca-iu", true)
 {
 }
 
-std::string IUConverter::serialize(const AnnotatedData& data, std::string& wire)
+IPAACA_EXPORT std::string IUConverter::serialize(const AnnotatedData& data, std::string& wire)
 {
 	//std::cout << "serialize" << std::endl;
 	// Ensure that DATA actually holds a datum of the data-type we expect.
@@ -1354,7 +1405,7 @@ std::string IUConverter::serialize(const AnnotatedData& data, std::string& wire)
 
 }
 
-AnnotatedData IUConverter::deserialize(const std::string& wireSchema, const std::string& wire) {
+IPAACA_EXPORT AnnotatedData IUConverter::deserialize(const std::string& wireSchema, const std::string& wire) {
 	//std::cout << "deserialize" << std::endl;
 	assert(wireSchema == getWireSchema()); // "ipaaca-iu"
 	boost::shared_ptr<protobuf::IU> pbo(new protobuf::IU());
@@ -1428,12 +1479,12 @@ AnnotatedData IUConverter::deserialize(const std::string& wireSchema, const std:
 
 // MessageConverter//{{{
 
-MessageConverter::MessageConverter()
-: Converter<std::string> ("ipaaca::Message", "ipaaca-messageiu", true)
+IPAACA_EXPORT MessageConverter::MessageConverter()
+: Converter<std::string> ("class ipaaca::Message", "ipaaca-messageiu", true)
 {
 }
 
-std::string MessageConverter::serialize(const AnnotatedData& data, std::string& wire)
+IPAACA_EXPORT std::string MessageConverter::serialize(const AnnotatedData& data, std::string& wire)
 {
 	// Ensure that DATA actually holds a datum of the data-type we expect.
 	assert(data.first == getDataType()); // "ipaaca::Message"
@@ -1487,7 +1538,7 @@ std::string MessageConverter::serialize(const AnnotatedData& data, std::string& 
 
 }
 
-AnnotatedData MessageConverter::deserialize(const std::string& wireSchema, const std::string& wire) {
+IPAACA_EXPORT AnnotatedData MessageConverter::deserialize(const std::string& wireSchema, const std::string& wire) {
 	assert(wireSchema == getWireSchema()); // "ipaaca-iu"
 	boost::shared_ptr<protobuf::IU> pbo(new protobuf::IU());
 	pbo->ParseFromString(wire);
@@ -1559,12 +1610,12 @@ AnnotatedData MessageConverter::deserialize(const std::string& wireSchema, const
 
 // IUPayloadUpdateConverter//{{{
 
-IUPayloadUpdateConverter::IUPayloadUpdateConverter()
-: Converter<std::string> ("ipaaca::IUPayloadUpdate", "ipaaca-iu-payload-update", true)
+IPAACA_EXPORT IUPayloadUpdateConverter::IUPayloadUpdateConverter()
+: Converter<std::string> ("class ipaaca::IUPayloadUpdate", "ipaaca-iu-payload-update", true)
 {
 }
 
-std::string IUPayloadUpdateConverter::serialize(const AnnotatedData& data, std::string& wire)
+IPAACA_EXPORT std::string IUPayloadUpdateConverter::serialize(const AnnotatedData& data, std::string& wire)
 {
 	assert(data.first == getDataType()); // "ipaaca::IUPayloadUpdate"
 	boost::shared_ptr<const IUPayloadUpdate> obj = boost::static_pointer_cast<const IUPayloadUpdate> (data.second);
@@ -1612,12 +1663,12 @@ AnnotatedData IUPayloadUpdateConverter::deserialize(const std::string& wireSchem
 
 // IULinkUpdateConverter//{{{
 
-IULinkUpdateConverter::IULinkUpdateConverter()
-: Converter<std::string> ("ipaaca::IULinkUpdate", "ipaaca-iu-link-update", true)
+IPAACA_EXPORT IULinkUpdateConverter::IULinkUpdateConverter()
+: Converter<std::string> ("class ipaaca::IULinkUpdate", "ipaaca-iu-link-update", true)
 {
 }
 
-std::string IULinkUpdateConverter::serialize(const AnnotatedData& data, std::string& wire)
+IPAACA_EXPORT std::string IULinkUpdateConverter::serialize(const AnnotatedData& data, std::string& wire)
 {
 	assert(data.first == getDataType()); // "ipaaca::IULinkUpdate"
 	boost::shared_ptr<const IULinkUpdate> obj = boost::static_pointer_cast<const IULinkUpdate> (data.second);
@@ -1675,12 +1726,12 @@ AnnotatedData IULinkUpdateConverter::deserialize(const std::string& wireSchema, 
 
 // IntConverter//{{{
 
-IntConverter::IntConverter()
+IPAACA_EXPORT IntConverter::IntConverter()
 : Converter<std::string> ("int", "int32", true)
 {
 }
 
-std::string IntConverter::serialize(const AnnotatedData& data, std::string& wire)
+IPAACA_EXPORT std::string IntConverter::serialize(const AnnotatedData& data, std::string& wire)
 {
 	// Ensure that DATA actually holds a datum of the data-type we expect.
 	assert(data.first == getDataType()); // "int"
@@ -1694,7 +1745,7 @@ std::string IntConverter::serialize(const AnnotatedData& data, std::string& wire
 
 }
 
-AnnotatedData IntConverter::deserialize(const std::string& wireSchema, const std::string& wire) {
+IPAACA_EXPORT AnnotatedData IntConverter::deserialize(const std::string& wireSchema, const std::string& wire) {
 	assert(wireSchema == getWireSchema()); // "int"
 	boost::shared_ptr<protobuf::IntMessage> pbo(new protobuf::IntMessage());
 	pbo->ParseFromString(wire);
