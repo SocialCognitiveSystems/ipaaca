@@ -11,7 +11,9 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DIPAACA_DEBUG_MESSAGES")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DIPAACA_EXPOSE_FULL_RSB_API")
 
 # find cmake modules locally too
-set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMakeModules)
+#set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMakeModules )
+set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/../../deps/share/rsc0.10/cmake/Modules )
+	
 
 if(WIN32) # Check if we are on Windows
 	if(MSVC) # Check if we are using the Visual Studio compiler
@@ -23,25 +25,32 @@ if(WIN32) # Check if we are on Windows
 		#   set PROTOBUF_INCLUDE_DIR=%YOURREPODIR%\rsx\protobuf\include
 		#
 		#
-		#find_package(Boost COMPONENTS date_time program_options system filesystem thread signals regex REQUIRED)
-		#link_directories(${Boost_LIBRARY_DIRS})
-		#include_directories(${Boost_INCLUDE_DIRS})
+
+		find_package(ProtocolBuffers REQUIRED)
+		link_directories(${PROTOBUF_LIBRARY_DIRS})
+		include_directories(${PROTOBUF_INCLUDE_DIRS})
+		
+		find_package(Boost COMPONENTS date_time program_options system filesystem thread signals regex REQUIRED)
+		link_directories(${Boost_LIBRARY_DIRS})
+		include_directories(${Boost_INCLUDE_DIRS})
+		
 		# overriding the determined libs to remove boost_thread (causes multiple-definition issues)
-		
 		set(Boost_LIBRARIES boost_regex-vc100-mt-gd-1_54 boost_date_time-vc100-mt-gd-1_54 boost_program_options-vc100-mt-gd-1_54 boost_filesystem-vc100-mt-gd-1_54 boost_signals-vc100-mt-gd-1_54 boost_system-vc100-mt-gd-1_54)
+		## TEST THIS INSTEAD:
+		#list(REMOVE_ITEM Boost_LIBRARIES boost_thread-vc100-mt-gd-1_54)
 		
-		include_directories( ${PROJECT_SOURCE_DIR}/../../../rsx/boost/include/boost-1_54 )
-		link_directories( ${PROJECT_SOURCE_DIR}/../../../rsx/boost/lib )
+		#include_directories( ${PROJECT_SOURCE_DIR}/../../../rsx/boost/include/boost-1_54 )
+		#link_directories( ${PROJECT_SOURCE_DIR}/../../../rsx/boost/lib )
 		
-		include_directories( ${PROJECT_SOURCE_DIR}/../../../rsx/RSC-0.11.0-win32/include/rsc0.11 )
-		include_directories( ${PROJECT_SOURCE_DIR}/../../../rsx/RSB-0.11.0-win32/include/rsb0.11 )
-		include_directories( ${PROJECT_SOURCE_DIR}/../../../rsx/protobuf/include )
-		link_directories( ${PROJECT_SOURCE_DIR}/../../../rsx/RSC-0.11.0-win32/lib )
-		link_directories( ${PROJECT_SOURCE_DIR}/../../../rsx/RSB-0.11.0-win32/lib )
-		link_directories( ${PROJECT_SOURCE_DIR}/../../../rsx/protobuf/bin )
+		#include_directories( ${PROJECT_SOURCE_DIR}/../../../rsx/RSC-0.10.0-win32/include/rsc0.10 )
+		#include_directories( ${PROJECT_SOURCE_DIR}/../../../rsx/RSB-0.10.2-win32/include/rsb0.10 )
+		#include_directories( ${PROJECT_SOURCE_DIR}/../../../rsx/protobuf/include )
+		#link_directories( ${PROJECT_SOURCE_DIR}/../../../rsx/RSC-0.10.0-win32/lib )
+		#link_directories( ${PROJECT_SOURCE_DIR}/../../../rsx/RSB-0.10.2-win32/lib )
+		#link_directories( ${PROJECT_SOURCE_DIR}/../../../rsx/protobuf/bin )
 		
-		set(RSBLIBS rsc0.11 rsb)
-		set(PROTOBUF_LIBRARY libprotobuf)
+		set(RSBLIBS rsc0.10 rsb)
+		#set(PROTOBUF_LIBRARY libprotobuf)
 		set(LIBS ${LIBS} rpcrt4)
 		# boost_regex-vc100-mt-gd-1_54.lib;boost_date_time-vc100-mt-gd-1_54.lib;boost_program_options-vc100-mt-gd-1_54.lib;boost_filesystem-vc100-mt-gd-1_54.lib;boost_signals-vc100-mt-gd-1_54.lib;boost_system-vc100-mt-gd-1_54.lib
 		
@@ -58,13 +67,10 @@ else()
 	include_directories(${Boost_INCLUDE_DIRS})
 	#set(BOOSTLIBS boost_regex-mt boost_date_time-mt boost_program_options-mt boost_thread-mt boost_filesystem-mt boost_signals-mt boost_system-mt)
 
-	find_package(Protobuf REQUIRED)
+	find_package(ProtocolBuffers REQUIRED)
 	link_directories(${PROTOBUF_LIBRARY_DIRS})
 	include_directories(${PROTOBUF_INCLUDE_DIRS})
 
-	# add for for each new rsb version
-	include_directories( ${PROJECT_SOURCE_DIR}/../../deps/include/rsc0.10 )
-	include_directories( ${PROJECT_SOURCE_DIR}/../../deps/include/rsb0.10 )
 	# change for each new rsb version
 	if (DEFINED APPLE)
 		set(RSBLIBS rsc0.10 rsb.0.10)
@@ -91,6 +97,10 @@ set(CXX_DEFINES "-D_BSD_SOURCE -DUSE_AV -DMGC_USE_DOUBLE -DLEDA_PREFIX -D__NO_CA
 
 # Combine the extra compiler flags
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CXX_OLD_CODE_CONVENIENCE_FLAGS} ${CXX_DEFINES}")
+
+# add for for each new rsb version
+include_directories( ${PROJECT_SOURCE_DIR}/../../deps/include/rsc0.10 )
+include_directories( ${PROJECT_SOURCE_DIR}/../../deps/include/rsb0.10 )
 
 # add include dir for auto-generated headers placed in build/
 include_directories( ${PROJECT_SOURCE_DIR}/build )
@@ -120,7 +130,7 @@ set(DEFAULT_BIN_SUBDIR bin)
 set(DEFAULT_LIB_SUBDIR lib)
 set(DEFAULT_DATA_SUBDIR share/data)
 set(DEFAULT_INCLUDE_SUBDIR include)
-set(CMAKE_INSTALL_PREFIX "")
+#set(CMAKE_INSTALL_PREFIX "")
 install (
 	TARGETS ipaaca
 	RUNTIME DESTINATION bin
@@ -129,12 +139,12 @@ install (
 	)
 install(
 	DIRECTORY include
-	DESTINATION /
+	DESTINATION .
 	FILES_MATCHING PATTERN "*.h" PATTERN "*.hh" PATTERN "*.hpp" PATTERN "*.inl"
 	)
 install(
 	FILES build/ipaaca/ipaaca.pb.h
-	DESTINATION /include/ipaaca/
+	DESTINATION include/ipaaca/
 	)
 
 
