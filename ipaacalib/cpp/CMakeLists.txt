@@ -11,8 +11,8 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DIPAACA_DEBUG_MESSAGES")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DIPAACA_EXPOSE_FULL_RSB_API")
 
 # find cmake modules locally too
-#set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMakeModules )
-set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/../../deps/share/rsc0.10/cmake/Modules )
+set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMakeModules )
+#set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/../../deps/share/rsc0.10/cmake/Modules )
 	
 
 if(WIN32) # Check if we are on Windows
@@ -21,11 +21,33 @@ if(WIN32) # Check if we are on Windows
 		#
 		#   Setup section for Windows build (using precompiled rsb + deps)
 		#
-		#   set BOOST_ROOT=%YOURREPODIR%\rsx\boost
-		#   set PROTOBUF_INCLUDE_DIR=%YOURREPODIR%\rsx\protobuf\include
+		#   You need the rsx precompiled archive, even if you build rsb yourself,
+		#   for the dependencies. Make sure to grab the right version (bitness
+		#   and Visual Studio version). Tested with the rsx-0.10 branch.
+		#   Please unpack the rsx archive into the repo dir (where ipaaca also is).
+		#   Then set these environment variables before building rsb or ipaaca:
+		#
+		#   set BOOST_ROOT=%SOA_REPO_DIR%\rsx\boost
+		#   set PROTOBUF_ROOT=%SOA_REPO_DIR%\rsx\protobuf
+		#   set SPREAD_ROOT=%SOA_REPO_DIR%\rsx\spread
 		#
 		#
-
+		
+		#
+		#  If you want to compile rsb locally, check out the soa project 'rsb', build it
+		#  and use resolve.sh to pull its libraries into this project.
+		#  On the other hand, if you simply want to use the precompiled rsb from inside
+		#  "rsx" (it works but has no debug info), uncomment the following four lines.
+		#
+		include_directories( ${PROJECT_SOURCE_DIR}/../../../rsx/RSC-0.10.0-win32/include/rsc0.10 )
+		include_directories( ${PROJECT_SOURCE_DIR}/../../../rsx/RSB-0.10.2-win32/include/rsb0.10 )
+		link_directories( ${PROJECT_SOURCE_DIR}/../../../rsx/RSC-0.10.0-win32/lib )
+		link_directories( ${PROJECT_SOURCE_DIR}/../../../rsx/RSB-0.10.2-win32/lib )
+		
+		set(RSBLIBS rsc0.10 rsb)
+		set(LIBS ${LIBS} rpcrt4)
+		
+		# Using custom Protobuf script (from rsc) because it honors PROTOBUF_ROOT
 		find_package(ProtocolBuffers REQUIRED)
 		link_directories(${PROTOBUF_LIBRARY_DIRS})
 		include_directories(${PROTOBUF_INCLUDE_DIRS})
@@ -34,11 +56,23 @@ if(WIN32) # Check if we are on Windows
 		link_directories(${Boost_LIBRARY_DIRS})
 		include_directories(${Boost_INCLUDE_DIRS})
 		
-		# overriding the determined libs to remove boost_thread (causes multiple-definition issues)
-		set(Boost_LIBRARIES boost_regex-vc100-mt-gd-1_54 boost_date_time-vc100-mt-gd-1_54 boost_program_options-vc100-mt-gd-1_54 boost_filesystem-vc100-mt-gd-1_54 boost_signals-vc100-mt-gd-1_54 boost_system-vc100-mt-gd-1_54)
-		## TEST THIS INSTEAD:
-		#list(REMOVE_ITEM Boost_LIBRARIES boost_thread-vc100-mt-gd-1_54)
+		### (First attempts to fix linking problem:)
+		##list(REMOVE_ITEM Boost_LIBRARIES boost_thread-vc100-mt-gd-1_54)
+		##set(Boost_LIBRARIES boost_regex-vc100-mt-gd-1_54 boost_date_time-vc100-mt-gd-1_54 boost_program_options-vc100-mt-gd-1_54 boost_filesystem-vc100-mt-gd-1_54 boost_signals-vc100-mt-gd-1_54 boost_system-vc100-mt-gd-1_54)
 		
+		# Windows linkage hack: overriding the determined libs to remove boost_thread (causes multiple-definition issues)
+		set(CORRECT_BOOST_LIBS "")
+		foreach(BLIB ${Boost_LIBRARIES})
+			#message(STATUS "Boost lib: ${BLIB}")
+			string(REGEX MATCH "boost_thread[^/]+$" drop_item ${BLIB})
+			if(drop_item)
+				message(STATUS "(Windows hack:) Removing boost_thread library from the linkage list.")
+			else(drop_item)
+				list(APPEND CORRECT_BOOST_LIBS ${BLIB})
+			endif(drop_item)
+		endforeach(BLIB ${Boost_LIBRARIES})
+		set(Boost_LIBRARIES ${CORRECT_BOOST_LIBS})
+
 		#include_directories( ${PROJECT_SOURCE_DIR}/../../../rsx/boost/include/boost-1_54 )
 		#link_directories( ${PROJECT_SOURCE_DIR}/../../../rsx/boost/lib )
 		
@@ -49,18 +83,14 @@ if(WIN32) # Check if we are on Windows
 		#link_directories( ${PROJECT_SOURCE_DIR}/../../../rsx/RSB-0.10.2-win32/lib )
 		#link_directories( ${PROJECT_SOURCE_DIR}/../../../rsx/protobuf/bin )
 		
-		set(RSBLIBS rsc0.10 rsb)
-		#set(PROTOBUF_LIBRARY libprotobuf)
-		set(LIBS ${LIBS} rpcrt4)
-		# boost_regex-vc100-mt-gd-1_54.lib;boost_date_time-vc100-mt-gd-1_54.lib;boost_program_options-vc100-mt-gd-1_54.lib;boost_filesystem-vc100-mt-gd-1_54.lib;boost_signals-vc100-mt-gd-1_54.lib;boost_system-vc100-mt-gd-1_54.lib
-		
-		#	boost_regex-mt boost_date_time-mt boost_program_options-mt boost_thread-mt boost_filesystem-mt boost_signals-mt boost_system-mt
 	else()
 		message(SEND_ERROR "Unsupported compiler! Please build with MSVC (2010).")
 	endif()
 else()
 	#
+	#
 	# Setup section for Linux or OS X (using 'rsb' soa project)
+	#
 	#
 	find_package(Boost COMPONENTS system filesystem thread regex REQUIRED)
 	link_directories(${Boost_LIBRARY_DIRS})
