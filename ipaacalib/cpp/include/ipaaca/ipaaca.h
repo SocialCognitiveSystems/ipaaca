@@ -51,19 +51,21 @@
 	#endif
 #endif
 
-#if defined (_WIN32)
+#ifdef WIN32
+	#define IPAACA_SYSTEM_DEPENDENT_CLASS_NAME(c) "class "##c
+#else
+	#define IPAACA_SYSTEM_DEPENDENT_CLASS_NAME(c) c
+#endif
+
+#ifdef WIN32
 	#if defined(ipaaca_EXPORTS)
 		#define  IPAACA_EXPORT
-// __declspec(dllexport)
 		#define  IPAACA_HEADER_EXPORT __declspec(dllexport)
 		#define  IPAACA_MEMBER_VAR_EXPORT
-// __declspec(dllexport)
 	#else
 		#define  IPAACA_EXPORT
-// __declspec(dllimport)
 		#define  IPAACA_HEADER_EXPORT __declspec(dllimport)
 		#define  IPAACA_MEMBER_VAR_EXPORT
-// __declspec(dllimport)
 	#endif
 #else
 	#define IPAACA_EXPORT

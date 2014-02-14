@@ -65,14 +65,14 @@ IPAACA_EXPORT void Initializer::initialize_ipaaca_rsb_if_needed()
 {
 	if (_initialized) return;
 	
-	IPAACA_INFO("Calling initialize_updated_default_config()")
+	//IPAACA_INFO("Calling initialize_updated_default_config()")
 	initialize_updated_default_config();
 
 	// RYT FIXME This configuration stuff has been simply removed in rsb!
 	//ParticipantConfig config = ParticipantConfig::fromConfiguration();
 	//getFactory().setDefaultParticipantConfig(config);
 	
-	IPAACA_INFO("Creating and registering Converters")
+	//IPAACA_INFO("Creating and registering Converters")
 	boost::shared_ptr<IUConverter> iu_converter(new IUConverter());
 	converterRepository<std::string>()->registerConverter(iu_converter);
 	
@@ -94,7 +94,7 @@ IPAACA_EXPORT void Initializer::initialize_ipaaca_rsb_if_needed()
 	boost::shared_ptr<IntConverter> int_converter(new IntConverter());
 	converterRepository<std::string>()->registerConverter(int_converter);
 	
-	IPAACA_INFO("Initialization complete.")
+	//IPAACA_INFO("Initialization complete.")
 	_initialized = true;
 	//IPAACA_TODO("initialize all converters")
 }
@@ -492,21 +492,21 @@ IPAACA_EXPORT boost::shared_ptr<int> CallbackIUCommission::call(const std::strin
 IPAACA_EXPORT OutputBuffer::OutputBuffer(const std::string& basename)
 :Buffer(basename, "OB")
 {
-	IPAACA_INFO("Entering ...")
+	//IPAACA_INFO("Entering ...")
 	_id_prefix = _basename + "-" + _uuid + "-IU-";
 	_initialize_server();
-	IPAACA_INFO("... exiting.")
+	//IPAACA_INFO("... exiting.")
 }
 IPAACA_EXPORT void OutputBuffer::_initialize_server()
 {
-	IPAACA_INFO("Entering ...")
-	IPAACA_INFO("Calling createServer(\"" << _unique_name << "\")")
+	//IPAACA_INFO("Entering ...")
+	//IPAACA_INFO("Calling createServer(\"" << _unique_name << "\")")
 	_server = getFactory().createServer( Scope( _unique_name ) );
-	IPAACA_INFO("Registering methods")
+	//IPAACA_INFO("Registering methods")
 	_server->registerMethod("updatePayload", Server::CallbackPtr(new CallbackIUPayloadUpdate(this)));
 	_server->registerMethod("updateLinks", Server::CallbackPtr(new CallbackIULinkUpdate(this)));
 	_server->registerMethod("commit", Server::CallbackPtr(new CallbackIUCommission(this)));
-	IPAACA_INFO("... exiting.")
+	//IPAACA_INFO("... exiting.")
 }
 IPAACA_EXPORT OutputBuffer::ptr OutputBuffer::create(const std::string& basename)
 {
@@ -732,16 +732,16 @@ IPAACA_EXPORT RemoteServerPtr InputBuffer::_get_remote_server(const std::string&
 
 IPAACA_EXPORT ListenerPtr InputBuffer::_create_category_listener_if_needed(const std::string& category)
 {
-	IPAACA_INFO("Entering ...")
+	//IPAACA_INFO("Entering ...")
 	std::map<std::string, ListenerPtr>::iterator it = _listener_store.find(category);
 	if (it!=_listener_store.end()) {
-		IPAACA_INFO("... exiting.")
+		//IPAACA_INFO("... exiting.")
 		return it->second;
 	}
-	IPAACA_INFO("Creating a new listener for category " << category)
+	//IPAACA_INFO("Creating a new listener for category " << category)
 	std::string scope_string = "/ipaaca/category/" + category;
 	ListenerPtr listener = getFactory().createListener( Scope(scope_string) );
-	IPAACA_INFO("Adding handler")
+	//IPAACA_INFO("Adding handler")
 	HandlerPtr event_handler = HandlerPtr(
 			new EventFunctionHandler(
 				boost::bind(&InputBuffer::_handle_iu_events, this, _1)
@@ -749,7 +749,7 @@ IPAACA_EXPORT ListenerPtr InputBuffer::_create_category_listener_if_needed(const
 		);
 	listener->addHandler(event_handler);
 	_listener_store[category] = listener;
-	IPAACA_INFO("... exiting.")
+	//IPAACA_INFO("... exiting.")
 	return listener;
 }
 IPAACA_EXPORT void InputBuffer::_handle_iu_events(EventPtr event)
@@ -1344,7 +1344,7 @@ IPAACA_EXPORT void Payload::_remotely_enforced_setitem(const std::string& k, con
 // IUConverter//{{{
 
 IPAACA_EXPORT IUConverter::IUConverter()
-: Converter<std::string> ("class ipaaca::IU", "ipaaca-iu", true)
+: Converter<std::string> (IPAACA_SYSTEM_DEPENDENT_CLASS_NAME("ipaaca::IU"), "ipaaca-iu", true)
 {
 }
 
@@ -1480,7 +1480,7 @@ IPAACA_EXPORT AnnotatedData IUConverter::deserialize(const std::string& wireSche
 // MessageConverter//{{{
 
 IPAACA_EXPORT MessageConverter::MessageConverter()
-: Converter<std::string> ("class ipaaca::Message", "ipaaca-messageiu", true)
+: Converter<std::string> (IPAACA_SYSTEM_DEPENDENT_CLASS_NAME("ipaaca::Message"), "ipaaca-messageiu", true)
 {
 }
 
@@ -1611,7 +1611,7 @@ IPAACA_EXPORT AnnotatedData MessageConverter::deserialize(const std::string& wir
 // IUPayloadUpdateConverter//{{{
 
 IPAACA_EXPORT IUPayloadUpdateConverter::IUPayloadUpdateConverter()
-: Converter<std::string> ("class ipaaca::IUPayloadUpdate", "ipaaca-iu-payload-update", true)
+: Converter<std::string> (IPAACA_SYSTEM_DEPENDENT_CLASS_NAME("ipaaca::IUPayloadUpdate"), "ipaaca-iu-payload-update", true)
 {
 }
 
@@ -1664,7 +1664,7 @@ AnnotatedData IUPayloadUpdateConverter::deserialize(const std::string& wireSchem
 // IULinkUpdateConverter//{{{
 
 IPAACA_EXPORT IULinkUpdateConverter::IULinkUpdateConverter()
-: Converter<std::string> ("class ipaaca::IULinkUpdate", "ipaaca-iu-link-update", true)
+: Converter<std::string> (IPAACA_SYSTEM_DEPENDENT_CLASS_NAME("ipaaca::IULinkUpdate"), "ipaaca-iu-link-update", true)
 {
 }
 
