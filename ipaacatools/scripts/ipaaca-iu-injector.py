@@ -33,6 +33,8 @@
 import logging
 import sys
 import time
+import os
+import platform
 
 import ipaaca
 
@@ -71,20 +73,30 @@ while len(sys.argv)>idx+1:
 	pl[sys.argv[idx]] = sys.argv[idx+1]
 	idx+=2
 
-print "Sending "+iu_class+" of category "+cate
-print " with payload "+str(pl)
+try:
+	print "Sending "+iu_class+" of category "+cate
+	print " with payload "+str(pl)
 
-ob = ipaaca.OutputBuffer('IUInjector')
-ob.register_handler(my_update_handler)
-iu_top = ipaaca.IU(cate)
-iu_top.payload = pl
-ob.add(iu_top)
-print iu_class+" sent."
+	ob = ipaaca.OutputBuffer('IUInjector')
+	ob.register_handler(my_update_handler)
+	iu_top = ipaaca.IU(cate)
+	iu_top.payload = pl
+	ob.add(iu_top)
+	print iu_class+" sent."
 
-if iu_class=="IU":
-	print "Waiting "+str(timeout)+" sec for remote modifications..."
-	time.sleep(timeout)
+	if iu_class=="IU":
+		print "Waiting "+str(timeout)+" sec for remote modifications..."
+		time.sleep(timeout)
+	else:
+		time.sleep(0.1)
+	print "done."
+
+except KeyboardInterrupt:
+	pass
+
+if platform.system() == 'Windows':
+	os._exit(0)
 else:
-	time.sleep(0.1)
-print "done."
+	sys.exit(0)
+
 

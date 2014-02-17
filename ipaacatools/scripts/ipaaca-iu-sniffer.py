@@ -36,6 +36,8 @@ import logging
 import re
 import sys
 import time
+import os
+import platform
 
 import ipaaca
 
@@ -122,5 +124,14 @@ else:
 	for cat in cats:
 		print('\t' + cat)
 print('')
-while True:
-	time.sleep(1)
+try:
+	while True:
+		time.sleep(1)
+except KeyboardInterrupt:
+	pass
+
+if platform.system() == 'Windows':
+	os._exit(0)
+else:
+	sys.exit(0)
+
