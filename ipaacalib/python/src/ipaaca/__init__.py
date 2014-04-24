@@ -209,7 +209,7 @@ class Payload(dict):
 			if type(v)==str:
 				v=unicode(v,'utf8')
 		self.iu._modify_payload(is_delta=True, new_items=payload, keys_to_remove=[], writer_name=writer_name)
-		r = dict.update(payload) # batch update
+		r = dict.update(self, payload) # batch update
 		#print("Payload.merge() OUT")
 		self._batch_update_lock.release()
 		return r
