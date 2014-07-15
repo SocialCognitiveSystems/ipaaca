@@ -86,7 +86,7 @@ message IUCommission {
 
 message IUResendRequest {
 	required string uid = 1;
-	required string hidden_name = 2;
+	required string hidden_scope_name = 2;
 }
 
 message IULinkUpdate {

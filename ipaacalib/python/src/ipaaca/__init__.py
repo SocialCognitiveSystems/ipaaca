@@ -1309,19 +1309,18 @@ class InputBuffer(Buffer):
 			self.call_iu_event_handlers(event.data.uid, local=False, event_type=IUEventType.MESSAGE, category=event.data.category)
 			del self._iu_store[ event.data.uid ]
 		else:
-			# an update to an existing IU
-			if event.data.uid not in self._iu_store:
+			if event.data.uid not in self._iu_store: # TODO switch default off
 				logger.warning("Resend message for IU which we did not fully receive before.")
 				# send resend request to remote server (dlw).
 				remote_server = self._get_remote_server(event.data)
 				resend_request = ipaaca_pb2.IUResendRequest()
 				resend_request.uid = event.data.uid # target iu
-				resend_request.hidden_name = str(self._uuid) # hidden channel name
+				resend_request.hidden_scope_name = str(self._uuid) # hidden channel name
 				rRevision = remote_server.resendRequest(resend_request)
 				if rRevision == 0:
 					raise IUResendFailedError(self)
-
 				return
+			# an update to an existing IU
 			if type_ is ipaaca_pb2.IURetraction:
 				# IU retraction (cannot be triggered remotely)
 				iu = self._iu_store[event.data.uid]
@@ -1455,14 +1454,14 @@ class OutputBuffer(Buffer):
 			return iu.revision
 
 	def _remote_resend_request(self, iu_resend_request_pack):
-		''' Resend an requested iu. (dlw) '''
+		''' Resend an requested iu over the specific hidden channel. (dlw) '''
 		if iu_resend_request_pack.uid not in self._iu_store:
 			logger.warning("Remote InBuffer tried to spuriously write non-existent IU "+str(iu_resend_request_pack.uid))
 			return 0
 		iu = self._iu_store[iu_resend_request_pack.uid]
 		with iu.revision_lock:
-			if (iu_resend_request_pack.hidden_name is not None) or (iu_resend_request_pack.hidden_name is not ""):
-				informer = self._get_informer(iu_resend_request_pack.hidden_name)
+			if (iu_resend_request_pack.hidden_scope_name is not None) and (iu_resend_request_pack.hidden_scope_name is not ""):
+				informer = self._get_informer(iu_resend_request_pack.hidden_scope_name)
 				informer.publishData(iu)
 				return iu.revision
 			else:

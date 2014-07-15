@@ -34,6 +34,7 @@ package ipaaca;
 
 import ipaaca.protobuf.Ipaaca;
 import ipaaca.protobuf.Ipaaca.IUCommission;
+import ipaaca.protobuf.Ipaaca.IUResendRequest;
 import ipaaca.protobuf.Ipaaca.IULinkUpdate;
 import ipaaca.protobuf.Ipaaca.IUPayloadUpdate;
 import ipaaca.protobuf.Ipaaca.LinkSet;
@@ -101,6 +102,8 @@ public class OutputBuffer extends Buffer
             server.addMethod("updatePayload", new RemoteUpdatePayload());
             server.addMethod("updateLinks", new RemoteUpdateLinks());
             server.addMethod("commit", new RemoteCommit());
+	    // add method to trigger a resend request. (dlw)
+	    server.addMethod("resendRequest", new RemoteResendRequest());
             server.activate();
         }
         catch (InitializeException e)
@@ -143,6 +146,17 @@ public class OutputBuffer extends Buffer
         {
             logger.debug("remoteCommit");
             return remoteCommit(data);
+        }
+
+    }
+
+    private final class RemoteResendRequest extends DataCallback<Integer, IUResendRequest>
+    {
+        @Override
+        public Integer invoke(IUResendRequest data) throws Throwable
+        {
+            logger.debug("remoteResendRequest");
+            return remoteResendRequest(data);
         }
 
     }
@@ -302,6 +316,35 @@ public class OutputBuffer extends Buffer
             iu.commit(iuc.getWriterName());
             callIuEventHandlers(iuc.getUid(), true, IUEventType.COMMITTED, iu.getCategory());
             return iu.getRevision();
+        }
+    }
+
+    /*
+     * Resend an requested iu over the specific hidden channel. (dlw) TODO
+     */
+    private int remoteResendRequest(IUResendRequest iu_resend_request_pack)
+    {
+        if (!iuStore.containsKey(iu_resend_request_pack.getUid()))
+        {
+            logger.warn("Remote InBuffer tried to spuriously write non-existent IU {}", iu_resend_request_pack.getUid());
+            return 0;
+        }
+        AbstractIU iu = iuStore.get(iu_resend_request_pack.getUid());
+        if ((iu_resend_request_pack.hasHiddenScopeName() == true)&&(!iu_resend_request_pack.getHiddenScopeName().equals("")))
+        {
+	    Informer<Object> informer = getInformer(iu_resend_request_pack.getHiddenScopeName());
+            try
+            {
+                informer.send(iu);
+            }
+            catch (RSBException e)
+            {
+                throw new RuntimeException(e);
+            }
+            return iu.getRevision();
+        } else
+        {
+            return 0;
         }
     }
 
