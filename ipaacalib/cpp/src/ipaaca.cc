@@ -1,10 +1,10 @@
 /*
  * This file is part of IPAACA, the
  *  "Incremental Processing Architecture
- *   for Artificial Conversational Agents".  
+ *   for Artificial Conversational Agents".
  *
  * Copyright (c) 2009-2013 Sociable Agents Group
- *                         CITEC, Bielefeld University   
+ *                         CITEC, Bielefeld University
  *
  * http://opensource.cit-ec.de/projects/ipaaca/
  * http://purl.org/net/ipaaca
@@ -21,7 +21,7 @@
  * You should have received a copy of the LGPL along with this
  * program. If not, go to http://www.gnu.org/licenses/lgpl.html
  * or write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.  
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The development of this software was supported by the
  * Excellence Cluster EXC 277 Cognitive Interaction Technology.
@@ -50,8 +50,8 @@ using namespace rsb::patterns;
 #define VERBOSE_HANDLERS 0
 
 Lock& logger_lock() {
-    static Lock lock;
-    return lock;
+	static Lock lock;
+	return lock;
 }
 
 // util and init//{{{
@@ -64,36 +64,40 @@ IPAACA_EXPORT bool Initializer::initialized() { return _initialized; }
 IPAACA_EXPORT void Initializer::initialize_ipaaca_rsb_if_needed()
 {
 	if (_initialized) return;
-	
+
 	//IPAACA_INFO("Calling initialize_updated_default_config()")
 	initialize_updated_default_config();
 
 	// RYT FIXME This configuration stuff has been simply removed in rsb!
 	//ParticipantConfig config = ParticipantConfig::fromConfiguration();
 	//getFactory().setDefaultParticipantConfig(config);
-	
+
 	//IPAACA_INFO("Creating and registering Converters")
 	boost::shared_ptr<IUConverter> iu_converter(new IUConverter());
 	converterRepository<std::string>()->registerConverter(iu_converter);
-	
+
 	boost::shared_ptr<MessageConverter> message_converter(new MessageConverter());
 	converterRepository<std::string>()->registerConverter(message_converter);
-	
+
 	boost::shared_ptr<IUPayloadUpdateConverter> payload_update_converter(new IUPayloadUpdateConverter());
 	converterRepository<std::string>()->registerConverter(payload_update_converter);
-	
+
 	boost::shared_ptr<IULinkUpdateConverter> link_update_converter(new IULinkUpdateConverter());
 	converterRepository<std::string>()->registerConverter(link_update_converter);
-	
+
 	boost::shared_ptr<ProtocolBufferConverter<protobuf::IUCommission> > iu_commission_converter(new ProtocolBufferConverter<protobuf::IUCommission> ());
 	converterRepository<std::string>()->registerConverter(iu_commission_converter);
-	
+
+	// dlw
+	boost::shared_ptr<ProtocolBufferConverter<protobuf::IUResendRequest> > iu_resendrequest_converter(new ProtocolBufferConverter<protobuf::IUResendRequest> ());
+	converterRepository<std::string>()->registerConverter(iu_resendrequest_converter);
+
 	boost::shared_ptr<ProtocolBufferConverter<protobuf::IURetraction> > iu_retraction_converter(new ProtocolBufferConverter<protobuf::IURetraction> ());
 	converterRepository<std::string>()->registerConverter(iu_retraction_converter);
-	
+
 	boost::shared_ptr<IntConverter> int_converter(new IntConverter());
 	converterRepository<std::string>()->registerConverter(int_converter);
-	
+
 	//IPAACA_INFO("Initialization complete.")
 	_initialized = true;
 	//IPAACA_TODO("initialize all converters")
@@ -402,6 +406,8 @@ IPAACA_EXPORT void Buffer::call_iu_event_handlers(boost::shared_ptr<IUInterface>
 IPAACA_EXPORT CallbackIUPayloadUpdate::CallbackIUPayloadUpdate(Buffer* buffer): _buffer(buffer) { }
 IPAACA_EXPORT CallbackIULinkUpdate::CallbackIULinkUpdate(Buffer* buffer): _buffer(buffer) { }
 IPAACA_EXPORT CallbackIUCommission::CallbackIUCommission(Buffer* buffer): _buffer(buffer) { }
+// dlw
+IPAACA_EXPORT CallbackIUResendRequest::CallbackIUResendRequest(Buffer* buffer): _buffer(buffer) { }
 
 IPAACA_EXPORT boost::shared_ptr<int> CallbackIUPayloadUpdate::call(const std::string& methodName, boost::shared_ptr<IUPayloadUpdate> update)
 {
@@ -484,7 +490,29 @@ IPAACA_EXPORT boost::shared_ptr<int> CallbackIUCommission::call(const std::strin
 	iu->_revision_lock.unlock();
 	return boost::shared_ptr<int>(new int(revision));
 }
-
+/** dlw */
+IPAACA_EXPORT boost::shared_ptr<int> CallbackIUResendRequest::call(const std::string& methodName, boost::shared_ptr<protobuf::IUResendRequest> update)
+{
+	IUInterface::ptr iui = _buffer->get(update->uid());
+	if (! iui) {
+		IPAACA_WARNING("Remote InBuffer tried to spuriously write non-existent IU " << update->uid())
+		return boost::shared_ptr<int>(new int(0));
+	}
+	IU::ptr iu = boost::static_pointer_cast<IU>(iui);
+	if ((update->has_hidden_scope_name() == true)&&(update->hidden_scope_name().compare("") != 0)){// dlw TODO
+		//Informer<AnyType>::Ptr informer = _buffer->_get_informer(update->hidden_scope_name());
+		//Informer<ipaaca::IU>::DataPtr iu_data(iu);
+		//informer->publish(iu_data);
+		//_buffer->call_iu_event_handlers(iu, true, IU_ŔESENDREQUEST, update->getHiddenScopeName());
+		//_buffer->_publish_resend_update(iui, update->hidden_scope_name());
+		_buffer->call_iu_event_handlers(iu, true, IU_UPDATED, update->hidden_scope_name());
+		revision_t revision = iu->revision();
+		return boost::shared_ptr<int>(new int(revision));
+	} else {
+		revision_t revision = 0;
+		return boost::shared_ptr<int>(new int(revision));
+	}
+}
 //}}}
 
 // OutputBuffer//{{{
@@ -506,6 +534,9 @@ IPAACA_EXPORT void OutputBuffer::_initialize_server()
 	_server->registerMethod("updatePayload", Server::CallbackPtr(new CallbackIUPayloadUpdate(this)));
 	_server->registerMethod("updateLinks", Server::CallbackPtr(new CallbackIULinkUpdate(this)));
 	_server->registerMethod("commit", Server::CallbackPtr(new CallbackIUCommission(this)));
+	// dlw
+	_server->registerMethod("resendRequest", Server::CallbackPtr(new CallbackIUResendRequest(this)));
+
 	//IPAACA_INFO("... exiting.")
 }
 IPAACA_EXPORT OutputBuffer::ptr OutputBuffer::create(const std::string& basename)
@@ -564,7 +595,7 @@ IPAACA_EXPORT void OutputBuffer::_send_iu_commission(IUInterface* iu, revision_t
 	data->set_revision(revision);
 	if (writer_name=="") data->set_writer_name(_unique_name);
 	else data->set_writer_name(writer_name);
-	
+
 	Informer<AnyType>::Ptr informer = _get_informer(iu->category());
 	informer->publish(data);
 }
@@ -640,6 +671,7 @@ IPAACA_EXPORT InputBuffer::InputBuffer(const std::string& basename, const std::s
 	for (std::set<std::string>::const_iterator it=category_interests.begin(); it!=category_interests.end(); ++it) {
 		_create_category_listener_if_needed(*it);
 	}
+	_create_category_listener_if_needed(_uuid);
 }
 IPAACA_EXPORT InputBuffer::InputBuffer(const std::string& basename, const std::vector<std::string>& category_interests)
 :Buffer(basename, "IB")
@@ -647,17 +679,20 @@ IPAACA_EXPORT InputBuffer::InputBuffer(const std::string& basename, const std::v
 	for (std::vector<std::string>::const_iterator it=category_interests.begin(); it!=category_interests.end(); ++it) {
 		_create_category_listener_if_needed(*it);
 	}
+	_create_category_listener_if_needed(_uuid);
 }
 IPAACA_EXPORT InputBuffer::InputBuffer(const std::string& basename, const std::string& category_interest1)
 :Buffer(basename, "IB")
 {
 	_create_category_listener_if_needed(category_interest1);
+	_create_category_listener_if_needed(_uuid);
 }
 IPAACA_EXPORT InputBuffer::InputBuffer(const std::string& basename, const std::string& category_interest1, const std::string& category_interest2)
 :Buffer(basename, "IB")
 {
 	_create_category_listener_if_needed(category_interest1);
 	_create_category_listener_if_needed(category_interest2);
+	_create_category_listener_if_needed(_uuid);
 }
 IPAACA_EXPORT InputBuffer::InputBuffer(const std::string& basename, const std::string& category_interest1, const std::string& category_interest2, const std::string& category_interest3)
 :Buffer(basename, "IB")
@@ -665,6 +700,7 @@ IPAACA_EXPORT InputBuffer::InputBuffer(const std::string& basename, const std::s
 	_create_category_listener_if_needed(category_interest1);
 	_create_category_listener_if_needed(category_interest2);
 	_create_category_listener_if_needed(category_interest3);
+	_create_category_listener_if_needed(_uuid);
 }
 IPAACA_EXPORT InputBuffer::InputBuffer(const std::string& basename, const std::string& category_interest1, const std::string& category_interest2, const std::string& category_interest3, const std::string& category_interest4)
 :Buffer(basename, "IB")
@@ -673,6 +709,7 @@ IPAACA_EXPORT InputBuffer::InputBuffer(const std::string& basename, const std::s
 	_create_category_listener_if_needed(category_interest2);
 	_create_category_listener_if_needed(category_interest3);
 	_create_category_listener_if_needed(category_interest4);
+	_create_category_listener_if_needed(_uuid);
 }
 
 
@@ -752,6 +789,40 @@ IPAACA_EXPORT ListenerPtr InputBuffer::_create_category_listener_if_needed(const
 	//IPAACA_INFO("... exiting.")
 	return listener;
 }
+IPAACA_EXPORT void InputBuffer::_trigger_resend_request(EventPtr event) {
+	std::string type = event->getType();
+	std::string uid = NULL;
+	std::string writerName = NULL;
+	if (type == "ipaaca::IUPayloadUpdate") {
+		boost::shared_ptr<IUPayloadUpdate> update = boost::static_pointer_cast<IUPayloadUpdate>(event->getData());
+		uid = update->uid;
+		writerName = update->writer_name;
+	} else if (type == "ipaaca::IULinkUpdate") {
+		boost::shared_ptr<IULinkUpdate> update = boost::static_pointer_cast<IULinkUpdate>(event->getData());
+		uid = update->uid;
+		writerName = update->writer_name;
+	} else if (type == "ipaaca::protobuf::IUCommission") {
+		boost::shared_ptr<protobuf::IUCommission> update = boost::static_pointer_cast<protobuf::IUCommission>(event->getData());
+		uid = update->uid();
+		writerName = update->writer_name();
+	}
+
+	if (!writerName.empty()) {
+		//RemoteServerPtr server = boost::static_pointer_cast<InputBuffer>(_buffer)->_get_remote_server(_owner_name);
+		RemoteServerPtr server = _get_remote_server(writerName);
+		if (!uid.empty()) {
+			boost::shared_ptr<protobuf::IUResendRequest> update = boost::shared_ptr<protobuf::IUResendRequest>(new protobuf::IUResendRequest());
+			update->set_uid(uid);
+			update->set_hidden_scope_name(_uuid);
+			boost::shared_ptr<int> result = server->call<int>("resendRequest", update, IPAACA_REMOTE_SERVER_TIMEOUT);
+			if (*result == 0) {
+				throw IUResendRequestFailedError();
+			} else {
+				//revision = *result; //TODO return dlw TODO
+			}
+		}
+	}
+}
 IPAACA_EXPORT void InputBuffer::_handle_iu_events(EventPtr event)
 {
 	std::string type = event->getType();
@@ -782,6 +853,7 @@ IPAACA_EXPORT void InputBuffer::_handle_iu_events(EventPtr event)
 			}
 			it = _iu_store.find(update->uid);
 			if (it == _iu_store.end()) {
+				_trigger_resend_request(event);
 				IPAACA_INFO("Ignoring UPDATED message for an IU that we did not fully receive before")
 				return;
 			}
@@ -797,6 +869,7 @@ IPAACA_EXPORT void InputBuffer::_handle_iu_events(EventPtr event)
 			}
 			it = _iu_store.find(update->uid);
 			if (it == _iu_store.end()) {
+				_trigger_resend_request(event);
 				IPAACA_INFO("Ignoring LINKSUPDATED message for an IU that we did not fully receive before")
 				return;
 			}
@@ -812,6 +885,7 @@ IPAACA_EXPORT void InputBuffer::_handle_iu_events(EventPtr event)
 			}
 			it = _iu_store.find(update->uid());
 			if (it == _iu_store.end()) {
+				_trigger_resend_request(event);
 				IPAACA_INFO("Ignoring COMMITTED message for an IU that we did not fully receive before")
 				return;
 			}
@@ -825,6 +899,7 @@ IPAACA_EXPORT void InputBuffer::_handle_iu_events(EventPtr event)
 			boost::shared_ptr<protobuf::IURetraction> update = boost::static_pointer_cast<protobuf::IURetraction>(event->getData());
 			it = _iu_store.find(update->uid());
 			if (it == _iu_store.end()) {
+				_trigger_resend_request(event);
 				IPAACA_INFO("Ignoring RETRACTED message for an IU that we did not fully receive before")
 				return;
 			}
@@ -843,7 +918,6 @@ IPAACA_EXPORT void InputBuffer::_handle_iu_events(EventPtr event)
 		//IPAACA_INFO( "New RemotePushIU state: " << *(it->second) )
 	}
 }
-
 //}}}
 
 
@@ -867,7 +941,7 @@ IPAACA_EXPORT void IUInterface::_set_buffer(Buffer* buffer) { //boost::shared_pt
 		throw IUAlreadyInABufferError();
 	}
 	_buffer = buffer;
-	
+
 }
 
 IPAACA_EXPORT void IUInterface::_set_owner_name(const std::string& owner_name) {
@@ -1035,7 +1109,7 @@ void Message::_internal_commit(const std::string& writer_name)
 	if (is_published()) {
 		IPAACA_INFO("Info: committing to a Message after sending has no global effects")
 	}
-	
+
 }
 //}}}
 
@@ -1468,7 +1542,7 @@ IPAACA_EXPORT AnnotatedData IUConverter::deserialize(const std::string& wireSche
 			//return std::make_pair(getDataType(), obj);
 			return std::make_pair("ipaaca::RemoteMessage", obj);
 			break;
-			} 
+			}
 		default:
 			// other cases not handled yet! ( TODO )
 			throw NotImplementedError();

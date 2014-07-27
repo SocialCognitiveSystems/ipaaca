@@ -72,6 +72,7 @@ public class InputBuffer extends Buffer
     private final static Logger logger = LoggerFactory.getLogger(InputBuffer.class.getName());
     private IUStore<RemotePushIU> iuStore = new IUStore<RemotePushIU>();
     private IUStore<RemoteMessageIU> messageStore = new IUStore<RemoteMessageIU>();
+    private boolean resendActive;
 
     public void close()
     {
@@ -126,7 +127,8 @@ public class InputBuffer extends Buffer
     public InputBuffer(String owningComponentName, Set<String> categoryInterests)
     {
         super(owningComponentName);
-    String shortIDName = getUniqueShortName();
+        resendActive = false;
+        String shortIDName = getUniqueShortName();
         uniqueName = "/ipaaca/component/" + shortIDName + "/IB";
 
         for (String cat : categoryInterests)
@@ -135,6 +137,30 @@ public class InputBuffer extends Buffer
         }
     // add own uuid as identifier for hidden channel. (dlw)
     createCategoryListenerIfNeeded(shortIDName);
+    }
+
+    /** Pass resendActive to toggle resendRequest-functionality. */
+    public InputBuffer(String owningComponentName, Set<String> categoryInterests, boolean resendActive)
+    {
+        super(owningComponentName);
+        this.resendActive = resendActive;
+        String shortIDName = getUniqueShortName();
+        uniqueName = "/ipaaca/component/" + shortIDName + "/IB";
+
+        for (String cat : categoryInterests)
+        {
+            createCategoryListenerIfNeeded(cat);
+        }
+    // add own uuid as identifier for hidden channel. (dlw)
+    createCategoryListenerIfNeeded(shortIDName);
+    }
+
+    public boolean isResendActive() {
+        return this.resendActive;
+    }
+
+    public void setResendActive(boolean active) {
+        this.resendActive = active;
     }
 
     // def _get_remote_server(self, iu):
@@ -339,8 +365,12 @@ public class InputBuffer extends Buffer
                 }
                 if (!iuStore.containsKey(iuLinkUpdate.getUid()))
                 {
-            triggerResendRequest(event.getData(), getUniqueShortName());
-                    //logger.warn("Link update message for IU which we did not fully receive before.");
+                    if (resendActive)
+                    {
+                        triggerResendRequest(event.getData(), getUniqueShortName());
+                    } else {
+                        logger.warn("Link update message for IU which we did not fully receive before.");
+                    }
                     return;
                 }
                 RemotePushIU iu = this.iuStore.get(iuLinkUpdate.getUid());
@@ -358,8 +388,12 @@ public class InputBuffer extends Buffer
                 }
                 if (!iuStore.containsKey(iuUpdate.getUid()))
                 {
-            triggerResendRequest(event.getData(), getUniqueShortName());
-                    //logger.warn("Update message for IU which we did not fully receive before.");
+                    if (resendActive)
+                    {
+                        triggerResendRequest(event.getData(), getUniqueShortName());
+                    } else {
+                        logger.warn("Update message for IU which we did not fully receive before.");
+                    }
                     return;
                 }
                 RemotePushIU iu = this.iuStore.get(iuUpdate.getUid());
@@ -379,8 +413,12 @@ public class InputBuffer extends Buffer
                 }
                 if (!iuStore.containsKey(iuc.getUid()))
                 {
-            triggerResendRequest(event.getData(), getUniqueShortName());
-                    //logger.warn("Update message for IU which we did not fully receive before.");
+                    if (resendActive)
+                    {
+                        triggerResendRequest(event.getData(), getUniqueShortName());
+                    } else {
+                        logger.warn("Update message for IU which we did not fully receive before.");
+                    }
                     return;
                 }
                 RemotePushIU iu = this.iuStore.get(iuc.getUid());

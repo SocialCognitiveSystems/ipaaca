@@ -1240,7 +1240,7 @@ class InputBuffer(Buffer):
 
 	"""An InputBuffer that holds remote IUs."""
 
-	def __init__(self, owning_component_name, category_interests=None, participant_config=None):
+	def __init__(self, owning_component_name, category_interests=None, participant_config=None, resend_active = False ):
 		'''Create an InputBuffer.
 
 		Keyword arguments:
@@ -1249,6 +1249,7 @@ class InputBuffer(Buffer):
 		participant_config = RSB configuration
 		'''
 		super(InputBuffer, self).__init__(owning_component_name, participant_config)
+		self._resend_active = resend_active
 		self._unique_name = '/ipaaca/component/'+str(owning_component_name)+'ID'+self._uuid+'/IB'
 		self._listener_store = {} # one per IU category
 		self._remote_server_store = {} # one per remote-IU-owning Component
@@ -1310,15 +1311,18 @@ class InputBuffer(Buffer):
 			del self._iu_store[ event.data.uid ]
 		else:
 			if event.data.uid not in self._iu_store: # TODO switch default off
-				logger.warning("Resend message for IU which we did not fully receive before.")
-				# send resend request to remote server (dlw).
-				remote_server = self._get_remote_server(event.data)
-				resend_request = ipaaca_pb2.IUResendRequest()
-				resend_request.uid = event.data.uid # target iu
-				resend_request.hidden_scope_name = str(self._uuid) # hidden channel name
-				rRevision = remote_server.resendRequest(resend_request)
-				if rRevision == 0:
-					raise IUResendFailedError(self)
+				if self._resend_active == True:
+					logger.warning("Resend message for IU which we did not fully receive before.")
+					# send resend request to remote server (dlw).
+					remote_server = self._get_remote_server(event.data)
+					resend_request = ipaaca_pb2.IUResendRequest()
+					resend_request.uid = event.data.uid # target iu
+					resend_request.hidden_scope_name = str(self._uuid) # hidden channel name
+					rRevision = remote_server.resendRequest(resend_request)
+					if rRevision == 0:
+						raise IUResendFailedError(self)
+				else:
+					logger.warning("Update message for IU which we did not fully receive before.")
 				return
 			# an update to an existing IU
 			if type_ is ipaaca_pb2.IURetraction:
@@ -1361,6 +1365,12 @@ class InputBuffer(Buffer):
 	def add_category_interests(self, category_interests):
 		for interest in category_interests:
 			self._add_category_listener(interest)
+
+	def is_resend_active():
+		return self._resend_active
+
+	def set_resend_active(active):
+		self._resend_active = active
 
 
 class OutputBuffer(Buffer):
