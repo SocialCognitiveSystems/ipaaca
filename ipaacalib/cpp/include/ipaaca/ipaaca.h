@@ -379,10 +379,13 @@ IPAACA_HEADER_EXPORT class Buffer { //: public boost::enable_shared_from_this<Bu
 		IPAACA_MEMBER_VAR_EXPORT std::string _id_prefix;
 		IPAACA_MEMBER_VAR_EXPORT std::vector<IUEventHandler::ptr> _event_handlers;
 	protected:
+		IPAACA_HEADER_EXPORT _IPAACA_ABSTRACT_ virtual void _publish_iu_resend(boost::shared_ptr<IU> iu, const std::string& hidden_scope_name) = 0;
+
+
 		IPAACA_HEADER_EXPORT _IPAACA_ABSTRACT_ virtual void _send_iu_link_update(IUInterface* iu, bool is_delta, revision_t revision, const LinkMap& new_links, const LinkMap& links_to_remove, const std::string& writer_name="undef") = 0;
 		IPAACA_HEADER_EXPORT _IPAACA_ABSTRACT_ virtual void _send_iu_payload_update(IUInterface* iu, bool is_delta, revision_t revision, const std::map<std::string, std::string>& new_items, const std::vector<std::string>& keys_to_remove, const std::string& writer_name="undef") = 0;
 		IPAACA_HEADER_EXPORT _IPAACA_ABSTRACT_ virtual void _send_iu_commission(IUInterface* iu, revision_t revision, const std::string& writer_name="undef") = 0;
-		IPAACA_HEADER_EXPORT _IPAACA_ABSTRACT_ virtual void _send_iu_resendrequest(IUInterface* iu, revision_t revision, const std::string& writer_name="undef") = 0;
+//		IPAACA_HEADER_EXPORT _IPAACA_ABSTRACT_ virtual void _send_iu_resendrequest(IUInterface* iu, revision_t revision, const std::string& writer_name="undef") = 0;
 		IPAACA_HEADER_EXPORT void _allocate_unique_name(const std::string& basename, const std::string& function);
 		IPAACA_HEADER_EXPORT inline Buffer(const std::string& basename, const std::string& function) {
 			_allocate_unique_name(basename, function);
@@ -417,6 +420,8 @@ IPAACA_HEADER_EXPORT class OutputBuffer: public Buffer { //, public boost::enabl
 	protected:
 		// informing functions
 		IPAACA_HEADER_EXPORT void _send_iu_link_update(IUInterface* iu, bool is_delta, revision_t revision, const LinkMap& new_links, const LinkMap& links_to_remove, const std::string& writer_name="undef");
+IPAACA_HEADER_EXPORT void _publish_iu_resend(boost::shared_ptr<IU> iu, const std::string& hidden_scope_name);
+
 		IPAACA_HEADER_EXPORT void _send_iu_payload_update(IUInterface* iu, bool is_delta, revision_t revision, const std::map<std::string, std::string>& new_items, const std::vector<std::string>& keys_to_remove, const std::string& writer_name="undef");
 		IPAACA_HEADER_EXPORT void _send_iu_commission(IUInterface* iu, revision_t revision, const std::string& writer_name);
 		IPAACA_HEADER_EXPORT void _send_iu_resendrequest(IUInterface* iu, revision_t revision, const std::string& writer_name);
@@ -425,6 +430,7 @@ IPAACA_HEADER_EXPORT class OutputBuffer: public Buffer { //, public boost::enabl
 		// _remote_update_payload(IUPayloadUpdate)
 		// _remote_commit(protobuf::IUCommission)
 		IPAACA_HEADER_EXPORT void _publish_iu(boost::shared_ptr<IU> iu);
+
 		IPAACA_HEADER_EXPORT void _retract_iu(boost::shared_ptr<IU> iu);
 	protected:
 		IPAACA_HEADER_EXPORT OutputBuffer(const std::string& basename);
@@ -462,6 +468,10 @@ IPAACA_HEADER_EXPORT class InputBuffer: public Buffer { //, public boost::enable
 		IPAACA_HEADER_EXPORT inline void _send_iu_link_update(IUInterface* iu, bool is_delta, revision_t revision, const LinkMap& new_links, const LinkMap& links_to_remove, const std::string& writer_name="undef")
 		{
 			IPAACA_WARNING("(ERROR) InputBuffer::_send_iu_link_update() should never be invoked")
+		}
+		IPAACA_HEADER_EXPORT inline void _publish_iu_resend(boost::shared_ptr<IU> iu, const std::string& hidden_scope_name)
+		{
+			IPAACA_WARNING("(ERROR) InputBuffer::_publish_iu_resend() should never be invoked")
 		}
 		IPAACA_HEADER_EXPORT inline void _send_iu_payload_update(IUInterface* iu, bool is_delta, revision_t revision, const std::map<std::string, std::string>& new_items, const std::vector<std::string>& keys_to_remove, const std::string& writer_name="undef")
 		{
@@ -651,6 +661,8 @@ IPAACA_HEADER_EXPORT class IUInterface {//{{{
 		// setters
 		IPAACA_HEADER_EXPORT _IPAACA_ABSTRACT_ virtual void commit() = 0;
 		// functions to modify and update links:
+		IPAACA_HEADER_EXPORT void _publish_resend(boost::shared_ptr<IU> iu, const std::string& hidden_scope_name);
+
 		IPAACA_HEADER_EXPORT void add_links(const std::string& type, const LinkSet& targets, const std::string& writer_name = "");
 		IPAACA_HEADER_EXPORT void remove_links(const std::string& type, const LinkSet& targets, const std::string& writer_name = "");
 		IPAACA_HEADER_EXPORT void modify_links(const LinkMap& add, const LinkMap& remove, const std::string& writer_name = "");
@@ -686,6 +698,9 @@ IPAACA_HEADER_EXPORT class IU: public IUInterface {//{{{
 		IPAACA_HEADER_EXPORT void commit();
 	protected:
 		IPAACA_HEADER_EXPORT virtual void _modify_links(bool is_delta, const LinkMap& new_links, const LinkMap& links_to_remove, const std::string& writer_name = "");
+
+		IPAACA_HEADER_EXPORT virtual void _publish_resend(boost::shared_ptr<IU> iu, const std::string& hidden_scope_name);
+
 		IPAACA_HEADER_EXPORT virtual void _modify_payload(bool is_delta, const std::map<std::string, std::string>& new_items, const std::vector<std::string>& keys_to_remove, const std::string& writer_name = "");
 	protected:
 		IPAACA_HEADER_EXPORT virtual void _internal_commit(const std::string& writer_name = "");

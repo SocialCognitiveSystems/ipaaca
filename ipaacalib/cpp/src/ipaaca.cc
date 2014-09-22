@@ -385,17 +385,20 @@ IPAACA_EXPORT void Buffer::_allocate_unique_name(const std::string& basename, co
 }
 IPAACA_EXPORT void Buffer::register_handler(IUEventHandlerFunction function, IUEventType event_mask, const std::set<std::string>& categories)
 {
+	std::cout << "register_handler " << function << " " << event_mask << " " << categories << std::endl;
 	IUEventHandler::ptr handler = IUEventHandler::ptr(new IUEventHandler(function, event_mask, categories));
 	_event_handlers.push_back(handler);
 }
 IPAACA_EXPORT void Buffer::register_handler(IUEventHandlerFunction function, IUEventType event_mask, const std::string& category)
 {
+	std::cout << "register_handler " << function << " " << event_mask << " " << category << std::endl;
 	IUEventHandler::ptr handler = IUEventHandler::ptr(new IUEventHandler(function, event_mask, category));
 	_event_handlers.push_back(handler);
 }
 IPAACA_EXPORT void Buffer::call_iu_event_handlers(boost::shared_ptr<IUInterface> iu, bool local, IUEventType event_type, const std::string& category)
 {
-	//IPAACA_INFO("handling an event " << ipaaca::iu_event_type_to_str(event_type) << " for IU " << iu->uid())
+	IPAACA_INFO("handling an event " << ipaaca::iu_event_type_to_str(event_type) << " for IU " << iu->uid())
+	std::cout << "handling an event " << ipaaca::iu_event_type_to_str(event_type) << " for IU " << iu->uid() << std::endl;
 	for (std::vector<IUEventHandler::ptr>::iterator it = _event_handlers.begin(); it != _event_handlers.end(); ++it) {
 		(*it)->call(this, iu, local, event_type, category);
 	}
@@ -503,10 +506,15 @@ IPAACA_EXPORT boost::shared_ptr<int> CallbackIUResendRequest::call(const std::st
 		//Informer<AnyType>::Ptr informer = _buffer->_get_informer(update->hidden_scope_name());
 		//Informer<ipaaca::IU>::DataPtr iu_data(iu);
 		//informer->publish(iu_data);
-		//_buffer->call_iu_event_handlers(iu, true, IU_ŔESENDREQUEST, update->getHiddenScopeName());
+		//_buffer->call_iu_event_handlers(iu, true, IU_RESENDREQUEST, update->getHiddenScopeName());
 		//_buffer->_publish_resend_update(iui, update->hidden_scope_name());
-		_buffer->call_iu_event_handlers(iu, true, IU_UPDATED, update->hidden_scope_name());
+
+		std::cout << "dlw call_iu_event_handlers " << update->hidden_scope_name() << std::endl;
+		//_buffer->call_iu_event_handlers(iu, true, IU_UPDATED, update->hidden_scope_name());
 		revision_t revision = iu->revision();
+
+		iu->_publish_resend(iu, update->hidden_scope_name());
+
 		return boost::shared_ptr<int>(new int(revision));
 	} else {
 		revision_t revision = 0;
@@ -600,6 +608,11 @@ IPAACA_EXPORT void OutputBuffer::_send_iu_commission(IUInterface* iu, revision_t
 	informer->publish(data);
 }
 
+
+
+
+
+
 IPAACA_EXPORT void OutputBuffer::add(IU::ptr iu)
 {
 	if (_iu_store.count(iu->uid()) > 0) {
@@ -623,12 +636,22 @@ IPAACA_EXPORT void OutputBuffer::_publish_iu(IU::ptr iu)
 	informer->publish(iu_data);
 }
 
+IPAACA_EXPORT void OutputBuffer::_publish_iu_resend(IU::ptr iu, const std::string& hidden_scope_name)
+{
+	Informer<AnyType>::Ptr informer = _get_informer(hidden_scope_name);
+	Informer<ipaaca::IU>::DataPtr iu_data(iu);
+	informer->publish(iu_data);
+}
+
+
+
+
 IPAACA_EXPORT Informer<AnyType>::Ptr OutputBuffer::_get_informer(const std::string& category)
 {
 	if (_informer_store.count(category) > 0) {
 		return _informer_store[category];
 	} else {
-		//IPAACA_INFO("Making new informer for category " << category)
+		IPAACA_INFO("Making new informer for category " << category)
 		std::string scope_string = "/ipaaca/category/" + category;
 		Informer<AnyType>::Ptr informer = getFactory().createInformer<AnyType> ( Scope(scope_string));
 		_informer_store[category] = informer;
@@ -769,16 +792,17 @@ IPAACA_EXPORT RemoteServerPtr InputBuffer::_get_remote_server(const std::string&
 
 IPAACA_EXPORT ListenerPtr InputBuffer::_create_category_listener_if_needed(const std::string& category)
 {
-	//IPAACA_INFO("Entering ...")
+	IPAACA_INFO("Entering ...")
 	std::map<std::string, ListenerPtr>::iterator it = _listener_store.find(category);
 	if (it!=_listener_store.end()) {
-		//IPAACA_INFO("... exiting.")
+		IPAACA_INFO("... exiting.")
 		return it->second;
 	}
-	//IPAACA_INFO("Creating a new listener for category " << category)
+	IPAACA_INFO("Creating a new listener for category " << category)
+	std::cout << "Creating a new listener for category " << category << std::endl;
 	std::string scope_string = "/ipaaca/category/" + category;
 	ListenerPtr listener = getFactory().createListener( Scope(scope_string) );
-	//IPAACA_INFO("Adding handler")
+	IPAACA_INFO("Adding handler")
 	HandlerPtr event_handler = HandlerPtr(
 			new EventFunctionHandler(
 				boost::bind(&InputBuffer::_handle_iu_events, this, _1)
@@ -786,31 +810,38 @@ IPAACA_EXPORT ListenerPtr InputBuffer::_create_category_listener_if_needed(const
 		);
 	listener->addHandler(event_handler);
 	_listener_store[category] = listener;
-	//IPAACA_INFO("... exiting.")
+	IPAACA_INFO("... exiting.")
 	return listener;
 }
 IPAACA_EXPORT void InputBuffer::_trigger_resend_request(EventPtr event) {
 	std::string type = event->getType();
-	std::string uid = NULL;
-	std::string writerName = NULL;
+	std::string uid = "";
+	std::string writerName = "";
 	if (type == "ipaaca::IUPayloadUpdate") {
+		std::cout << "trigger ipaaca::IUPayloadUpdate" << std::endl;
 		boost::shared_ptr<IUPayloadUpdate> update = boost::static_pointer_cast<IUPayloadUpdate>(event->getData());
 		uid = update->uid;
 		writerName = update->writer_name;
 	} else if (type == "ipaaca::IULinkUpdate") {
+		std::cout << "trigger ipaaca::IULinkUpdate" << std::endl;
 		boost::shared_ptr<IULinkUpdate> update = boost::static_pointer_cast<IULinkUpdate>(event->getData());
 		uid = update->uid;
 		writerName = update->writer_name;
 	} else if (type == "ipaaca::protobuf::IUCommission") {
+		std::cout << "trigger ipaaca::protobuf::IUCommission" << std::endl;
 		boost::shared_ptr<protobuf::IUCommission> update = boost::static_pointer_cast<protobuf::IUCommission>(event->getData());
 		uid = update->uid();
 		writerName = update->writer_name();
+	} else {
+		std::cout << "trigger ??? else" << std::endl;
 	}
 
 	if (!writerName.empty()) {
+		std::cout << "writer name not empty " << writerName << std::endl;
 		//RemoteServerPtr server = boost::static_pointer_cast<InputBuffer>(_buffer)->_get_remote_server(_owner_name);
 		RemoteServerPtr server = _get_remote_server(writerName);
 		if (!uid.empty()) {
+			std::cout << "uid not empty " << uid << std::endl;
 			boost::shared_ptr<protobuf::IUResendRequest> update = boost::shared_ptr<protobuf::IUResendRequest>(new protobuf::IUResendRequest());
 			update->set_uid(uid);
 			update->set_hidden_scope_name(_uuid);
@@ -818,15 +849,17 @@ IPAACA_EXPORT void InputBuffer::_trigger_resend_request(EventPtr event) {
 			if (*result == 0) {
 				throw IUResendRequestFailedError();
 			} else {
-				//revision = *result; //TODO return dlw TODO
+				std::cout << "revision " << *result << std::endl; //TODO return dlw TODO
 			}
 		}
 	}
 }
 IPAACA_EXPORT void InputBuffer::_handle_iu_events(EventPtr event)
 {
+	std::cout << "handle iu events" << std::endl;
 	std::string type = event->getType();
 	if (type == "ipaaca::RemotePushIU") {
+		std::cout << "ipaaca::RemotePushIU" << std::endl;
 		boost::shared_ptr<RemotePushIU> iu = boost::static_pointer_cast<RemotePushIU>(event->getData());
 		if (_iu_store.count(iu->category()) > 0) {
 			// already got the IU... ignore
@@ -837,6 +870,7 @@ IPAACA_EXPORT void InputBuffer::_handle_iu_events(EventPtr event)
 		}
 		//IPAACA_INFO( "New RemotePushIU state: " << (*iu) )
 	} else if (type == "ipaaca::RemoteMessage") {
+		std::cout << "ipaaca::RemoteMessage" << std::endl;
 		boost::shared_ptr<RemoteMessage> iu = boost::static_pointer_cast<RemoteMessage>(event->getData());
 		//_iu_store[iu->uid()] = iu;
 		//iu->_set_buffer(this);
@@ -844,17 +878,21 @@ IPAACA_EXPORT void InputBuffer::_handle_iu_events(EventPtr event)
 		call_iu_event_handlers(iu, false, IU_MESSAGE, iu->category() );
 		//_iu_store.erase(iu->uid());
 	} else {
+		std::cout << "elseeeeeee" << std::endl;
 		RemotePushIUStore::iterator it;
 		if (type == "ipaaca::IUPayloadUpdate") {
+			std::cout << "ipaaca::IUPayloadUpdate" << std::endl;
 			boost::shared_ptr<IUPayloadUpdate> update = boost::static_pointer_cast<IUPayloadUpdate>(event->getData());
 			//IPAACA_INFO("** writer name: " << update->writer_name)
+			std::cout << "writer name " << update->writer_name << std::endl;
 			if (update->writer_name == _unique_name) {
 				return;
 			}
 			it = _iu_store.find(update->uid);
 			if (it == _iu_store.end()) {
+				std::cout << "Using UPDATED message for an IU that we did not fully receive before" << update->writer_name << std::endl;
 				_trigger_resend_request(event);
-				IPAACA_INFO("Ignoring UPDATED message for an IU that we did not fully receive before")
+				IPAACA_INFO("Using UPDATED message for an IU that we did not fully receive before")
 				return;
 			}
 			//
@@ -1043,6 +1081,32 @@ IPAACA_EXPORT void IU::_modify_links(bool is_delta, const LinkMap& new_links, co
 	}
 	_revision_lock.unlock();
 }
+
+
+IPAACA_EXPORT void IU::_publish_resend(IU::ptr iu, const std::string& hidden_scope_name)
+{
+	//_revision_lock.lock();
+	//if (_committed) {
+	//	_revision_lock.unlock();
+	//	throw IUCommittedError();
+	//}
+	//_increase_revision_number();
+	//if (is_published()) {
+//IUInterface* iu, bool is_delta, revision_t revision, const LinkMap& new_links, const LinkMap& links_to_remove, const std::string& writer_name
+//dlw TODO
+//	IU::ptr iu = boost::static_pointer_cast<IU>(this);
+	//IU::ptr iu = boost::make_static(this);
+
+	_buffer->_publish_iu_resend(iu, hidden_scope_name);
+
+	//}
+	//_revision_lock.unlock();
+}
+
+
+
+
+
 IPAACA_EXPORT void IU::_modify_payload(bool is_delta, const std::map<std::string, std::string>& new_items, const std::vector<std::string>& keys_to_remove, const std::string& writer_name)
 {
 	_revision_lock.lock();
