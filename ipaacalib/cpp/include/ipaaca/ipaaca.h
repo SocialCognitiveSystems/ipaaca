@@ -486,6 +486,10 @@ IPAACA_HEADER_EXPORT class InputBuffer: public Buffer { //, public boost::enable
 			IPAACA_WARNING("(ERROR) InputBuffer::_send_iu_resendrequest() should never be invoked")
 		}
 	protected:
+		IPAACA_MEMBER_VAR_EXPORT bool triggerResend;
+		IPAACA_HEADER_EXPORT void SetResend(bool resendActive);
+		IPAACA_HEADER_EXPORT bool GetResend();
+
 		IPAACA_HEADER_EXPORT InputBuffer(const std::string& basename, const std::set<std::string>& category_interests);
 		IPAACA_HEADER_EXPORT InputBuffer(const std::string& basename, const std::vector<std::string>& category_interests);
 		IPAACA_HEADER_EXPORT InputBuffer(const std::string& basename, const std::string& category_interest1);
