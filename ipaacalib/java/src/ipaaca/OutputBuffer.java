@@ -1,10 +1,10 @@
 /*
  * This file is part of IPAACA, the
  *  "Incremental Processing Architecture
- *   for Artificial Conversational Agents".  
+ *   for Artificial Conversational Agents".
  *
  * Copyright (c) 2009-2013 Sociable Agents Group
- *                         CITEC, Bielefeld University   
+ *                         CITEC, Bielefeld University
  *
  * http://opensource.cit-ec.de/projects/ipaaca/
  * http://purl.org/net/ipaaca
@@ -21,7 +21,7 @@
  * You should have received a copy of the LGPL along with this
  * program. If not, go to http://www.gnu.org/licenses/lgpl.html
  * or write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.  
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The development of this software was supported by the
  * Excellence Cluster EXC 277 Cognitive Interaction Technology.
@@ -69,6 +69,7 @@ public class OutputBuffer extends Buffer
     private Map<String, Informer<Object>> informerStore = new HashMap<String, Informer<Object>>(); // category -> informer map
     private final static Logger logger = LoggerFactory.getLogger(OutputBuffer.class.getName());
     private IUStore<LocalIU> iuStore = new IUStore<LocalIU>();
+    private String channel;
 
     // def __init__(self, owning_component_name, participant_config=None):
     // '''Create an Output Buffer.
@@ -91,6 +92,16 @@ public class OutputBuffer extends Buffer
      */
     public OutputBuffer(String owningComponentName)
     {
+        this(owningComponentName, "default");
+
+    }
+
+    /**
+     * @param owningComponentName name of the entity that own this buffer
+     * @param channel name of the ipaaca channel this buffer is using
+     */
+    public OutputBuffer(String owningComponentName, String ipaaca_channel)
+    {
         super(owningComponentName);
 
         uniqueName = "/ipaaca/component/" + getUniqueShortName() + "/OB";
@@ -112,6 +123,7 @@ public class OutputBuffer extends Buffer
             throw new RuntimeException(e);
         }
 
+        this.channel = ipaaca_channel;
     }
 
     private final class RemoteUpdatePayload extends DataCallback<Integer, IUPayloadUpdate>
@@ -192,7 +204,7 @@ public class OutputBuffer extends Buffer
             {
                 iu.getPayload().remove(k, update.getWriterName());
             }
-            if (update.getNewItemsList().size() > 0) 
+            if (update.getNewItemsList().size() > 0)
             {
             	HashMap<String, String> payloadUpdate = new HashMap<String, String>();
 
@@ -329,7 +341,7 @@ public class OutputBuffer extends Buffer
         Informer<Object> informer;
         try
         {
-            informer = Factory.getInstance().createInformer("/ipaaca/category/" + category);
+            informer = Factory.getInstance().createInformer("/ipaaca/channel/" + this.channel + "/category/" + category);
         }
         catch (InitializeException e1)
         {
@@ -337,7 +349,7 @@ public class OutputBuffer extends Buffer
         }
 
         informerStore.put(category, informer);
-        logger.info("Added informer on " + category);
+        logger.info("Added informer on channel " + this.channel + " and category " + category);
 
         try
         {

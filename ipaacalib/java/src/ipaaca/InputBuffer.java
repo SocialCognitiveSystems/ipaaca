@@ -1,10 +1,10 @@
 /*
  * This file is part of IPAACA, the
  *  "Incremental Processing Architecture
- *   for Artificial Conversational Agents".  
+ *   for Artificial Conversational Agents".
  *
  * Copyright (c) 2009-2013 Sociable Agents Group
- *                         CITEC, Bielefeld University   
+ *                         CITEC, Bielefeld University
  *
  * http://opensource.cit-ec.de/projects/ipaaca/
  * http://purl.org/net/ipaaca
@@ -21,7 +21,7 @@
  * You should have received a copy of the LGPL along with this
  * program. If not, go to http://www.gnu.org/licenses/lgpl.html
  * or write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.  
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The development of this software was supported by the
  * Excellence Cluster EXC 277 Cognitive Interaction Technology.
@@ -69,6 +69,7 @@ public class InputBuffer extends Buffer
     private final static Logger logger = LoggerFactory.getLogger(InputBuffer.class.getName());
     private IUStore<RemotePushIU> iuStore = new IUStore<RemotePushIU>();
     private IUStore<RemoteMessageIU> messageStore = new IUStore<RemoteMessageIU>();
+    private String channel;
 
     public void close()
     {
@@ -122,6 +123,12 @@ public class InputBuffer extends Buffer
     // self._create_category_listener_if_needed(cat)
     public InputBuffer(String owningComponentName, Set<String> categoryInterests)
     {
+        this(owningComponentName, categoryInterests, "default");
+    }
+
+
+    public InputBuffer(String owningComponentName, Set<String> categoryInterests, String ipaaca_channel)
+    {
         super(owningComponentName);
         uniqueName = "/ipaaca/component/" + getUniqueShortName() + "/IB";
 
@@ -129,6 +136,8 @@ public class InputBuffer extends Buffer
         {
             createCategoryListenerIfNeeded(cat);
         }
+
+        this.channel = ipaaca_channel;
     }
 
     // def _get_remote_server(self, iu):
@@ -180,7 +189,7 @@ public class InputBuffer extends Buffer
         Listener listener;
         try
         {
-            listener = Factory.getInstance().createListener(new Scope("/ipaaca/category/" + category));
+            listener = Factory.getInstance().createListener(new Scope("/ipaaca/channel/" + this.channel + "/category/" + category));
         }
         catch (InitializeException e1)
         {
@@ -273,7 +282,7 @@ public class InputBuffer extends Buffer
                 logger.warn("Spurious RemoteMessage event: already got this UID: "+rm.getUid());
                 return;
             }
-            
+
             //logger.info("Adding Message "+rm.getUid());
             messageStore.put(rm.getUid(), rm);
             //logger.info("Calling handlers for Message "+rm.getUid());
