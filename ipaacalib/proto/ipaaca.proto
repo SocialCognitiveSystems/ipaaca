@@ -84,6 +84,11 @@ message IUCommission {
 	required string writer_name = 3;
 }
 
+message IUResendRequest {
+	required string uid = 1;
+	required string hidden_scope_name = 2;
+}
+
 message IULinkUpdate {
 	required string uid = 1;
 	required uint32 revision = 2;

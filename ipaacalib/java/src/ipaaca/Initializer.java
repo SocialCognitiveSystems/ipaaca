@@ -33,6 +33,7 @@
 package ipaaca;
 
 import ipaaca.protobuf.Ipaaca.IUCommission;
+import ipaaca.protobuf.Ipaaca.IUResendRequest;
 import rsb.converter.ConverterSignature;
 import rsb.converter.DefaultConverterRepository;
 import rsb.converter.ProtocolBufferConverter;
@@ -55,6 +56,9 @@ public final class Initializer
         DefaultConverterRepository.getDefaultConverterRepository().addConverter(new IntConverter());
         DefaultConverterRepository.getDefaultConverterRepository().addConverter(
                 new ProtocolBufferConverter<IUCommission>(IUCommission.getDefaultInstance()));
+	// dlw
+	DefaultConverterRepository.getDefaultConverterRepository().addConverter(
+                new ProtocolBufferConverter<IUResendRequest>(IUResendRequest.getDefaultInstance()));
 
         DefaultConverterRepository.getDefaultConverterRepository().addConverter(
                 new IUConverter(new ConverterSignature("ipaaca-iu", RemotePushIU.class)));
