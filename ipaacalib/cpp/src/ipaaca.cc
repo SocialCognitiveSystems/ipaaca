@@ -683,10 +683,21 @@ IPAACA_EXPORT void OutputBuffer::_retract_iu(IU::ptr iu)
 //}}}
 
 // InputBuffer//{{{
-IPAACA_EXPORT InputBuffer::InputBuffer(const std::string& basename, const std::set<std::string>& category_interests, const std::string& channel)
+IPAACA_EXPORT InputBuffer::InputBuffer(const BufferConfiguration& bufferconfiguration)
+:Buffer(bufferconfiguration.get_basename(), "IB")
+{
+	_channel = bufferconfiguration.get_channel();
+
+	for (std::vector<std::string>::const_iterator it=bufferconfiguration.get_category_interests().begin(); it!=bufferconfiguration.get_category_interests().end(); ++it) {
+		_create_category_listener_if_needed(*it);
+	}
+	_create_category_listener_if_needed(_uuid);
+	triggerResend = false;
+}
+IPAACA_EXPORT InputBuffer::InputBuffer(const std::string& basename, const std::set<std::string>& category_interests)
 :Buffer(basename, "IB")
 {
-	_channel = channel;
+	_channel = "default";
 
 	for (std::set<std::string>::const_iterator it=category_interests.begin(); it!=category_interests.end(); ++it) {
 		_create_category_listener_if_needed(*it);
@@ -694,10 +705,10 @@ IPAACA_EXPORT InputBuffer::InputBuffer(const std::string& basename, const std::s
 	_create_category_listener_if_needed(_uuid);
 	triggerResend = false;
 }
-IPAACA_EXPORT InputBuffer::InputBuffer(const std::string& basename, const std::vector<std::string>& category_interests, const std::string& channel)
+IPAACA_EXPORT InputBuffer::InputBuffer(const std::string& basename, const std::vector<std::string>& category_interests)
 :Buffer(basename, "IB")
 {
-	_channel = channel;
+	_channel = "default";
 
 	for (std::vector<std::string>::const_iterator it=category_interests.begin(); it!=category_interests.end(); ++it) {
 		_create_category_listener_if_needed(*it);
@@ -705,72 +716,76 @@ IPAACA_EXPORT InputBuffer::InputBuffer(const std::string& basename, const std::v
 	_create_category_listener_if_needed(_uuid);
 	triggerResend = false;
 }
-IPAACA_EXPORT InputBuffer::InputBuffer(const std::string& basename, const std::string& category_interest1, const std::string& channel)
+IPAACA_EXPORT InputBuffer::InputBuffer(const std::string& basename, const std::string& category_interest1)
 :Buffer(basename, "IB")
 {
-	_channel = channel;
+	_channel = "default";
 
 	_create_category_listener_if_needed(category_interest1);
 }
-// IPAACA_EXPORT InputBuffer::InputBuffer(const std::string& basename, const std::string& category_interest1, const std::string& category_interest2)
-// :Buffer(basename, "IB")
-// {
-// 	_channel = "default";
+IPAACA_EXPORT InputBuffer::InputBuffer(const std::string& basename, const std::string& category_interest1, const std::string& category_interest2)
+:Buffer(basename, "IB")
+{
+	_channel = "default";
 
-// 	_create_category_listener_if_needed(category_interest1);
-// 	_create_category_listener_if_needed(category_interest2);
-// }
-// IPAACA_EXPORT InputBuffer::InputBuffer(const std::string& basename, const std::string& category_interest1, const std::string& category_interest2, const std::string& category_interest3)
-// :Buffer(basename, "IB")
-// {
-// 	_channel = "default";
+	_create_category_listener_if_needed(category_interest1);
+	_create_category_listener_if_needed(category_interest2);
+}
+IPAACA_EXPORT InputBuffer::InputBuffer(const std::string& basename, const std::string& category_interest1, const std::string& category_interest2, const std::string& category_interest3)
+:Buffer(basename, "IB")
+{
+	_channel = "default";
 
-// 	_create_category_listener_if_needed(category_interest1);
-// 	_create_category_listener_if_needed(category_interest2);
-// 	_create_category_listener_if_needed(category_interest3);
-// }
-// IPAACA_EXPORT InputBuffer::InputBuffer(const std::string& basename, const std::string& category_interest1, const std::string& category_interest2, const std::string& category_interest3, const std::string& category_interest4)
-// :Buffer(basename, "IB")
-// {
-// 	_channel = "default";
+	_create_category_listener_if_needed(category_interest1);
+	_create_category_listener_if_needed(category_interest2);
+	_create_category_listener_if_needed(category_interest3);
+}
+IPAACA_EXPORT InputBuffer::InputBuffer(const std::string& basename, const std::string& category_interest1, const std::string& category_interest2, const std::string& category_interest3, const std::string& category_interest4)
+:Buffer(basename, "IB")
+{
+	_channel = "default";
 
-// 	_create_category_listener_if_needed(category_interest1);
-// 	_create_category_listener_if_needed(category_interest2);
-// 	_create_category_listener_if_needed(category_interest3);
-// 	_create_category_listener_if_needed(category_interest4);
-// }
+	_create_category_listener_if_needed(category_interest1);
+	_create_category_listener_if_needed(category_interest2);
+	_create_category_listener_if_needed(category_interest3);
+	_create_category_listener_if_needed(category_interest4);
+}
 
-
-IPAACA_EXPORT InputBuffer::ptr InputBuffer::create(const std::string& basename, const std::set<std::string>& category_interests, const std::string& channel)
+IPAACA_EXPORT InputBuffer::ptr InputBuffer::create(const BufferConfiguration& bufferconfiguration)
 {
 	Initializer::initialize_ipaaca_rsb_if_needed();
-	return InputBuffer::ptr(new InputBuffer(basename, category_interests, channel));
+	return InputBuffer::ptr(new InputBuffer(bufferconfiguration));
 }
-IPAACA_EXPORT InputBuffer::ptr InputBuffer::create(const std::string& basename, const std::vector<std::string>& category_interests, const std::string& channel)
+IPAACA_EXPORT InputBuffer::ptr InputBuffer::create(const std::string& basename, const std::set<std::string>& category_interests)
 {
 	Initializer::initialize_ipaaca_rsb_if_needed();
-	return InputBuffer::ptr(new InputBuffer(basename, category_interests, channel));
+	return InputBuffer::ptr(new InputBuffer(basename, category_interests));
 }
-IPAACA_EXPORT InputBuffer::ptr InputBuffer::create(const std::string& basename, const std::string& category_interest1, const std::string& channel)
+IPAACA_EXPORT InputBuffer::ptr InputBuffer::create(const std::string& basename, const std::vector<std::string>& category_interests)
 {
 	Initializer::initialize_ipaaca_rsb_if_needed();
-	return InputBuffer::ptr(new InputBuffer(basename, category_interest1, channel));
+	return InputBuffer::ptr(new InputBuffer(basename, category_interests));
 }
-// IPAACA_EXPORT InputBuffer::ptr InputBuffer::create(const std::string& basename, const std::string& category_interest1, const std::string& category_interest2, const std::string& channel)
-// {
-// 	Initializer::initialize_ipaaca_rsb_if_needed();
-// 	return InputBuffer::ptr(new InputBuffer(basename, category_interest1, category_interest2, channel));
-// }
-// IPAACA_EXPORT InputBuffer::ptr InputBuffer::create(const std::string& basename, const std::string& category_interest1, const std::string& category_interest2, const std::string& category_interest3, const std::string& channel)
-// {
-// 	Initializer::initialize_ipaaca_rsb_if_needed();
-// 	return InputBuffer::ptr(new InputBuffer(basename, category_interest1, category_interest2, category_interest3, channel));
-// }
-// IPAACA_EXPORT InputBuffer::ptr InputBuffer::create(const std::string& basename, const std::string& category_interest1, const std::string& category_interest2, const std::string& category_interest3, const std::string& category_interest4, const std::string& channel)
-// {
-// 	Initializer::initialize_ipaaca_rsb_if_needed();
-// 	return InputBuffer::ptr(new InputBuffer(basename, category_interest1, category_interest2, category_interest3, category_interest4, channel));
-// }
+IPAACA_EXPORT InputBuffer::ptr InputBuffer::create(const std::string& basename, const std::string& category_interest1)
+{
+	Initializer::initialize_ipaaca_rsb_if_needed();
+	return InputBuffer::ptr(new InputBuffer(basename, category_interest1));
+}
+IPAACA_EXPORT InputBuffer::ptr InputBuffer::create(const std::string& basename, const std::string& category_interest1, const std::string& category_interest2)
+{
+	Initializer::initialize_ipaaca_rsb_if_needed();
+	return InputBuffer::ptr(new InputBuffer(basename, category_interest1, category_interest2));
+}
+IPAACA_EXPORT InputBuffer::ptr InputBuffer::create(const std::string& basename, const std::string& category_interest1, const std::string& category_interest2, const std::string& category_interest3)
+{
+	Initializer::initialize_ipaaca_rsb_if_needed();
+	return InputBuffer::ptr(new InputBuffer(basename, category_interest1, category_interest2, category_interest3));
+}
+IPAACA_EXPORT InputBuffer::ptr InputBuffer::create(const std::string& basename, const std::string& category_interest1, const std::string& category_interest2, const std::string& category_interest3, const std::string& category_interest4)
+{
+	Initializer::initialize_ipaaca_rsb_if_needed();
+	return InputBuffer::ptr(new InputBuffer(basename, category_interest1, category_interest2, category_interest3, category_interest4));
+}
 
 
 IPAACA_EXPORT void InputBuffer::SetResend(bool resendActive)
@@ -1050,6 +1065,15 @@ IPAACA_EXPORT void IUInterface::set_links(const LinkMap& links, const std::strin
 	LinkMap none;
 	_modify_links(false, links, none, writer_name);
 	_replace_links(links);
+}
+
+IPAACA_HEADER_EXPORT const std::string& IUInterface::channel()
+{
+	if (_buffer == NULL)
+		throw IUUnpublishedError();
+	else
+		return _buffer->channel();
+
 }
 
 //}}}
