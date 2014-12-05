@@ -6,9 +6,11 @@ CCFLAGS=-I../../build -I../../../../deps/include -I../../../../dist/include -I. 
 BOOSTLIBS = -L/opt/local/lib -lboost_regex-mt -lboost_date_time-mt -lboost_thread-mt 
 PROTOLIBS = -L/opt/local/lib -lprotobuf
 #LIBS = ${BOOSTLIBS} ${PROTOLIBS} -L/usr/local/lib -lrsc -lrsbcore
-LIBS = -L../../../../deps/lib -L../../../../dist/lib -lipaaca
+#LIBS = -L../../../../deps/lib -L../../../../dist/lib -lipaaca
+LIBS = -L../../build -L../../../../deps/lib -L../../../../dist/lib -lipaaca
 
-COMPILER = gfilt
+#COMPILER = gfilt
+COMPILER = gcc
 
 all: testipaaca
 	

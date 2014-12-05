@@ -30,7 +30,7 @@
  * Excellence Initiative.
  */
 
-#include <ipaaca.h>
+#include <../include/ipaaca/ipaaca.h>
 #include <typeinfo>
 
 //#include <rsc/logging/Logger.h>
@@ -56,7 +56,7 @@ int main() {
 	try{
 		//initialize_ipaaca_rsb();
 		
-		InputBuffer::ptr ib = InputBuffer::create("Tester", "testcategory");
+		InputBuffer::ptr ib = InputBuffer::create("Tester", "spam");
 		ib->register_handler(my_first_iu_handler);
 		
 		while (true) {
@@ -82,7 +82,7 @@ int main() {
 		ob->register_handler(iu_handler_for_remote_changes);
 		//std::cout << "Buffer: " << ob->unique_name() << std::endl;
 		
-		IU::ptr iu = IU::create("testcategory");
+		IU::ptr iu = IU::create("spam");
 		ob->add(iu);
 		
 		std::cout << "Updating in 1 sec" << std::endl;
@@ -98,11 +98,20 @@ int main() {
 		
 		iu->add_link("grin", "DUMMY_IU_UID_1234efef1234");
 		
-		std::cout << "Interpreted as  long  value: " << iu->_payload["TEST"].to_int() << std::endl;
-		std::cout << "Interpreted as double value: " << iu->_payload["TEST"].to_float() << std::endl;
+		//std::cout << "Interpreted as  long  value: " << iu->_payload["TEST"].to_int() << std::endl;
+		//std::cout << "Interpreted as double value: " << iu->_payload["TEST"].to_float() << std::endl;
 		
 		std::cout << "Committing and quitting in 1 sec" << std::endl;
 		sleep(1);
+		int c = 0;
+		while(true) {
+			std::stringstream ss;
+			ss << c;
+                        iu->_payload["data"] = ss.str();
+			std::cout << "iu->_payload[\"data\"]=" << ss.str() << std::endl;
+			c++;
+			sleep(1);
+		}
 		iu->commit();
 	} catch (ipaaca::Exception& e) {
 		std::cout << "== IPAACA EXCEPTION == " << e.what() << std::endl;

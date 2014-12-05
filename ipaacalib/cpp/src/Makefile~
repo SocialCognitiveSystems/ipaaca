@@ -13,8 +13,7 @@ CCFLAGS=-I../include -I../build -I/usr/local/include -I/opt/local/include ${CONF
 LIBFLAGS=-fPIC -shared
 BOOSTLIBS = -L/opt/local/lib -lboost_regex-mt -lboost_date_time-mt -lboost_program_options-mt -lboost_thread-mt -lboost_filesystem-mt -lboost_signals-mt -lboost_system-mt
 PROTOLIBS = -L/opt/local/lib -lprotobuf
-#LIBS = ${BOOSTLIBS} ${PROTOLIBS} -L/usr/local/lib -lrsc -lrsbcore
-LIBS = ${BOOSTLIBS} ${PROTOLIBS} -L/usr/local/lib -L../build -lipaaca
+LIBS = ${BOOSTLIBS} ${PROTOLIBS} -L/usr/local/lib -L../build -lrsc -lrsbcore -lipaaca
 
 COMPILER = gcc#gfilt
 

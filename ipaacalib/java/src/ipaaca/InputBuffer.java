@@ -33,6 +33,7 @@
 package ipaaca;
 
 import ipaaca.protobuf.Ipaaca.IUCommission;
+import ipaaca.protobuf.Ipaaca.IUResendRequest;
 import ipaaca.protobuf.Ipaaca.IULinkUpdate;
 import ipaaca.protobuf.Ipaaca.IUPayloadUpdate;
 
@@ -51,6 +52,8 @@ import rsb.Event;
 import rsb.Factory;
 import rsb.Handler;
 import rsb.InitializeException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 import rsb.Listener;
 import rsb.RSBException;
 import rsb.Scope;
@@ -69,7 +72,9 @@ public class InputBuffer extends Buffer
     private final static Logger logger = LoggerFactory.getLogger(InputBuffer.class.getName());
     private IUStore<RemotePushIU> iuStore = new IUStore<RemotePushIU>();
     private IUStore<RemoteMessageIU> messageStore = new IUStore<RemoteMessageIU>();
+
     private String channel;
+    private boolean resendActive;
 
     public void close()
     {
@@ -130,14 +135,42 @@ public class InputBuffer extends Buffer
     public InputBuffer(String owningComponentName, Set<String> categoryInterests, String ipaaca_channel)
     {
         super(owningComponentName);
-        uniqueName = "/ipaaca/component/" + getUniqueShortName() + "/IB";
+        resendActive = false;
+        String shortIDName = getUniqueShortName();
+        uniqueName = "/ipaaca/component/" + shortIDName + "/IB";
 
         for (String cat : categoryInterests)
         {
             createCategoryListenerIfNeeded(cat);
         }
-
         this.channel = ipaaca_channel;
+
+    // add own uuid as identifier for hidden channel. (dlw)
+    createCategoryListenerIfNeeded(shortIDName);
+    }
+
+    /** Pass resendActive to toggle resendRequest-functionality. */
+    public InputBuffer(String owningComponentName, Set<String> categoryInterests, boolean resendActive)
+    {
+        super(owningComponentName);
+        this.resendActive = resendActive;
+        String shortIDName = getUniqueShortName();
+        uniqueName = "/ipaaca/component/" + shortIDName + "/IB";
+
+        for (String cat : categoryInterests)
+        {
+            createCategoryListenerIfNeeded(cat);
+        }
+        // add own uuid as identifier for hidden channel. (dlw)
+        createCategoryListenerIfNeeded(shortIDName);
+    }
+
+    public boolean isResendActive() {
+        return this.resendActive;
+    }
+
+    public void setResendActive(boolean active) {
+        this.resendActive = active;
     }
 
     // def _get_remote_server(self, iu):
@@ -168,6 +201,30 @@ public class InputBuffer extends Buffer
             throw new RuntimeException(e);
         }
         remoteServerStore.put(iu.getOwnerName(), remoteServer);
+        return remoteServer;
+    }
+
+    protected RemoteServer getRemoteServer(String ownerName)
+    {
+        if (remoteServerStore.containsKey(ownerName))
+        {
+            return remoteServerStore.get(ownerName);
+        }
+        logger.debug("Getting remote server for {}", ownerName);
+        RemoteServer remoteServer = Factory.getInstance().createRemoteServer(new Scope(ownerName));
+        try
+        {
+            remoteServer.activate();
+        }
+        catch (InitializeException e)
+        {
+            throw new RuntimeException(e);
+        }
+        catch (RSBException e)
+        {
+            throw new RuntimeException(e);
+        }
+        remoteServerStore.put(ownerName, remoteServer);
         return remoteServer;
     }
 
@@ -318,7 +375,12 @@ public class InputBuffer extends Buffer
                 }
                 if (!iuStore.containsKey(iuLinkUpdate.getUid()))
                 {
-                    logger.warn("Link update message for IU which we did not fully receive before.");
+                    if (resendActive)
+                    {
+                        triggerResendRequest(event.getData(), getUniqueShortName());
+                    } else {
+                        logger.warn("Link update message for IU which we did not fully receive before.");
+                    }
                     return;
                 }
                 RemotePushIU iu = this.iuStore.get(iuLinkUpdate.getUid());
@@ -336,7 +398,12 @@ public class InputBuffer extends Buffer
                 }
                 if (!iuStore.containsKey(iuUpdate.getUid()))
                 {
-                    logger.warn("Update message for IU which we did not fully receive before.");
+                    if (resendActive)
+                    {
+                        triggerResendRequest(event.getData(), getUniqueShortName());
+                    } else {
+                        logger.warn("Update message for IU which we did not fully receive before.");
+                    }
                     return;
                 }
                 RemotePushIU iu = this.iuStore.get(iuUpdate.getUid());
@@ -356,13 +423,64 @@ public class InputBuffer extends Buffer
                 }
                 if (!iuStore.containsKey(iuc.getUid()))
                 {
-                    logger.warn("Update message for IU which we did not fully receive before.");
+                    if (resendActive)
+                    {
+                        triggerResendRequest(event.getData(), getUniqueShortName());
+                    } else {
+                        logger.warn("Update message for IU which we did not fully receive before.");
+                    }
                     return;
                 }
                 RemotePushIU iu = this.iuStore.get(iuc.getUid());
                 iu.applyCommmision();
                 iu.setRevision(iuc.getRevision());
                 callIuEventHandlers(iuc.getUid(), false, IUEventType.COMMITTED, iu.getCategory());
+            }
+        }
+    }
+
+    private void triggerResendRequest(Object aiuObj, String hiddenScopeName)
+    {
+        String uid = null;
+        String writerName = null;
+        if (aiuObj instanceof IULinkUpdate) {
+            IULinkUpdate tmp = (IULinkUpdate)aiuObj;
+            uid = tmp.getUid();
+            writerName = tmp.getWriterName();
+        } else if (aiuObj instanceof IUPayloadUpdate) {
+            IUPayloadUpdate tmp = (IUPayloadUpdate)aiuObj;
+            uid = tmp.getUid();
+            writerName = tmp.getWriterName();
+        } else if (aiuObj instanceof IUCommission) {
+            IUCommission tmp = (IUCommission)aiuObj;
+            uid = tmp.getUid();
+            writerName = tmp.getWriterName();
+        }
+        RemoteServer rServer = null;
+        if (writerName != null)
+            rServer = getRemoteServer(writerName);
+        if ((rServer != null)&&(uid != null)) {
+            IUResendRequest iurr = IUResendRequest.newBuilder().setUid(uid).setHiddenScopeName(hiddenScopeName).build();
+            int rRevision = 0;
+            try
+                {
+                    rRevision = (Integer) rServer.call("resendRequest", iurr);
+                }
+                catch (RSBException e)
+                {
+                    throw new RuntimeException(e);
+                }
+                catch (ExecutionException e)
+                {
+                    throw new RuntimeException(e);
+                }
+                catch (TimeoutException e)
+                {
+                    throw new RuntimeException(e);
+                }
+            if (rRevision == 0)
+            {
+                //throw new IUResendFailedException(aiu); // TODO
             }
         }
     }

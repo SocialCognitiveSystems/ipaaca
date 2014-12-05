@@ -138,7 +138,7 @@ void TextSender::publish_text_to_print(const std::string& text, const std::strin
 	}
 }
 	
-int old_main() {
+int main() {
 	TextSender sender;
 	sleep(1);
 	sender.publish_text_to_print("(INIT)");
@@ -146,7 +146,7 @@ int old_main() {
 	while (true) sleep(1);
 }
 
-int main() {
+int old_main() {
 	std::cerr << "TODO: implement Ipaaca C++ test cases." << std::endl;
 	return 0;
 }

@@ -65,7 +65,7 @@ __all__ = [
 	'IUAccessMode',
 	'InputBuffer', 'OutputBuffer',
 	'IU',
-	'IUPublishedError', 'IUUpdateFailedError', 'IUCommittedError', 'IUReadOnlyError', 'IUNotFoundError',
+	'IUPublishedError', 'IUUpdateFailedError', 'IUCommittedError', 'IUReadOnlyError', 'IUNotFoundError', 'IUResendFailedError',
 	'logger'
 ]
 
@@ -141,6 +141,10 @@ class IUUpdateFailedError(Exception):
 	def __init__(self, iu):
 		super(IUUpdateFailedError, self).__init__('Remote update failed for IU ' + str(iu.uid) + '.')
 
+class IUResendFailedError(Exception):
+	"""Error indicating that a remote IU resend failed."""
+	def __init__(self, iu):
+		super(IUResendFailedError, self).__init__('Remote resend failed for IU ' + str(iu.uid) + '.')
 
 class IUCommittedError(Exception):
 	"""Error indicating that an IU is immutable because it has been committed to."""
@@ -1236,7 +1240,8 @@ class InputBuffer(Buffer):
 
 	"""An InputBuffer that holds remote IUs."""
 
-	def __init__(self, owning_component_name, category_interests=None, channel="default", participant_config=None):
+
+	def __init__(self, owning_component_name, category_interests=None, channel="default", participant_config=None, resend_active = False ):
 		'''Create an InputBuffer.
 
 		Keyword arguments:
@@ -1245,6 +1250,7 @@ class InputBuffer(Buffer):
 		participant_config = RSB configuration
 		'''
 		super(InputBuffer, self).__init__(owning_component_name, participant_config)
+		self._resend_active = resend_active
 		self._unique_name = '/ipaaca/component/'+str(owning_component_name)+'ID'+self._uuid+'/IB'
 		self._listener_store = {} # one per IU category
 		self._remote_server_store = {} # one per remote-IU-owning Component
@@ -1253,14 +1259,22 @@ class InputBuffer(Buffer):
 		if category_interests is not None:
 			for cat in category_interests:
 				self._add_category_listener(cat)
+		# add own uuid as identifier for hidden channel. (dlw)
+		self._add_category_listener(str(self._uuid))
 
 	def _get_remote_server(self, iu):
 		'''Return (or create, store and return) a remote server.'''
-		if iu.owner_name in self._remote_server_store:
-			return self._remote_server_store[iu.owner_name]
-		#  TODO remove the str() when unicode is supported (issue #490)
-		remote_server = rsb.createRemoteServer(rsb.Scope(str(iu.owner_name)))
-		self._remote_server_store[iu.owner_name] = remote_server
+		_owner = None
+		if hasattr(iu,'owner_name'):
+			_owner = iu.owner_name
+		elif hasattr(iu,'writer_name'):
+			_owner = iu.writer_name
+		if _owner is not None:
+			if _owner in self._remote_server_store:
+				return self._remote_server_store[_owner]
+			#  TODO remove the str() when unicode is supported (issue #490)
+			remote_server = rsb.createRemoteServer(rsb.Scope(str(_owner)))
+			self._remote_server_store[_owner] = remote_server
 		return remote_server
 
 	def _add_category_listener(self, iu_category):
@@ -1271,6 +1285,7 @@ class InputBuffer(Buffer):
 			self._listener_store[iu_category] = cat_listener
 			self._category_interests.append(iu_category)
 			logger.info("Added listener in scope "+"/ipaaca/channel/"+str(self._channel)+"/category/"+iu_category)
+
 
 	def _handle_iu_events(self, event):
 		'''Dispatch incoming IU events.
@@ -1298,11 +1313,21 @@ class InputBuffer(Buffer):
 			self.call_iu_event_handlers(event.data.uid, local=False, event_type=IUEventType.MESSAGE, category=event.data.category)
 			del self._iu_store[ event.data.uid ]
 		else:
-			# an update to an existing IU
-			if event.data.uid not in self._iu_store:
-				# TODO: we should request the IU's owner to send us the IU
-				logger.warning("Update message for IU which we did not fully receive before.")
+			if event.data.uid not in self._iu_store: # TODO switch default off
+				if self._resend_active == True:
+					logger.warning("Resend message for IU which we did not fully receive before.")
+					# send resend request to remote server (dlw).
+					remote_server = self._get_remote_server(event.data)
+					resend_request = ipaaca_pb2.IUResendRequest()
+					resend_request.uid = event.data.uid # target iu
+					resend_request.hidden_scope_name = str(self._uuid) # hidden channel name
+					rRevision = remote_server.resendRequest(resend_request)
+					if rRevision == 0:
+						raise IUResendFailedError(self)
+				else:
+					logger.warning("Update message for IU which we did not fully receive before.")
 				return
+			# an update to an existing IU
 			if type_ is ipaaca_pb2.IURetraction:
 				# IU retraction (cannot be triggered remotely)
 				iu = self._iu_store[event.data.uid]
@@ -1344,12 +1369,19 @@ class InputBuffer(Buffer):
 		for interest in category_interests:
 			self._add_category_listener(interest)
 
+	def is_resend_active():
+		return self._resend_active
+
+	def set_resend_active(active):
+		self._resend_active = active
+
 
 class OutputBuffer(Buffer):
 
 	"""An OutputBuffer that holds local IUs."""
 
 	def __init__(self, owning_component_name, channel='default', participant_config=None):
+
 		'''Create an Output Buffer.
 
 		Keyword arguments:
@@ -1362,10 +1394,13 @@ class OutputBuffer(Buffer):
 		self._server.addMethod('updateLinks', self._remote_update_links, IULinkUpdate, int)
 		self._server.addMethod('updatePayload', self._remote_update_payload, IUPayloadUpdate, int)
 		self._server.addMethod('commit', self._remote_commit, ipaaca_pb2.IUCommission, int)
+		# add method to trigger a resend request. (dlw)
+		self._server.addMethod('resendRequest', self._remote_resend_request, ipaaca_pb2.IUResendRequest, int)
 		self._informer_store = {}
 		self._id_prefix = str(owning_component_name)+'-'+str(self._uuid)+'-IU-'
 		self.__iu_id_counter_lock = threading.Lock()
 		#self.__iu_id_counter = 0 # hbuschme: IUs now have their Ids assigned on creation
+
 		self._channel = channel
 
 	def _create_own_name_listener(self, iu_category):
@@ -1433,6 +1468,20 @@ class OutputBuffer(Buffer):
 				# _set_payload etc. have also incremented the revision number
 			self.call_iu_event_handlers(update.uid, local=True, event_type=IUEventType.UPDATED, category=iu.category)
 			return iu.revision
+
+	def _remote_resend_request(self, iu_resend_request_pack):
+		''' Resend an requested iu over the specific hidden channel. (dlw) '''
+		if iu_resend_request_pack.uid not in self._iu_store:
+			logger.warning("Remote InBuffer tried to spuriously write non-existent IU "+str(iu_resend_request_pack.uid))
+			return 0
+		iu = self._iu_store[iu_resend_request_pack.uid]
+		with iu.revision_lock:
+			if (iu_resend_request_pack.hidden_scope_name is not None) and (iu_resend_request_pack.hidden_scope_name is not ""):
+				informer = self._get_informer(iu_resend_request_pack.hidden_scope_name)
+				informer.publishData(iu)
+				return iu.revision
+			else:
+				return 0
 
 	def _remote_commit(self, iu_commission):
 		'''Apply a remotely requested commit to one of the stored IUs.'''
@@ -1602,6 +1651,9 @@ def initialize_ipaaca_rsb():#{{{
 	rsb.converter.registerGlobalConverter(
 		rsb.converter.ProtocolBufferConverter(
 			messageClass=ipaaca_pb2.IUCommission))
+	rsb.converter.registerGlobalConverter(
+		rsb.converter.ProtocolBufferConverter(
+			messageClass=ipaaca_pb2.IUResendRequest)) # dlw
 	rsb.converter.registerGlobalConverter(
 		rsb.converter.ProtocolBufferConverter(
 			messageClass=ipaaca_pb2.IURetraction))

@@ -151,10 +151,16 @@ set (SOURCE
 	build/ipaaca/ipaaca.pb.cc
 	)
 
+
+
+
 # compile all files to "ipaaca" shared library
 add_library(ipaaca SHARED ${SOURCE})
 # and link all the required external libs (found above using find_package etc.)
 target_link_libraries(ipaaca ${LIBS})
+
+#add_executable (ipaaca-test-main src/ipaaca-test-main.cc)
+#target_link_libraries (ipaaca-test-main ${LIBS})
 
 set(DEFAULT_BIN_SUBDIR bin)
 set(DEFAULT_LIB_SUBDIR lib)
