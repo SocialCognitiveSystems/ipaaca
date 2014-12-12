@@ -70,7 +70,7 @@ public class OutputBuffer extends Buffer
     private Map<String, Informer<Object>> informerStore = new HashMap<String, Informer<Object>>(); // category -> informer map
     private final static Logger logger = LoggerFactory.getLogger(OutputBuffer.class.getName());
     private IUStore<LocalIU> iuStore = new IUStore<LocalIU>();
-    private String channel;
+    private String channel = "default";
 
     // def __init__(self, owning_component_name, participant_config=None):
     // '''Create an Output Buffer.

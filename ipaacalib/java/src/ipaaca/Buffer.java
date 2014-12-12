@@ -1,10 +1,10 @@
 /*
  * This file is part of IPAACA, the
  *  "Incremental Processing Architecture
- *   for Artificial Conversational Agents".  
+ *   for Artificial Conversational Agents".
  *
  * Copyright (c) 2009-2013 Sociable Agents Group
- *                         CITEC, Bielefeld University   
+ *                         CITEC, Bielefeld University
  *
  * http://opensource.cit-ec.de/projects/ipaaca/
  * http://purl.org/net/ipaaca
@@ -21,7 +21,7 @@
  * You should have received a copy of the LGPL along with this
  * program. If not, go to http://www.gnu.org/licenses/lgpl.html
  * or write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.  
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The development of this software was supported by the
  * Excellence Cluster EXC 277 Cognitive Interaction Technology.
@@ -53,7 +53,7 @@ public abstract class Buffer
     {
     	return owningComponentName + "ID" + uuid;
     }
-    
+
     public String getUniqueName()
     {
         return uniqueName;
@@ -107,25 +107,25 @@ public abstract class Buffer
     {
         eventHandlers.add(handler);
     }
-   
+
     public void registerHandler(HandlerFunctor func) {
     	IUEventHandler handler;
     	handler = new IUEventHandler(func);
     	registerHandler(handler);
     }
-    
+
     public void registerHandler(HandlerFunctor func, Set<String> categories) {
     	IUEventHandler handler;
     	handler = new IUEventHandler(func, categories);
     	registerHandler(handler);
     }
-    
+
     public void registerHandler(HandlerFunctor func, EnumSet<IUEventType> eventTypes) {
     	IUEventHandler handler;
     	handler = new IUEventHandler(func, eventTypes);
     	registerHandler(handler);
     }
-   
+
     public void registerHandler(HandlerFunctor func, EnumSet<IUEventType> eventTypes, Set<String> categories) {
     	IUEventHandler handler;
     	handler = new IUEventHandler(func, eventTypes, categories);

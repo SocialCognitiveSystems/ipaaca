@@ -788,12 +788,12 @@ IPAACA_EXPORT InputBuffer::ptr InputBuffer::create(const std::string& basename, 
 }
 
 
-IPAACA_EXPORT void InputBuffer::SetResend(bool resendActive)
+IPAACA_EXPORT void InputBuffer::set_resend(bool resendActive)
 {
 	triggerResend = resendActive;
 }
 
-IPAACA_EXPORT bool InputBuffer::GetResend()
+IPAACA_EXPORT bool InputBuffer::get_resend()
 {
 	return triggerResend;
 }

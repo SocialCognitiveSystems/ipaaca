@@ -234,7 +234,7 @@ IPAACA_HEADER_EXPORT class BufferConfigurationBuilder: private BufferConfigurati
 			_channel = channel;
 		}
 
-		IPAACA_HEADER_EXPORT const BufferConfiguration& get_BufferConfiguration() { return *this; }
+		IPAACA_HEADER_EXPORT const BufferConfiguration& get_buffer_configuration() { return *this; }
 
 };
 
@@ -539,8 +539,8 @@ IPAACA_HEADER_EXPORT class InputBuffer: public Buffer { //, public boost::enable
 		IPAACA_HEADER_EXPORT InputBuffer(const std::string& basename, const std::string& category_interest1, const std::string& category_interest2, const std::string& category_interest3, const std::string& category_interest4);
 
 		IPAACA_MEMBER_VAR_EXPORT bool triggerResend;
-		IPAACA_HEADER_EXPORT void SetResend(bool resendActive);
-		IPAACA_HEADER_EXPORT bool GetResend();
+		IPAACA_HEADER_EXPORT void set_resend(bool resendActive);
+		IPAACA_HEADER_EXPORT bool get_resend();
 
 	public:
 		IPAACA_HEADER_EXPORT static boost::shared_ptr<InputBuffer> create(const BufferConfiguration& bufferconfiguration);

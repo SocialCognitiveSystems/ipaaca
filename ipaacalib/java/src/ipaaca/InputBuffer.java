@@ -73,7 +73,7 @@ public class InputBuffer extends Buffer
     private IUStore<RemotePushIU> iuStore = new IUStore<RemotePushIU>();
     private IUStore<RemoteMessageIU> messageStore = new IUStore<RemoteMessageIU>();
 
-    private String channel;
+    private String channel = "default";
     private boolean resendActive;
 
     public void close()
@@ -150,17 +150,19 @@ public class InputBuffer extends Buffer
     }
 
     /** Pass resendActive to toggle resendRequest-functionality. */
-    public InputBuffer(String owningComponentName, Set<String> categoryInterests, boolean resendActive)
+    public InputBuffer(BufferConfiguration bufferconfiguration)
     {
-        super(owningComponentName);
-        this.resendActive = resendActive;
+        super(bufferconfiguration.getOwningComponentName());
+        this.resendActive = bufferconfiguration.getResendActive();
         String shortIDName = getUniqueShortName();
         uniqueName = "/ipaaca/component/" + shortIDName + "/IB";
 
-        for (String cat : categoryInterests)
+        for (String cat : bufferconfiguration.getCategoryInterests())
         {
             createCategoryListenerIfNeeded(cat);
         }
+        this.channel = bufferconfiguration.getChannel();
+
         // add own uuid as identifier for hidden channel. (dlw)
         createCategoryListenerIfNeeded(shortIDName);
     }
