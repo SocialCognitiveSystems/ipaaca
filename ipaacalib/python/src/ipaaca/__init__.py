@@ -4,7 +4,7 @@
 #  "Incremental Processing Architecture
 #   for Artificial Conversational Agents".
 #
-# Copyright (c) 2009-2013 Sociable Agents Group
+# Copyright (c) 2009-2014 Social Cognitive Systems Group
 #                         CITEC, Bielefeld University
 #
 # http://opensource.cit-ec.de/projects/ipaaca/
@@ -39,6 +39,13 @@ import uuid
 import collections
 import copy
 import time
+
+try:
+	import simplejson as json
+except ImportError:
+	import json
+	print('INFO: Using json instead of simplejson.')
+	print('      Install simplejson for better performance.')
 
 import rsb
 import rsb.converter
@@ -84,17 +91,6 @@ def enum(*sequential, **named):
 	return type('Enum', (), enums)
 
 
-def pack_typed_payload_item(protobuf_object, key, value):
-	protobuf_object.key = key
-	protobuf_object.value = value
-	protobuf_object.type = 'str' # TODO: more types
-
-
-def unpack_typed_payload_item(protobuf_object):
-	# TODO: more types
-	return (protobuf_object.key, protobuf_object.value)
-
-
 class IpaacaLoggingHandler(logging.Handler):
 
 	def __init__(self, level=logging.DEBUG):
@@ -135,7 +131,6 @@ class IUPublishedError(Exception):
 	def __init__(self, iu):
 		super(IUPublishedError, self).__init__('IU ' + str(iu.uid) + ' is already present in the output buffer.')
 
-
 class IUUpdateFailedError(Exception):
 	"""Error indicating that a remote IU update failed."""
 	def __init__(self, iu):
@@ -150,7 +145,6 @@ class IUCommittedError(Exception):
 	"""Error indicating that an IU is immutable because it has been committed to."""
 	def __init__(self, iu):
 		super(IUCommittedError, self).__init__('Writing to IU ' + str(iu.uid) + ' failed -- it has been committed to.')
-
 
 class IUReadOnlyError(Exception):
 	"""Error indicating that an IU is immutable because it is 'read only'."""
@@ -832,6 +826,16 @@ class IntConverter(rsb.converter.Converter):#{{{
 #}}}
 
 
+def pack_payload_entry(entry, key, value):
+	entry.key = key
+	entry.value = json.dumps(value)
+	entry.type = 'json'
+
+def unpack_payload_entry(entry):
+	# We assume that the only transfer types are 'str' or 'json'. Both are transparently handled by json.loads
+	return json.loads(entry.value)
+
+
 class IUConverter(rsb.converter.Converter):#{{{
 	'''
 	Converter class for Full IU representations
@@ -856,7 +860,7 @@ class IUConverter(rsb.converter.Converter):#{{{
 		pbo.read_only = iu._read_only
 		for k,v in iu._payload.items():
 			entry = pbo.payload.add()
-			pack_typed_payload_item(entry, k, v)
+			pack_payload_entry(entry, k, v)
 		for type_ in iu._links.keys():
 			linkset = pbo.links.add()
 			linkset.type = type_
@@ -866,15 +870,13 @@ class IUConverter(rsb.converter.Converter):#{{{
 
 	def deserialize(self, byte_stream, ws):
 		type = self.getDataType()
-		#print('IUConverter.deserialize got a '+str(type)+' over wireSchema '+ws)
 		if type == IU or type == Message:
 			pbo = ipaaca_pb2.IU()
 			pbo.ParseFromString( str(byte_stream) )
 			if pbo.access_mode ==  ipaaca_pb2.IU.PUSH:
 				_payload = {}
 				for entry in pbo.payload:
-					k, v = unpack_typed_payload_item(entry)
-					_payload[k] = v
+					_payload[entry.key] = unpack_payload_entry(entry)
 				_links = collections.defaultdict(set)
 				for linkset in pbo.links:
 					for target_uid in linkset.targets:
@@ -894,8 +896,7 @@ class IUConverter(rsb.converter.Converter):#{{{
 			elif pbo.access_mode ==  ipaaca_pb2.IU.MESSAGE:
 				_payload = {}
 				for entry in pbo.payload:
-					k, v = unpack_typed_payload_item(entry)
-					_payload[k] = v
+					_payload[entry.key] = unpack_payload_entry(entry)
 				_links = collections.defaultdict(set)
 				for linkset in pbo.links:
 					for target_uid in linkset.targets:
@@ -942,7 +943,7 @@ class MessageConverter(rsb.converter.Converter):#{{{
 		pbo.read_only = iu._read_only
 		for k,v in iu._payload.items():
 			entry = pbo.payload.add()
-			pack_typed_payload_item(entry, k, v)
+			pack_payload_entry(entry, k, v)
 		for type_ in iu._links.keys():
 			linkset = pbo.links.add()
 			linkset.type = type_
@@ -952,15 +953,13 @@ class MessageConverter(rsb.converter.Converter):#{{{
 
 	def deserialize(self, byte_stream, ws):
 		type = self.getDataType()
-		#print('MessageConverter.deserialize got a '+str(type)+' over wireSchema '+ws)
 		if type == IU or type == Message:
 			pbo = ipaaca_pb2.IU()
 			pbo.ParseFromString( str(byte_stream) )
 			if pbo.access_mode ==  ipaaca_pb2.IU.PUSH:
 				_payload = {}
 				for entry in pbo.payload:
-					k, v = unpack_typed_payload_item(entry)
-					_payload[k] = v
+					_payload[entry.key] = unpack_payload_entry(entry)
 				_links = collections.defaultdict(set)
 				for linkset in pbo.links:
 					for target_uid in linkset.targets:
@@ -980,8 +979,7 @@ class MessageConverter(rsb.converter.Converter):#{{{
 			elif pbo.access_mode ==  ipaaca_pb2.IU.MESSAGE:
 				_payload = {}
 				for entry in pbo.payload:
-					k, v = unpack_typed_payload_item(entry)
-					_payload[k] = v
+					_payload[entry.key] = unpack_payload_entry(entry)
 				_links = collections.defaultdict(set)
 				for linkset in pbo.links:
 					for target_uid in linkset.targets:
@@ -1094,7 +1092,7 @@ class IUPayloadUpdateConverter(rsb.converter.Converter):#{{{
 		pbo.revision = iu_payload_update.revision
 		for k,v in iu_payload_update.new_items.items():
 			entry = pbo.new_items.add()
-			pack_typed_payload_item(entry, k, v)
+			pack_payload_entry(entry, k, v)
 		pbo.keys_to_remove.extend(iu_payload_update.keys_to_remove)
 		pbo.is_delta = iu_payload_update.is_delta
 		return bytearray(pbo.SerializeToString()), self.wireSchema
@@ -1107,8 +1105,7 @@ class IUPayloadUpdateConverter(rsb.converter.Converter):#{{{
 			logger.debug('received an IUPayloadUpdate for revision '+str(pbo.revision))
 			iu_up = IUPayloadUpdate( uid=pbo.uid, revision=pbo.revision, writer_name=pbo.writer_name, is_delta=pbo.is_delta)
 			for entry in pbo.new_items:
-				k, v = unpack_typed_payload_item(entry)
-				iu_up.new_items[k] = v
+				iu_up.new_items[entry.key] = unpack_payload_entry(entry)
 			iu_up.keys_to_remove = pbo.keys_to_remove[:]
 			return iu_up
 		else:
