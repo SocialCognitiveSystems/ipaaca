@@ -212,6 +212,15 @@ class Payload(dict):
 		self._batch_update_lock.release()
 		return r
 
+	def __getitem__(self, k):
+		value = dict.__getitem__(self, k)
+		if isinstance(value, dict):
+			return PayloadItemDictProxy(value, self, k)
+		elif isinstance(value, list):
+			return PayloadItemListProxy(value, self, k)
+		else:
+			return value
+
 	def __setitem__(self, k, v, writer_name=None):
 		self._batch_update_lock.acquire(True)
 		#if not self._batch_update_lock.acquire(False):
@@ -286,6 +295,126 @@ class Payload(dict):
 					self._batch_update_cond.wait(timeout - current_time + start_time)
 					current_time = time.time()
 		raise IUPayloadLockTimeoutError(self.iu)
+
+class PayloadItemProxy(object):
+
+	def __init__(self, content, payload, identifier_in_payload):
+		self.payload = payload
+		self.content = content
+		self.identifier_in_payload = identifier_in_payload
+
+	def _notify_payload(self):
+		self.payload[self.identifier_in_payload] = self.content
+
+	def _create_proxy(self, obj, identifier_in_payload):
+		if isinstance(obj, dict):
+			return PayloadItemDictProxy(obj, self.payload, identifier_in_payload)
+		elif isinstance(obj, list):
+			return PayloadItemListProxy(obj, self.payload, identifier_in_payload)
+		else:
+			return obj
+
+	def __setitem__(self, k, v):
+		self.content.__setitem__(k,v)
+		self._notify_payload()
+
+	def __getitem__(self, k):
+		item = self.content.__getitem__(k)
+		return self._create_proxy(item, k)
+
+	def __delitem__(self, k):
+		self.content.__delitem__(k)
+		self._notify_payload()
+
+
+class PayloadItemDictProxy(PayloadItemProxy, dict):
+
+	def __init__(self, content, payload, identifier_in_payload):
+		dict.__init__(self, content)
+		PayloadItemProxy.__init__(self, content, payload, identifier_in_payload)
+
+	def clear(self):
+		self.content.clear()
+		self._notify_payload()
+
+	def get(self, key, default=None):
+		value = self.content.get(key, default)
+		return self._create_proxy(value, key)
+
+	def items(self):
+		return [(key, value) for key, value in self.iteritems()]
+
+	def iteritems(self):
+		for key, value in self.content.iteritems():
+			yield key, self._create_proxy(value, key)
+
+	def values(self):
+		return [value for value in self.itervalues()]
+
+	def itervalues(self):
+		for key, value in self.content.iteritems():
+			yield self._create_proxy(value, key)
+
+	def pop(self, key, *args):
+		x = self.content.pop(key, *args)
+		self._notify_payload()
+		return x
+
+	def popitem(self):
+		x = self.content.popitem()
+		self._notify_payload()
+		return x
+
+	def setdefault(self, key, default=None):
+		notification_necessary = not key in self.content
+		x = self.content.setdefault(key, default)
+		if notification_necessary:
+			self._notify_payload()
+		return x
+
+	def update(self, *args, **kwargs):
+		self.content.update(*args, **kwargs)
+		self._notify_payload()
+
+
+class PayloadItemListProxy(PayloadItemProxy, list):
+
+	def __init__(self, content, payload, identifier_in_payload):
+		list.__init__(self, content)
+		PayloadItemProxy.__init__(self, content, payload, identifier_in_payload)
+
+	def __iter__(self):
+		for index, item in enumerate(self.content):
+			yield self._create_proxy(item, index)
+
+	def append(self, x):
+		self.content.append(x)
+		self._notify_payload()
+
+	def extend(self, l):
+		self.content.extend(l)
+		self._notify_payload()
+
+	def insert(self, i, x):
+		self.content.insert(i, x)
+		self._notify_payload()
+
+	def remove(self, x):
+		self.content.remove(x)
+		self._notify_payload()
+
+	def pop(self, *args, **kwargs):
+		x = self.content.pop(*args, **kwargs)
+		self._notify_payload()
+		return x
+	
+	def sort(self, cmp=None, key=None, reverse=False):
+		self.content.sort(cmp, key, reverse)
+		self._notify_payload()
+
+	def reverse(self):
+		self.content.reverse()
+		self._notify_payload()
 
 
 class IUInterface(object): #{{{
