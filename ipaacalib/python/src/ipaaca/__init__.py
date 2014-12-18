@@ -50,11 +50,9 @@ except ImportError:
 import rsb
 import rsb.converter
 
-from payload import *
 
 import ipaaca_pb2
-
-_DEFAULT_PAYLOAD_UPDATE_TIMEOUT = 0.1
+from payload import *
 
 # IDEAS
 #  We should think about relaying the update event (or at least the
