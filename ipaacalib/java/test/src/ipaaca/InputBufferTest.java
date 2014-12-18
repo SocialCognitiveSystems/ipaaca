@@ -22,7 +22,7 @@ import com.google.common.collect.ImmutableSet;
 public class InputBufferTest
 {
     private static final String COMPID = "Comp1";
-    private static final String CATEGORY = "category1";
+    private static final String CATEGORY = "testcat";
     private InputBuffer inBuffer;
 
 
@@ -47,10 +47,10 @@ public class InputBufferTest
     @Test
     public void testHandleRemotePushEvent() throws RSBException, InterruptedException
     {
-        Informer<Object> informer = Factory.getInstance().createInformer("/ipaaca/category/"+CATEGORY);
+        Informer<Object> informer = Factory.getInstance().createInformer("/ipaaca/channel/default/category/"+CATEGORY);
         informer.activate();
         RemotePushIU iu = new RemotePushIU("uid1");
-        iu.setCategory("/ipaaca/category/"+CATEGORY);
+        iu.setCategory("/ipaaca/channel/default/category/"+CATEGORY);
         iu.setOwnerName("owner");
         iu.setReadOnly(false);
         iu.setRevision(1);
