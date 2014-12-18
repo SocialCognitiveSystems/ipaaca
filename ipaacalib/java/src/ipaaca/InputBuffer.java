@@ -139,11 +139,12 @@ public class InputBuffer extends Buffer
         String shortIDName = getUniqueShortName();
         uniqueName = "/ipaaca/component/" + shortIDName + "/IB";
 
+        this.channel = ipaaca_channel;
+        
         for (String cat : categoryInterests)
         {
             createCategoryListenerIfNeeded(cat);
         }
-        this.channel = ipaaca_channel;
 
     // add own uuid as identifier for hidden channel. (dlw)
     createCategoryListenerIfNeeded(shortIDName);
