@@ -59,7 +59,7 @@ def initialize_ipaaca_rsb():
 			dataType=IU))
 
 	rsb.converter.registerGlobalConverter(
-		ipaaca.converter.IUConverter(
+		ipaaca.converter.MessageConverter(
 			wireSchema="ipaaca-messageiu",
 			dataType=Message))
 

@@ -92,89 +92,59 @@ class IUConverter(rsb.converter.Converter):
 	'''
 	def __init__(self, wireSchema="ipaaca-iu", dataType=ipaaca.iu.IU):
 		super(IUConverter, self).__init__(bytearray, dataType, wireSchema)
+		self._access_mode = ipaaca_pb2.IU.PUSH
+		self._remote_data_type = ipaaca.iu.RemotePushIU
 
 	def serialize(self, iu):
 		pbo = ipaaca_pb2.IU()
+		pbo.access_mode = self._access_mode
 		pbo.uid = iu._uid
 		pbo.revision = iu._revision
 		pbo.category = iu._category
 		pbo.payload_type = iu._payload_type
 		pbo.owner_name = iu._owner_name
 		pbo.committed = iu._committed
-		am=ipaaca_pb2.IU.PUSH #default
-		if iu._access_mode == ipaaca.iu.IUAccessMode.MESSAGE:
-			am=ipaaca_pb2.IU.MESSAGE
-		# TODO add other types later
-		pbo.access_mode = am
 		pbo.read_only = iu._read_only
-		for k,v in iu._payload.items():
+		for k, v in iu._payload.iteritems():
 			entry = pbo.payload.add()
 			pack_payload_entry(entry, k, v)
 		for type_ in iu._links.keys():
 			linkset = pbo.links.add()
 			linkset.type = type_
 			linkset.targets.extend(iu._links[type_])
-		ws = "ipaaca-messageiu" if iu._access_mode == ipaaca.iu.IUAccessMode.MESSAGE else self.wireSchema
-		return bytearray(pbo.SerializeToString()), ws
+		return bytearray(pbo.SerializeToString()), self.wireSchema
 
 	def deserialize(self, byte_stream, ws):
-		type = self.getDataType()
-		if type == ipaaca.iu.IU or type == ipaaca.iu.Message:
-			pbo = ipaaca_pb2.IU()
-			pbo.ParseFromString( str(byte_stream) )
-			if pbo.access_mode ==  ipaaca_pb2.IU.PUSH:
-				_payload = {}
-				for entry in pbo.payload:
-					_payload[entry.key] = unpack_payload_entry(entry)
-				_links = collections.defaultdict(set)
-				for linkset in pbo.links:
-					for target_uid in linkset.targets:
-						_links[linkset.type].add(target_uid)
-				remote_push_iu = ipaaca.iu.RemotePushIU(
-						uid=pbo.uid,
-						revision=pbo.revision,
-						read_only = pbo.read_only,
-						owner_name = pbo.owner_name,
-						category = pbo.category,
-						payload_type = pbo.payload_type,
-						committed = pbo.committed,
-						payload=_payload,
-						links=_links
-					)
-				return remote_push_iu
-			elif pbo.access_mode ==  ipaaca_pb2.IU.MESSAGE:
-				_payload = {}
-				for entry in pbo.payload:
-					_payload[entry.key] = unpack_payload_entry(entry)
-				_links = collections.defaultdict(set)
-				for linkset in pbo.links:
-					for target_uid in linkset.targets:
-						_links[linkset.type].add(target_uid)
-				remote_message = ipaaca.iu.RemoteMessage(
-						uid=pbo.uid,
-						revision=pbo.revision,
-						read_only = pbo.read_only,
-						owner_name = pbo.owner_name,
-						category = pbo.category,
-						payload_type = pbo.payload_type,
-						committed = pbo.committed,
-						payload=_payload,
-						links=_links
-					)
-				return remote_message
-			else:
-				raise Exception("We can only handle IUs with access mode 'PUSH' or 'MESSAGE' for now!")
-		else:
-			raise ValueError("Inacceptable dataType %s" % type)
+		pbo = ipaaca_pb2.IU()
+		pbo.ParseFromString(str(byte_stream))
+		_payload = {}
+		for entry in pbo.payload:
+			_payload[entry.key] = unpack_payload_entry(entry)
+		_links = collections.defaultdict(set)
+		for linkset in pbo.links:
+			for target_uid in linkset.targets:
+				_links[linkset.type].add(target_uid)
+		return self._remote_data_type(
+			uid=pbo.uid,
+			revision=pbo.revision,
+			read_only = pbo.read_only,
+			owner_name = pbo.owner_name,
+			category = pbo.category,
+			payload_type = pbo.payload_type,
+			committed = pbo.committed,
+			payload=_payload,
+			links=_links)
 
 
 class MessageConverter(IUConverter):
 	'''
-	Converter class for Message IU representations
-	wire:bytearray <-> wire-schema:ipaaca-messageiu <-> class ipaacaRSB.IU
+	Converter class for Full IU representations
+	wire:bytearray <-> wire-schema:ipaaca-full-iu <-> class ipaacaRSB.IU
 	'''
 	def __init__(self, wireSchema="ipaaca-messageiu", dataType=ipaaca.iu.Message):
-		super(MessageConverter, self).__init__(wireSchema=wireSchema, dataType=dataType)
+		super(MessageConverter, self).__init__(wireSchema, dataType)
+		self._access_mode = ipaaca_pb2.IU.MESSAGE
+		self._remote_data_type = ipaaca.iu.RemoteMessage
 
 
 class IULinkUpdate(object):
@@ -199,6 +169,7 @@ class IULinkUpdate(object):
 
 
 class IULinkUpdateConverter(rsb.converter.Converter):
+	
 	def __init__(self, wireSchema="ipaaca-iu-link-update", dataType=IULinkUpdate):
 		super(IULinkUpdateConverter, self).__init__(bytearray, dataType, wireSchema)
 
