@@ -1,13 +1,47 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import ipaaca
+# This file is part of IPAACA, the
+#  "Incremental Processing Architecture
+#   for Artificial Conversational Agents".
+#
+# Copyright (c) 2009-2014 Social Cognitive Systems Group
+#                         CITEC, Bielefeld University
+#
+# http://opensource.cit-ec.de/projects/ipaaca/
+# http://purl.org/net/ipaaca
+#
+# This file may be licensed under the terms of of the
+# GNU Lesser General Public License Version 3 (the ``LGPL''),
+# or (at your option) any later version.
+#
+# Software distributed under the License is distributed
+# on an ``AS IS'' basis, WITHOUT WARRANTY OF ANY KIND, either
+# express or implied. See the LGPL for the specific language
+# governing rights and limitations.
+#
+# You should have received a copy of the LGPL along with this
+# program. If not, go to http://www.gnu.org/licenses/lgpl.html
+# or write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#
+# The development of this software was supported by the
+# Excellence Cluster EXC 277 Cognitive Interaction Technology.
+# The Excellence Cluster EXC 277 is a grant of the Deutsche
+# Forschungsgemeinschaft (DFG) in the context of the German
+# Excellence Initiative.
+
+from __future__ import division, print_function
+
 import time
+
+import ipaaca.buffer
+import ipaaca.iu
+
 
 class TimesyncMaster(object):
 	def __init__(self, component_name=None, timing_handler=None, debug_offset=0):
-		self.ob = ipaaca.OutputBuffer(('' if component_name is None else component_name)+'TimesyncMaster')
-		self.ib = ipaaca.InputBuffer(('' if component_name is None else component_name)+'TimesyncMaster', ['timesyncReply'])
+		self.ob = ipaaca.buffer.OutputBuffer(('' if component_name is None else component_name)+'TimesyncMaster')
+		self.ib = ipaaca.buffer.InputBuffer(('' if component_name is None else component_name)+'TimesyncMaster', ['timesyncReply'])
 		# component name to report (None => use buffer name)
 		self.component_name = component_name if component_name is not None else self.ob.unique_name
 		#
@@ -29,7 +63,7 @@ class TimesyncMaster(object):
 		self.timing_handler = timing_handler
 	
 	def send_master_timesync(self):
-		iu = ipaaca.IU('timesyncRequest')
+		iu = ipaaca.iu.IU('timesyncRequest')
 		self.master_t1 = self.get_time()
 		iu.payload = {
 				'stage':'0',
@@ -85,8 +119,8 @@ class TimesyncMaster(object):
 
 class TimesyncSlave(object):
 	def __init__(self, component_name=None, timing_handler=None, debug_offset=0):
-		self.ob = ipaaca.OutputBuffer(('' if component_name is None else component_name)+'TimesyncSlave')
-		self.ib = ipaaca.InputBuffer(('' if component_name is None else component_name)+'TimesyncSlave', ['timesyncRequest'])
+		self.ob = ipaaca.buffer.OutputBuffer(('' if component_name is None else component_name)+'TimesyncSlave')
+		self.ib = ipaaca.buffer.InputBuffer(('' if component_name is None else component_name)+'TimesyncSlave', ['timesyncRequest'])
 		# component name to report (None => use buffer name)
 		self.component_name = component_name if component_name is not None else self.ib.unique_name
 		self.ob.register_handler(self.handle_timesync_slave)
@@ -113,7 +147,7 @@ class TimesyncSlave(object):
 				if stage=='0':
 					#print('Received stage 0 from master '+master)
 					# initial reply to master
-					self.my_iu = ipaaca.IU('timesyncReply')
+					self.my_iu = ipaaca.iu.IU('timesyncReply')
 					# TODO: add grounded_in link too?
 					t1 = self.get_time()
 					self.my_iu.payload = iu.payload
@@ -146,5 +180,3 @@ class TimesyncSlave(object):
 						self.timing_handler(master, self.component_name, latency, offset)
 	def get_time(self):
 		return time.time() + self.debug_offset
-
-

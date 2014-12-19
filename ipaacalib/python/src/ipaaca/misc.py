@@ -33,8 +33,12 @@
 from __future__ import division, print_function
 
 
+import logging
+
+
 __all__ = [
 	'enum'
+	'logger'
 ]
 
 
@@ -47,3 +51,18 @@ def enum(*sequential, **named):
 	"""
 	enums = dict(zip(sequential, range(len(sequential))), **named)
 	return type('Enum', (), enums)
+
+
+# Create a global logger for ipaaca
+class IpaacaLoggingHandler(logging.Handler):
+
+	def __init__(self, level=logging.DEBUG):
+		logging.Handler.__init__(self, level)
+
+	def emit(self, record):
+		meta = '[ipaaca] (%s) ' % str(record.levelname)
+		msg = str(record.msg.format(record.args))
+		print(meta + msg)
+
+logger = logging.getLogger('ipaaca')
+logger.addHandler(IpaacaLoggingHandler(level=logging.INFO))

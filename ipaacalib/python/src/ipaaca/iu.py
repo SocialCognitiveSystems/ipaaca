@@ -37,18 +37,30 @@ import copy
 import threading
 import uuid
 
-from misc import enum
-from payload import Payload
+from ipaaca.misc import logger
+
+import ipaaca.converter
+import ipaaca.exception
+import ipaaca.misc
+import ipaaca.payload
+
 
 __all__ = [
-	'IUEventType', 
 	'IUAccessMode',
-	'IU', 'RemotePushIU', 
-	'Message', 'RemoteMessage',
+	'IUEventType',
+	'IU',
+	'Message',
 ]
 
 
-IUEventType = enum(
+IUAccessMode = ipaaca.misc.enum(
+	PUSH = 'PUSH',
+	REMOTE = 'REMOTE',
+	MESSAGE = 'MESSAGE'
+)
+
+
+IUEventType = ipaaca.misc.enum(
 	ADDED = 'ADDED',
 	COMMITTED = 'COMMITTED',
 	DELETED = 'DELETED',
@@ -56,13 +68,6 @@ IUEventType = enum(
 	UPDATED = 'UPDATED',
 	LINKSUPDATED = 'LINKSUPDATED',
 	MESSAGE = 'MESSAGE'
-)
-
-
-IUAccessMode = enum(
-	"PUSH",
-	"REMOTE",
-	"MESSAGE"
 )
 
 
@@ -219,11 +224,11 @@ class IU(IUInterface):#{{{
 		self._category = str(category)
 		self._payload_type = _payload_type
 		self.revision_lock = threading.RLock()
-		self._payload = Payload(iu=self)
+		self._payload = ipaaca.payload.Payload(iu=self)
 
 	def _modify_links(self, is_delta=False, new_links={}, links_to_remove={}, writer_name=None):
 		if self.committed:
-			raise IUCommittedError(self)
+			raise ipaaca.exception.IUCommittedError(self)
 		with self.revision_lock:
 			# modify links locally
 			self._increase_revision_number()
@@ -240,7 +245,7 @@ class IU(IUInterface):#{{{
 	def _modify_payload(self, is_delta=True, new_items={}, keys_to_remove=[], writer_name=None):
 		"""Modify the payload: add or remove items from this payload locally and send update."""
 		if self.committed:
-			raise IUCommittedError(self)
+			raise ipaaca.exception.IUCommittedError(self)
 		with self.revision_lock:
 			# set item locally
 			# FIXME: Is it actually set locally?
@@ -261,7 +266,7 @@ class IU(IUInterface):#{{{
 
 	def _internal_commit(self, writer_name=None):
 		if self.committed:
-			raise IUCommittedError(self)
+			raise ipaaca.exception.IUCommittedError(self)
 		with self.revision_lock:
 			if not self._committed:
 				self._increase_revision_number()
@@ -277,10 +282,10 @@ class IU(IUInterface):#{{{
 		return self._payload
 	def _set_payload(self, new_pl, writer_name=None):
 		if self.committed:
-			raise IUCommittedError(self)
+			raise ipaaca.exception.IUCommittedError(self)
 		with self.revision_lock:
 			self._increase_revision_number()
-			self._payload = Payload(
+			self._payload = ipaaca.payload.Payload(
 					iu=self,
 					writer_name=None if self.buffer is None else (self.buffer.unique_name if writer_name is None else writer_name),
 					new_payload=new_pl)
@@ -347,10 +352,10 @@ class Message(IU):#{{{
 			logger.info('Info: modifying a Message after sending has no global effects')
 		else:
 			if self.committed:
-				raise IUCommittedError(self)
+				raise ipaaca.exception.IUCommittedError(self)
 			with self.revision_lock:
 				self._increase_revision_number()
-				self._payload = Payload(
+				self._payload = ipaaca.payload.Payload(
 						iu=self,
 						writer_name=None if self.buffer is None else (self.buffer.unique_name if writer_name is None else writer_name),
 						new_payload=new_pl)
@@ -401,7 +406,7 @@ class RemoteMessage(IUInterface):#{{{
 		# NOTE Since the payload is an already-existant Payload which we didn't modify ourselves,
 		#  don't try to invoke any modification checks or network updates ourselves either.
 		#  We are just receiving it here and applying the new data.
-		self._payload = Payload(iu=self, new_payload=payload, omit_init_update_message=True)
+		self._payload = ipaaca.payload.Payload(iu=self, new_payload=payload, omit_init_update_message=True)
 		self._links = links
 
 	def _modify_links(self, is_delta=False, new_links={}, links_to_remove={}, writer_name=None):
@@ -417,7 +422,7 @@ class RemoteMessage(IUInterface):#{{{
 		return self._payload
 	def _set_payload(self, new_pl):
 		logger.info('Info: modifying a RemoteMessage only has local effects')
-		self._payload = Payload(iu=self, new_payload=new_pl, omit_init_update_message=True)
+		self._payload = ipaaca.payload.Payload(iu=self, new_payload=new_pl, omit_init_update_message=True)
 	payload = property(
 			fget=_get_payload,
 			fset=_set_payload,
@@ -441,7 +446,7 @@ class RemoteMessage(IUInterface):#{{{
 			for k, v in update.new_items.items(): self.payload._remotely_enforced_setitem(k, v)
 		else:
 			# NOTE Please read the comment in the constructor
-			self._payload = Payload(iu=self, new_payload=update.new_items, omit_init_update_message=True)
+			self._payload = ipaaca.payload.Payload(iu=self, new_payload=update.new_items, omit_init_update_message=True)
 
 	def _apply_commission(self):
 		"""Apply commission to the IU"""
@@ -469,16 +474,16 @@ class RemotePushIU(IUInterface):#{{{
 		# NOTE Since the payload is an already-existant Payload which we didn't modify ourselves,
 		#  don't try to invoke any modification checks or network updates ourselves either.
 		#  We are just receiving it here and applying the new data.
-		self._payload = Payload(iu=self, new_payload=payload, omit_init_update_message=True)
+		self._payload = ipaaca.payload.Payload(iu=self, new_payload=payload, omit_init_update_message=True)
 		self._links = links
 
 	def _modify_links(self, is_delta=False, new_links={}, links_to_remove={}, writer_name=None):
 		"""Modify the links: add or remove item from this payload remotely and send update."""
 		if self.committed:
-			raise IUCommittedError(self)
+			raise ipaaca.exception.IUCommittedError(self)
 		if self.read_only:
-			raise IUReadOnlyError(self)
-		requested_update = IULinkUpdate(
+			raise ipaaca.exception.IUReadOnlyError(self)
+		requested_update = ipaaca.converter.IULinkUpdate(
 				uid=self.uid,
 				revision=self.revision,
 				is_delta=is_delta,
@@ -488,17 +493,17 @@ class RemotePushIU(IUInterface):#{{{
 		remote_server = self.buffer._get_remote_server(self)
 		new_revision = remote_server.updateLinks(requested_update)
 		if new_revision == 0:
-			raise IUUpdateFailedError(self)
+			raise ipaaca.exception.IUUpdateFailedError(self)
 		else:
 			self._revision = new_revision
 
 	def _modify_payload(self, is_delta=True, new_items={}, keys_to_remove=[], writer_name=None):
 		"""Modify the payload: add or remove item from this payload remotely and send update."""
 		if self.committed:
-			raise IUCommittedError(self)
+			raise ipaaca.exception.IUCommittedError(self)
 		if self.read_only:
-			raise IUReadOnlyError(self)
-		requested_update = IUPayloadUpdate(
+			raise ipaaca.exception.IUReadOnlyError(self)
+		requested_update = ipaaca.converter.IUPayloadUpdate(
 				uid=self.uid,
 				revision=self.revision,
 				is_delta=is_delta,
@@ -508,14 +513,14 @@ class RemotePushIU(IUInterface):#{{{
 		remote_server = self.buffer._get_remote_server(self)
 		new_revision = remote_server.updatePayload(requested_update)
 		if new_revision == 0:
-			raise IUUpdateFailedError(self)
+			raise ipaaca.exception.IUUpdateFailedError(self)
 		else:
 			self._revision = new_revision
 
 	def commit(self):
 		"""Commit to this IU."""
 		if self.read_only:
-			raise IUReadOnlyError(self)
+			raise ipaaca.exception.IUReadOnlyError(self)
 		if self._committed:
 			# ignore commit requests when already committed
 			return
@@ -527,7 +532,7 @@ class RemotePushIU(IUInterface):#{{{
 			remote_server = self.buffer._get_remote_server(self)
 			new_revision = remote_server.commit(commission_request)
 			if new_revision == 0:
-				raise IUUpdateFailedError(self)
+				raise ipaaca.exception.IUUpdateFailedError(self)
 			else:
 				self._revision = new_revision
 				self._committed = True
@@ -536,10 +541,10 @@ class RemotePushIU(IUInterface):#{{{
 		return self._payload
 	def _set_payload(self, new_pl):
 		if self.committed:
-			raise IUCommittedError(self)
+			raise ipaaca.exception.IUCommittedError(self)
 		if self.read_only:
-			raise IUReadOnlyError(self)
-		requested_update = IUPayloadUpdate(
+			raise ipaaca.exception.IUReadOnlyError(self)
+		requested_update = ipaaca.converter.IUPayloadUpdate(
 				uid=self.uid,
 				revision=self.revision,
 				is_delta=False,
@@ -549,11 +554,11 @@ class RemotePushIU(IUInterface):#{{{
 		remote_server = self.buffer._get_remote_server(self)
 		new_revision = remote_server.updatePayload(requested_update)
 		if new_revision == 0:
-			raise IUUpdateFailedError(self)
+			raise ipaaca.exception.IUUpdateFailedError(self)
 		else:
 			self._revision = new_revision
 			# NOTE Please read the comment in the constructor
-			self._payload = Payload(iu=self, new_payload=new_pl, omit_init_update_message=True)
+			self._payload = ipaaca.payload.Payload(iu=self, new_payload=new_pl, omit_init_update_message=True)
 	payload = property(
 			fget=_get_payload,
 			fset=_set_payload,
@@ -575,7 +580,7 @@ class RemotePushIU(IUInterface):#{{{
 			for k, v in update.new_items.items(): self.payload._remotely_enforced_setitem(k, v)
 		else:
 			# NOTE Please read the comment in the constructor
-			self._payload = Payload(iu=self, new_payload=update.new_items, omit_init_update_message=True)
+			self._payload = ipaaca.payload.Payload(iu=self, new_payload=update.new_items, omit_init_update_message=True)
 
 	def _apply_commission(self):
 		"""Apply commission to the IU"""
@@ -584,4 +589,3 @@ class RemotePushIU(IUInterface):#{{{
 	def _apply_retraction(self):
 		"""Apply retraction to the IU"""
 		self._retracted = True
-#}}}

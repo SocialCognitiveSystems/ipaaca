@@ -82,10 +82,9 @@ class Payload(dict):
 			return value
 
 	def __setitem__(self, k, v, writer_name=None):
-		with self._batch_update_lock.acquire:
-			for k, v in payload.iteritems():
-				k = unicode(k, 'utf8') if type(k) == str else k
-				v = unicode(v, 'utf8') if type(v) == str else v
+		with self._batch_update_lock:
+			k = unicode(k, 'utf8') if type(k) == str else k
+			v = unicode(v, 'utf8') if type(v) == str else v
 			if self._update_on_every_change:
 				self.iu._modify_payload(
 					is_delta=True,
@@ -98,7 +97,7 @@ class Payload(dict):
 			return dict.__setitem__(self, k, v)
 
 	def __delitem__(self, k, writer_name=None):
-		with self._batch_update_lock.acquire:
+		with self._batch_update_lock:
 			k = unicode(k, 'utf8') if type(k) == str else k
 			if self._update_on_every_change:
 				self.iu._modify_payload(
@@ -130,7 +129,7 @@ class Payload(dict):
 		self._batch_update_lock.release()
 
 	def merge(self, payload, writer_name=None):
-		with self._batch_update_lock.acquire:
+		with self._batch_update_lock:
 			for k, v in payload.iteritems():
 				k = unicode(k, 'utf8') if type(k) == str else k
 				v = unicode(v, 'utf8') if type(v) == str else v
