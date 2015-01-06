@@ -40,7 +40,7 @@ __all__ = [
 	'IUPayloadLockTimeoutError',
 	'IUPublishedError',
 	'IUReadOnlyError',
-	'IUResendFailedError',
+	'IUResendRequestFailedError',
 	'IUUpdateFailedError',
 ]
 
@@ -81,7 +81,7 @@ class IUReadOnlyError(Exception):
 		super(IUReadOnlyError, self).__init__('Writing to IU ' + str(iu.uid) + ' failed -- it is read-only.')
 
 
-class IUResendFailedError(Exception):
+class IUResendRequestFailedError(Exception):
 	"""Error indicating that a remote IU resend failed."""
 	def __init__(self, iu):
 		super(IUResendFailedError, self).__init__('Remote resend failed for IU ' + str(iu.uid) + '.')

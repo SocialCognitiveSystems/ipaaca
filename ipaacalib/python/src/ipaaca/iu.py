@@ -71,7 +71,7 @@ IUEventType = ipaaca.misc.enum(
 )
 
 
-class IUInterface(object): #{{{
+class IUInterface(object):
 
 	"""Base class of all specialised IU classes."""
 
@@ -211,9 +211,9 @@ class IUInterface(object): #{{{
 			fget=_get_owner_name,
 			fset=_set_owner_name,
 			doc="The IU's owner's name.")
-#}}}
 
-class IU(IUInterface):#{{{
+
+class IU(IUInterface):
 
 	"""A local IU."""
 
@@ -320,9 +320,8 @@ class IU(IUInterface):#{{{
 			fset=_set_uid,
 			doc='Unique ID of the IU.')
 
-#}}}
 
-class Message(IU):#{{{
+class Message(IU):
 	"""Local IU of Message sub-type. Can be handled like a normal IU, but on the remote side it is only existent during the handler calls."""
 	def __init__(self, category='undef', access_mode=IUAccessMode.MESSAGE, read_only=True, _payload_type='MAP'):
 		super(Message, self).__init__(category=str(category), access_mode=access_mode, read_only=read_only, _payload_type=_payload_type)
@@ -389,9 +388,9 @@ class Message(IU):#{{{
 			fget=IUInterface._get_uid,
 			fset=_set_uid,
 			doc='Unique ID of the IU.')
-#}}}
 
-class RemoteMessage(IUInterface):#{{{
+
+class RemoteMessage(IUInterface):
 
 	"""A remote IU with access mode 'MESSAGE'."""
 
@@ -457,9 +456,9 @@ class RemoteMessage(IUInterface):#{{{
 		"""Apply retraction to the IU"""
 		logger.warning('Warning: should never be called: RemoteMessage._apply_retraction')
 		self._retracted = True
-#}}}
 
-class RemotePushIU(IUInterface):#{{{
+
+class RemotePushIU(IUInterface):
 
 	"""A remote IU with access mode 'PUSH'."""
 

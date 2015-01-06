@@ -176,7 +176,6 @@ class InputBuffer(Buffer):
 
 	"""An InputBuffer that holds remote IUs."""
 
-
 	def __init__(self, owning_component_name, category_interests=None, channel="default", participant_config=None, resend_active = False ):
 		'''Create an InputBuffer.
 
@@ -195,7 +194,7 @@ class InputBuffer(Buffer):
 		if category_interests is not None:
 			for cat in category_interests:
 				self._add_category_listener(cat)
-		# add own uuid as identifier for hidden channel. (dlw)
+		# add own uuid as identifier for hidden category.
 		self._add_category_listener(str(self._uuid))
 
 	def _get_remote_server(self, iu):
@@ -235,13 +234,17 @@ class InputBuffer(Buffer):
 		type_ = type(event.data)
 		if type_ is ipaaca.iu.RemotePushIU:
 			# a new IU
-			if event.data.uid in self._iu_store:
-				# already in our store
-				pass
-			else:
-				self._iu_store[ event.data.uid ] = event.data
+			if event.data.uid not in self._iu_store:
+				self._iu_store[event.data.uid] = event.data
 				event.data.buffer = self
 				self.call_iu_event_handlers(event.data.uid, local=False, event_type=ipaaca.iu.IUEventType.ADDED, category=event.data.category)
+			else:
+				# IU already in our store, overwrite local IU, but do not call
+				# event handler. This functionality is necessary to undo 
+				# destructive changes after a failing remote updates (undo is
+				# done via the resend request mechanism).
+				self._iu_store[event.data.uid] = event.data
+				event.data.buffer = self
 		elif type_ is ipaaca.iu.RemoteMessage:
 			# a new Message, an ephemeral IU that is removed after calling handlers
 			self._iu_store[ event.data.uid ] = event.data
@@ -249,19 +252,12 @@ class InputBuffer(Buffer):
 			self.call_iu_event_handlers(event.data.uid, local=False, event_type=ipaaca.iu.IUEventType.MESSAGE, category=event.data.category)
 			del self._iu_store[ event.data.uid ]
 		else:
-			if event.data.uid not in self._iu_store: # TODO switch default off
-				if self._resend_active == True:
-					logger.warning("Resend message for IU which we did not fully receive before.")
-					# send resend request to remote server (dlw).
-					remote_server = self._get_remote_server(event.data)
-					resend_request = ipaaca_pb2.IUResendRequest()
-					resend_request.uid = event.data.uid # target iu
-					resend_request.hidden_scope_name = str(self._uuid) # hidden channel name
-					rRevision = remote_server.resendRequest(resend_request)
-					if rRevision == 0:
-						raise ipaaca.exception.IUResendFailedError(self)
+			if event.data.uid not in self._iu_store:
+				if self._resend_active:
+					# send resend request to remote server
+					self._request_remote_resend(event.data)
 				else:
-					logger.warning("Update message for IU which we did not fully receive before.")
+					logger.warning("Received an update for an IU which we did not receive before.")
 				return
 			# an update to an existing IU
 			if type_ is ipaaca_pb2.IURetraction:
@@ -305,10 +301,19 @@ class InputBuffer(Buffer):
 		for interest in category_interests:
 			self._add_category_listener(interest)
 
-	def is_resend_active():
+	def _request_remote_resend(self, iu):
+		remote_server = self._get_remote_server(iu)
+		resend_request = ipaaca_pb2.IUResendRequest()
+		resend_request.uid = iu.uid # target iu
+		resend_request.hidden_scope_name = str(self._uuid) # hidden category name
+		remote_revision = remote_server.requestResend(resend_request)
+		if remote_revision == 0:
+			raise ipaaca.exception.IUResendRequestFailedError()
+
+	def is_resend_active(self):
 		return self._resend_active
 
-	def set_resend_active(active):
+	def set_resend_active(self, active=True):
 		self._resend_active = active
 
 
@@ -330,8 +335,7 @@ class OutputBuffer(Buffer):
 		self._server.addMethod('updateLinks', self._remote_update_links, ipaaca.converter.IULinkUpdate, int)
 		self._server.addMethod('updatePayload', self._remote_update_payload, ipaaca.converter.IUPayloadUpdate, int)
 		self._server.addMethod('commit', self._remote_commit, ipaaca_pb2.IUCommission, int)
-		# add method to trigger a resend request. (dlw)
-		self._server.addMethod('resendRequest', self._remote_resend_request, ipaaca_pb2.IUResendRequest, int)
+		self._server.addMethod('requestResend', self._remote_request_resend, ipaaca_pb2.IUResendRequest, int)
 		self._informer_store = {}
 		self._id_prefix = str(owning_component_name)+'-'+str(self._uuid)+'-IU-'
 		self.__iu_id_counter_lock = threading.Lock()
@@ -383,14 +387,14 @@ class OutputBuffer(Buffer):
 			self.call_iu_event_handlers(update.uid, local=True, event_type=ipaaca.iu.IUEventType.UPDATED, category=iu.category)
 			return iu.revision
 
-	def _remote_resend_request(self, iu_resend_request_pack):
-		''' Resend an requested iu over the specific hidden channel. (dlw) '''
+	def _remote_request_resend(self, iu_resend_request_pack):
+		''' Resend a requested IU over the specific hidden category.'''
 		if iu_resend_request_pack.uid not in self._iu_store:
-			logger.warning("Remote InBuffer tried to spuriously write non-existent IU "+str(iu_resend_request_pack.uid))
+			logger.warning("Remote side requested resending of non-existent IU "+str(iu_resend_request_pack.uid))
 			return 0
 		iu = self._iu_store[iu_resend_request_pack.uid]
 		with iu.revision_lock:
-			if (iu_resend_request_pack.hidden_scope_name is not None) and (iu_resend_request_pack.hidden_scope_name is not ""):
+			if iu_resend_request_pack.hidden_scope_name is not None and iu_resend_request_pack.hidden_scope_name is not '':
 				informer = self._get_informer(iu_resend_request_pack.hidden_scope_name)
 				informer.publishData(iu)
 				return iu.revision
@@ -531,7 +535,7 @@ class OutputBuffer(Buffer):
 		if keys_to_remove is None:
 			keys_to_remove = []
 		payload_update = ipaaca.converter.IUPayloadUpdate(iu._uid, is_delta=is_delta, revision=revision)
-		payload_update.new_items = new_items
+		payload_update.new_items = new_items 
 		if is_delta:
 			payload_update.keys_to_remove = keys_to_remove
 		payload_update.writer_name = writer_name

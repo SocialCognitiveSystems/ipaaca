@@ -34,17 +34,17 @@ from __future__ import division, print_function
 
 import collections
 
-try:
-	import simplejson as json
-except ImportError:
-	import json
-	logger.warn('INFO: Using module "json" instead of "simplejson". Install "simplejson" for better performance.')
-
 import rsb.converter
 
 import ipaaca_pb2
 import ipaaca.iu
 from ipaaca.misc import logger
+
+try:
+	import simplejson as json
+except ImportError:
+	import json
+	logger.warn('INFO: Using module "json" instead of "simplejson". Install "simplejson" for better performance.')
 
 
 __all__ = [
@@ -82,7 +82,13 @@ def pack_payload_entry(entry, key, value):
 
 def unpack_payload_entry(entry):
 	# We assume that the only transfer types are 'str' or 'json'. Both are transparently handled by json.loads
-	return json.loads(entry.value)
+	if entry.type == 'json':
+		return json.loads(entry.value)
+	elif entry.type == 'str':
+		return entry.value
+	else:
+		logger.warn('Received payload entry with unsupported type "' + entry.type + '".')
+		return entry.value
 
 
 class IUConverter(rsb.converter.Converter):

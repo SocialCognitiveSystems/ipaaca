@@ -35,8 +35,6 @@ from __future__ import division, print_function
 import rsb
 import rsb.converter
 
-
-
 from ipaaca.misc import logger
 
 import ipaaca_pb2
@@ -86,22 +84,11 @@ def initialize_ipaaca_rsb():
 			messageClass=ipaaca_pb2.IURetraction))
 
 	rsb.__defaultParticipantConfig = rsb.ParticipantConfig.fromDefaultSources()
-	#t = rsb.ParticipantConfig.Transport('spread', {'enabled':'true'})
-	#rsb.__defaultParticipantConfig = rsb.ParticipantConfig.fromFile('rsb.cfg')
+	# t = rsb.ParticipantConfig.Transport('spread', {'enabled':'true'})
+	# rsb.__defaultParticipantConfig = rsb.ParticipantConfig.fromFile('rsb.cfg')
 
 
 ## --- Module initialisation -------------------------------------------------
 
 # register our own RSB Converters
 initialize_ipaaca_rsb()
-
-
-# IDEAS
-#  We should think about relaying the update event (or at least the
-#  affected keys in the payload / links) to the event handlers!
-
-# THOUGHTS
-#  Output buffers could generate UIDs for IUs on request, without
-#  publishing them at that time. Then UID could then be used
-#  for internal links etc. The IU may be published later through
-#  the same buffer that allocated the UID.

@@ -35,6 +35,8 @@ from __future__ import division, print_function
 import threading
 import time
 
+import ipaaca.exception
+
 
 __all__ = [
 	'Payload',
@@ -158,7 +160,7 @@ class Payload(dict):
 				else:
 					self._batch_update_cond.wait(timeout - current_time + start_time)
 					current_time = time.time()
-		raise IUPayloadLockTimeoutError(self.iu)
+		raise ipaaca.exception.IUPayloadLockTimeoutError(self.iu)
 
 
 class PayloadItemProxy(object):
@@ -169,7 +171,15 @@ class PayloadItemProxy(object):
 		self.identifier_in_payload = identifier_in_payload
 
 	def _notify_payload(self):
-		self.payload[self.identifier_in_payload] = self.content
+		try:
+			self.payload[self.identifier_in_payload] = self.content
+		except ipaaca.exception.IUUpdateFailedError as e:
+			# IU update failed. Use the ResendRequest mechanism
+			# to replace the altered RemotePushIU with the unchanged
+			# payload from its OutputBuffer.''
+			iu = self.payload.iu
+			iu.buffer._request_remote_resend(iu)
+			raise e # re-raise IUUpdateFailedError from aboves
 
 	def _create_proxy(self, obj, identifier_in_payload):
 		if isinstance(obj, dict):
