@@ -79,7 +79,7 @@ public class IUConverter implements Converter<ByteBuffer>
         List<PayloadItem> payloadItems = new ArrayList<PayloadItem>();
         for (Entry<String, String> entry : iua.getPayload().entrySet())
         {
-            payloadItems.add(PayloadItem.newBuilder().setKey(entry.getKey()).setValue(entry.getValue()).setType("").build());
+            payloadItems.add(PayloadItem.newBuilder().setKey(entry.getKey()).setValue(entry.getValue()).setType("str").build());
         }
 
         List<LinkSet> links = new ArrayList<LinkSet>();

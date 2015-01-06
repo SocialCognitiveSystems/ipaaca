@@ -231,7 +231,7 @@ public abstract class AbstractIU
         List<PayloadItem> items = new ArrayList<PayloadItem>();
         for (Entry<String, String> entry : newPayload.entrySet())
         {
-            PayloadItem item = PayloadItem.newBuilder().setKey(entry.getKey()).setValue(entry.getValue()).setType("") // TODO:default type?
+            PayloadItem item = PayloadItem.newBuilder().setKey(entry.getKey()).setValue(entry.getValue()).setType("str") // TODO:default type?
                     .build();
             items.add(item);
         }

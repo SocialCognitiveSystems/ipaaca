@@ -71,14 +71,6 @@ public class RemotePushIU extends AbstractIU
         return inputBuffer;
     }
 
-    // def __init__(self, uid, revision, read_only, owner_name, category, type, committed, payload):
-    // super(RemotePushIU, self).__init__(uid=uid, access_mode=IUAccessMode.PUSH, read_only=read_only)
-    // self._revision = revision
-    // self._category = category
-    // self.owner_name = owner_name
-    // self._type = type
-    // self._committed = committed
-    // self._payload = RemotePushPayload(remote_push_iu=self, new_payload=payload)
     public RemotePushIU(String uid)
     {
         super(uid);
@@ -107,7 +99,7 @@ public class RemotePushIU extends AbstractIU
         {
             throw new IUReadOnlyException(this);
         }
-        PayloadItem newItem = PayloadItem.newBuilder().setKey(key).setValue(value).setType("").build();// TODO use default type in .proto
+        PayloadItem newItem = PayloadItem.newBuilder().setKey(key).setValue(value).setType("str").build();// TODO use default type in .proto
         IUPayloadUpdate update = IUPayloadUpdate.newBuilder().setIsDelta(true).setUid(getUid()).setRevision(getRevision())
                 .setWriterName(getBuffer().getUniqueName()).addNewItems(newItem).build();
 
@@ -152,7 +144,7 @@ public class RemotePushIU extends AbstractIU
                 .setWriterName(getBuffer().getUniqueName());
         for (Map.Entry<? extends String, ? extends String> item : newItems.entrySet())
         {
-            PayloadItem newItem = PayloadItem.newBuilder().setKey(item.getKey()).setValue(item.getValue()).setType("") // TODO: fix this, default in .proto?
+            PayloadItem newItem = PayloadItem.newBuilder().setKey(item.getKey()).setValue(item.getValue()).setType("str") // TODO: fix this, default in .proto?
                     .build();
             builder.addNewItems(newItem);
 
@@ -187,25 +179,6 @@ public class RemotePushIU extends AbstractIU
         setRevision(newRevision);
     }
 
-    // def commit(self):
-    // """Commit to this IU."""
-    // if self.read_only:
-    // raise IUReadOnlyError(self)
-    // if self._committed:
-    // # ignore commit requests when already committed
-    // return
-    // else:
-    // commission_request = iuProtoBuf_pb2.IUCommission()
-    // commission_request.uid = self.uid
-    // commission_request.revision = self.revision
-    // commission_request.writer_name = self.buffer.unique_name
-    // remote_server = self.buffer._get_remote_server(self)
-    // new_revision = remote_server.commit(commission_request)
-    // if new_revision == 0:
-    // raise IUUpdateFailedError(self)
-    // else:
-    // self._revision = new_revision
-    // self._committed = True
     @Override
     public void commit(String writerName)
     {
@@ -251,17 +224,6 @@ public class RemotePushIU extends AbstractIU
         }
     }
 
-    // def __str__(self):
-    // s = "RemotePushIU{ "
-    // s += "uid="+self._uid+" "
-    // s += "(buffer="+(self.buffer.unique_name if self.buffer is not None else "<None>")+") "
-    // s += "owner_name=" + ("<None>" if self.owner_name is None else self.owner_name) + " "
-    // s += "payload={ "
-    // for k,v in self.payload.items():
-    // s += k+":'"+v+"', "
-    // s += "} "
-    // s += "}"
-    // return s
     @Override
     public String toString()
     {
@@ -280,37 +242,11 @@ public class RemotePushIU extends AbstractIU
         return b.toString();
     }
 
-    //
-    // def _get_payload(self):
-    // return self._payload
     public Payload getPayload()
     {
         return payload;
     }
 
-    // def _set_payload(self, new_pl):
-    // if self.committed:
-    // raise IUCommittedError(self)
-    // if self.read_only:
-    // raise IUReadOnlyError(self)
-    // requested_update = IUPayloadUpdate(
-    // uid=self.uid,
-    // revision=self.revision,
-    // is_delta=False,
-    // writer_name=self.buffer.unique_name,
-    // new_items=new_pl,
-    // keys_to_remove=[])
-    // remote_server = self.buffer._get_remote_server(self)
-    // new_revision = remote_server.updatePayload(requested_update)
-    // if new_revision == 0:
-    // raise IUUpdateFailedError(self)
-    // else:
-    // self._revision = new_revision
-    // self._payload = RemotePushPayload(remote_push_iu=self, new_payload=new_pl)
-    // payload = property(
-    // fget=_get_payload,
-    // fset=_set_payload,
-    // doc='Payload dictionary of the IU.')
     @Override
     public void setPayload(List<PayloadItem> newItems, String writerName)
     {
@@ -354,37 +290,33 @@ public class RemotePushIU extends AbstractIU
         }
     }
 
-    // def _apply_update(self, update):
-    // """Apply a IUPayloadUpdate to the IU."""
-    // self._revision = update.revision
-    // if update.is_delta:
-    // for k in update.keys_to_remove: self.payload._remotely_enforced_delitem(k)
-    // for k, v in update.new_items.items(): self.payload._remotely_enforced_setitem(k, v)
-    // else:
-    // # using '_payload' to circumvent the local writing methods
-    // self._payload = RemotePushPayload(remote_push_iu=self, new_payload=update.new_items)
     /**
      * Apply a IUPayloadUpdate to the IU.
      * @param update
      */
-    public void applyUpdate(IUPayloadUpdate update)
-    {
-        revision = update.getRevision();
-        if (update.getIsDelta())
-        {
-            for (String key : update.getKeysToRemoveList())
-            {
-                payload.enforcedRemoveItem(key);
-            }
-            for (PayloadItem item : update.getNewItemsList())
-            {
-                payload.enforcedSetItem(item.getKey(), item.getValue());
-            }
-        }
-        else
-        {
-            payload = new Payload(this, update.getNewItemsList());
-        }
+    public void applyUpdate(IUPayloadUpdate update) {
+    	revision = update.getRevision();
+    	if (update.getIsDelta()) {
+    		for (String key : update.getKeysToRemoveList()) {
+    			payload.enforcedRemoveItem(key);
+    		}
+    		for (PayloadItem item : update.getNewItemsList()) {
+    			if (item.getType().equals("str")) {
+    				payload.enforcedSetItem(item.getKey(), item.getValue());
+    			} else if (item.getType().equals("json")) {
+    				String value = item.getValue();
+    				if (value.startsWith("\"")) {
+    					payload.enforcedSetItem(item.getKey(), value.replaceAll("\\\"", ""));
+    				} else if (value.startsWith("{") || value.startsWith("[") || value.matches("true") || value.matches("false") || value.matches("-?[0-9]*[.,]?[0-9][0-9]*.*")) { 
+    					payload.enforcedSetItem(item.getKey(), value);
+    				} else if (value.equals("null")) {
+    					payload.enforcedSetItem(item.getKey(), "");
+    				}
+    			}
+    		}
+    	} else {
+    		payload = new Payload(this, update.getNewItemsList());
+    	}
     }
 
     public void applyLinkUpdate(IULinkUpdate update)
@@ -420,9 +352,6 @@ public class RemotePushIU extends AbstractIU
 
     }
 
-    // def _apply_commission(self):
-    // """Apply commission to the IU"""
-    // self._committed = True
     public void applyCommmision()
     {
         committed = true;
@@ -466,25 +395,7 @@ public class RemotePushIU extends AbstractIU
         setRevision(newRevision);
     }
 
-    // def _modify_payload(self, payload, is_delta=True, new_items={}, keys_to_remove=[], writer_name=None):
-    // """Modify the payload: add or remove item from this payload remotely and send update."""
-    // if self.committed:
-    // raise IUCommittedError(self)
-    // if self.read_only:
-    // raise IUReadOnlyError(self)
-    // requested_update = IUPayloadUpdate(
-    // uid=self.uid,
-    // revision=self.revision,
-    // is_delta=is_delta,
-    // writer_name=self.buffer.unique_name,
-    // new_items=new_items,
-    // keys_to_remove=keys_to_remove)
-    // remote_server = self.buffer._get_remote_server(self)
-    // new_revision = remote_server.updatePayload(requested_update)
-    // if new_revision == 0:
-    // raise IUUpdateFailedError(self)
-    // else:
-    // self._revision = new_revision
+
     @Override
     void modifyLinks(boolean isDelta, SetMultimap<String, String> linksToAdd, SetMultimap<String, String> linksToRemove, String writerName)
     {

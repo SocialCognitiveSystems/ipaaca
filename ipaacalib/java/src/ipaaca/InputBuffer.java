@@ -36,6 +36,7 @@ import ipaaca.protobuf.Ipaaca.IUCommission;
 import ipaaca.protobuf.Ipaaca.IUResendRequest;
 import ipaaca.protobuf.Ipaaca.IULinkUpdate;
 import ipaaca.protobuf.Ipaaca.IUPayloadUpdate;
+import ipaaca.protobuf.Ipaaca.PayloadItem;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -52,8 +53,10 @@ import rsb.Event;
 import rsb.Factory;
 import rsb.Handler;
 import rsb.InitializeException;
+
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
+
 import rsb.Listener;
 import rsb.RSBException;
 import rsb.Scope;
@@ -291,7 +294,7 @@ public class InputBuffer extends Buffer
         }
 
     }
-
+    
     // def _handle_iu_events(self, event):
     // '''Dispatch incoming IU events.
     //
@@ -342,7 +345,6 @@ public class InputBuffer extends Buffer
                 logger.warn("Spurious RemoteMessage event: already got this UID: "+rm.getUid());
                 return;
             }
-
             //logger.info("Adding Message "+rm.getUid());
             messageStore.put(rm.getUid(), rm);
             //logger.info("Calling handlers for Message "+rm.getUid());
