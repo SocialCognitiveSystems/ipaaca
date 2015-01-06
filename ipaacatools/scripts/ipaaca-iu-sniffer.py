@@ -5,7 +5,7 @@
 #  "Incremental Processing Architecture
 #   for Artificial Conversational Agents".	
 #
-# Copyright (c) 2009-2013 Sociable Agents Group
+# Copyright (c) 2009-2014 Social Cognitive Systems Group
 #                         CITEC, Bielefeld University	
 #
 # http://opensource.cit-ec.de/projects/ipaaca/
@@ -52,6 +52,7 @@ def highlight_if_color(s, c='1'):
 def pretty_printed_iu_payload(iu):
 	s='{ '
 	for k,v in iu.payload.items():
+		v = str(v)
 		v2 = (('\''+v+'\'') if len(v)<=max_size else ('\''+v[:max_size]+'\'<excess length omitted>')).replace('\\','\\\\').replace('\n',highlight_if_color('\\n'))
 		s += '\n' + '\t\t\'' + highlight_if_color(unicode(k),'1')+'\': '+unicode(v2)+', '
 	s+=' }'
