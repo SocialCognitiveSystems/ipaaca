@@ -33,12 +33,16 @@
 from __future__ import division, print_function
 
 
+import argparse
 import logging
+
+import ipaaca.defaults
 
 
 __all__ = [
-	'enum'
-	'logger'
+	'enum',
+	'logger',
+	'IpaacaArgumentParser',
 ]
 
 
@@ -56,7 +60,7 @@ def enum(*sequential, **named):
 # Create a global logger for ipaaca
 class IpaacaLoggingHandler(logging.Handler):
 
-	def __init__(self, level=logging.DEBUG):
+	def __init__(self, level=logging.NOTSET):
 		logging.Handler.__init__(self, level)
 
 	def emit(self, record):
@@ -64,5 +68,46 @@ class IpaacaLoggingHandler(logging.Handler):
 		msg = str(record.msg.format(record.args))
 		print(meta + msg)
 
+
 logger = logging.getLogger('ipaaca')
-logger.addHandler(IpaacaLoggingHandler(level=logging.INFO))
+logger.addHandler(IpaacaLoggingHandler())
+logger.setLevel(level=ipaaca.defaults.IPAACA_DEFAULT_LOGGING_LEVEL)
+
+
+
+class IpaacaArgumentParser(argparse.ArgumentParser):
+
+
+	class IpaacaDefaultChannelAction(argparse.Action):
+
+		def __call__(self, parser, namespace, values, option_string=None):
+			ipaaca.defaults.IPAACA_DEFAULT_CHANNEL = values
+
+	class IpaacaLoggingLevelAction(argparse.Action):
+
+		def __call__(self, parser, namespace, values, option_string=None):
+			logger.setLevel(level=values)
+	
+
+	def __init__(self, prog=None, usage=None, description=None, epilog=None, parents=[], formatter_class=argparse.HelpFormatter, prefix_chars='-', fromfile_prefix_chars=None, argument_default=None, conflict_handler='error', add_help=True):
+		super(IpaacaArgumentParser, self).__init__(prog=prog, usage=usage, description=description, epilog=epilog, parents=parents, formatter_class=formatter_class, prefix_chars=prefix_chars, fromfile_prefix_chars=fromfile_prefix_chars, argument_default=argument_default, conflict_handler=conflict_handler, add_help=add_help)
+
+		self.add_argument(
+			'--ipaaca-default-channel', action=self.IpaacaDefaultChannelAction,
+			default='default', metavar='NAME', dest='_ipaaca_default_channel_',
+			help='ipaaca channel name which is used if a buffer does not define one locally')
+
+		self.add_argument(
+			'--ipaaca-logging-level', action=self.IpaacaLoggingLevelAction,
+			choices=['NOTSET','CRITICAL','ERROR','WARNING','INFO','DEBUG'],
+			dest='_ipaaca_logging_level_',
+			help='logging threshold for ipaaca')
+
+	def parse_args(self, args=None, namespace=None):
+		result = super(IpaacaArgumentParser, self).parse_args(args, namespace)
+		for item in dir(result):
+			if item.startswith('_ipaaca') and item.endswith('_'):
+				delattr(result, item)
+		return result
+
+

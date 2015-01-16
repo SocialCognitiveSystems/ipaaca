@@ -39,6 +39,7 @@ import uuid
 import rsb
 
 import ipaaca_pb2
+import ipaaca.defaults
 import ipaaca.exception
 import ipaaca.converter
 import ipaaca.iu
@@ -123,7 +124,7 @@ class Buffer(object):
 
 	"""Base class for InputBuffer and OutputBuffer."""
 
-	def __init__(self, owning_component_name, participant_config=None):
+	def __init__(self, owning_component_name, channel=None, participant_config=None):
 		'''Create a Buffer.
 
 		Keyword arguments:
@@ -132,6 +133,7 @@ class Buffer(object):
 		'''
 		super(Buffer, self).__init__()
 		self._owning_component_name = owning_component_name
+		self._channel = channel if channel is not None else ipaaca.defaults.IPAACA_DEFAULT_CHANNEL
 		self._participant_config = rsb.ParticipantConfig.fromDefaultSources() if participant_config is None else participant_config
 		self._uuid = str(uuid.uuid4())[0:8]
 		# Initialise with a temporary, but already unique, name
@@ -176,7 +178,7 @@ class InputBuffer(Buffer):
 
 	"""An InputBuffer that holds remote IUs."""
 
-	def __init__(self, owning_component_name, category_interests=None, channel="default", participant_config=None, resend_active = False ):
+	def __init__(self, owning_component_name, category_interests=None, channel=None, participant_config=None, resend_active = False ):
 		'''Create an InputBuffer.
 
 		Keyword arguments:
@@ -184,12 +186,11 @@ class InputBuffer(Buffer):
 		category_interests -- list of IU categories this Buffer is interested in
 		participant_config = RSB configuration
 		'''
-		super(InputBuffer, self).__init__(owning_component_name, participant_config)
+		super(InputBuffer, self).__init__(owning_component_name, channel, participant_config)
 		self._resend_active = resend_active
 		self._unique_name = '/ipaaca/component/'+str(owning_component_name)+'ID'+self._uuid+'/IB'
 		self._listener_store = {} # one per IU category
 		self._remote_server_store = {} # one per remote-IU-owning Component
-		self._channel = channel
 		self._category_interests = []
 		if category_interests is not None:
 			for cat in category_interests:
@@ -321,15 +322,14 @@ class OutputBuffer(Buffer):
 
 	"""An OutputBuffer that holds local IUs."""
 
-	def __init__(self, owning_component_name, channel='default', participant_config=None):
-
+	def __init__(self, owning_component_name, channel=None, participant_config=None):
 		'''Create an Output Buffer.
 
 		Keyword arguments:
 		owning_component_name -- name of the entity that own this buffer
 		participant_config -- RSB configuration
 		'''
-		super(OutputBuffer, self).__init__(owning_component_name, participant_config)
+		super(OutputBuffer, self).__init__(owning_component_name, channel, participant_config)
 		self._unique_name = '/ipaaca/component/' + str(owning_component_name) + 'ID' + self._uuid + '/OB'
 		self._server = rsb.createServer(rsb.Scope(self._unique_name))
 		self._server.addMethod('updateLinks', self._remote_update_links, ipaaca.converter.IULinkUpdate, int)
@@ -339,7 +339,6 @@ class OutputBuffer(Buffer):
 		self._informer_store = {}
 		self._id_prefix = str(owning_component_name)+'-'+str(self._uuid)+'-IU-'
 		self.__iu_id_counter_lock = threading.Lock()
-		self._channel = channel
 
 	def _remote_update_links(self, update):
 		'''Apply a remotely requested update to one of the stored IU's links.'''

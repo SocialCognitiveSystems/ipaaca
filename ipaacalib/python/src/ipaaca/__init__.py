@@ -35,7 +35,7 @@ from __future__ import division, print_function
 import rsb
 import rsb.converter
 
-from ipaaca.misc import logger
+from ipaaca.misc import logger, IpaacaArgumentParser
 
 import ipaaca_pb2
 import ipaaca.converter
@@ -77,15 +77,13 @@ def initialize_ipaaca_rsb():
 
 	rsb.converter.registerGlobalConverter(
 		rsb.converter.ProtocolBufferConverter(
-			messageClass=ipaaca_pb2.IUResendRequest)) # dlw
+			messageClass=ipaaca_pb2.IUResendRequest))
 
 	rsb.converter.registerGlobalConverter(
 		rsb.converter.ProtocolBufferConverter(
 			messageClass=ipaaca_pb2.IURetraction))
 
 	rsb.__defaultParticipantConfig = rsb.ParticipantConfig.fromDefaultSources()
-	# t = rsb.ParticipantConfig.Transport('spread', {'enabled':'true'})
-	# rsb.__defaultParticipantConfig = rsb.ParticipantConfig.fromFile('rsb.cfg')
 
 
 ## --- Module initialisation -------------------------------------------------
