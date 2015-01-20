@@ -154,9 +154,10 @@ class Buffer(object):
 			be called for all event types
 		for_categories -- a list of category names or None if handler should
 			be called for all categories
-		 """
+		"""
 		handler = IUEventHandler(handler_function=handler_function, for_event_types=for_event_types, for_categories=for_categories)
 		self._iu_event_handlers.append(handler)
+		return handler
 
 	def call_iu_event_handlers(self, uid, local, event_type, category):
 		"""Call registered IU event handler functions registered for this event_type and category."""
@@ -178,7 +179,7 @@ class InputBuffer(Buffer):
 
 	"""An InputBuffer that holds remote IUs."""
 
-	def __init__(self, owning_component_name, category_interests=None, channel=None, participant_config=None, resend_active = False ):
+	def __init__(self, owning_component_name, category_interests=None, channel=None, participant_config=None, resend_active=False):
 		'''Create an InputBuffer.
 
 		Keyword arguments:
@@ -187,16 +188,17 @@ class InputBuffer(Buffer):
 		participant_config = RSB configuration
 		'''
 		super(InputBuffer, self).__init__(owning_component_name, channel, participant_config)
-		self._resend_active = resend_active
 		self._unique_name = '/ipaaca/component/'+str(owning_component_name)+'ID'+self._uuid+'/IB'
+		self._resend_active = resend_active
 		self._listener_store = {} # one per IU category
 		self._remote_server_store = {} # one per remote-IU-owning Component
 		self._category_interests = []
+		# add own uuid as identifier for hidden category.
+		self._add_category_listener(str(self._uuid))
 		if category_interests is not None:
 			for cat in category_interests:
 				self._add_category_listener(cat)
-		# add own uuid as identifier for hidden category.
-		self._add_category_listener(str(self._uuid))
+
 
 	def _get_remote_server(self, iu):
 		'''Return (or create, store and return) a remote server.'''
@@ -221,7 +223,6 @@ class InputBuffer(Buffer):
 			self._listener_store[iu_category] = cat_listener
 			self._category_interests.append(iu_category)
 			logger.info("Added listener in scope "+"/ipaaca/channel/"+str(self._channel)+"/category/"+iu_category)
-
 
 	def _handle_iu_events(self, event):
 		'''Dispatch incoming IU events.
@@ -276,9 +277,6 @@ class InputBuffer(Buffer):
 					# Notify only for remotely triggered events;
 					# Discard updates that originate from this buffer
 					return
-				#else:
-				#	print('Got update written by buffer '+str(event.data.writer_name))
-
 				if type_ is ipaaca_pb2.IUCommission:
 					# IU commit
 					iu = self._iu_store[event.data.uid]
@@ -299,8 +297,11 @@ class InputBuffer(Buffer):
 					logger.warning('Warning: _handle_iu_events failed to handle an object of type '+str(type_))
 
 	def add_category_interests(self, category_interests):
-		for interest in category_interests:
-			self._add_category_listener(interest)
+		if hasattr(category_interests, '__iter__'):
+			for interest in category_interests:
+				self._add_category_listener(interest)
+		else:
+			self._add_category_listener(category_interests)
 
 	def _request_remote_resend(self, iu):
 		remote_server = self._get_remote_server(iu)
@@ -310,6 +311,25 @@ class InputBuffer(Buffer):
 		remote_revision = remote_server.requestResend(resend_request)
 		if remote_revision == 0:
 			raise ipaaca.exception.IUResendRequestFailedError()
+
+	def register_handler(self, handler_function, for_event_types=None, for_categories=None):
+		"""Register a new IU event handler function.
+
+		Keyword arguments:
+		handler_function -- a function with the signature (IU, event_type, local)
+		for_event_types -- a list of event types or None if handler should
+			be called for all event types
+		for_categories -- a list of category names or None if handler should
+			be called for all categories
+		"""
+		handler = super(InputBuffer, self).register_handler(handler_function, for_event_types, for_categories)
+		try:
+			for category in handler._for_categories:
+				self.add_category_interests(category)
+		except TypeError:
+			# i.e., None was provided to the handler
+			pass
+		return handler
 
 	def is_resend_active(self):
 		return self._resend_active
