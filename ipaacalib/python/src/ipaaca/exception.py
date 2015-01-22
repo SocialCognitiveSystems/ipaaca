@@ -34,6 +34,7 @@ from __future__ import division, print_function
 
 
 __all__ = [
+	'IpaacaError',
 	'IUCommittedError',
 	'IUNotFoundError',
 	'IUPayloadLockedError',
@@ -45,49 +46,52 @@ __all__ = [
 ]
 
 
-class IUCommittedError(Exception):
+class IpaacaError(Exception): pass
+
+
+class IUCommittedError(IpaacaError):
 	"""Error indicating that an IU is immutable because it has been committed to."""
 	def __init__(self, iu):
 		super(IUCommittedError, self).__init__('Writing to IU ' + str(iu.uid) + ' failed -- it has been committed to.')
 
 
-class IUNotFoundError(Exception):
+class IUNotFoundError(IpaacaError):
 	"""Error indicating that an IU UID was unexpectedly not found in an internal store."""
 	def __init__(self, iu_uid):
 		super(IUNotFoundError, self).__init__('Lookup of IU ' + str(iu_uid) + ' failed.')
 
 
-class IUPayloadLockTimeoutError(Exception):
+class IUPayloadLockTimeoutError(IpaacaError):
 	"""Error indicating that exclusive access to the Payload could not be obtained in time."""
 	def __init__(self, iu):
 		super(IUPayloadLockTimeoutError, self).__init__('Timeout while accessing payload of IU ' + str(iu.uid) + '.')
 
 
-class IUPayloadLockedError(Exception):
+class IUPayloadLockedError(IpaacaError):
 	"""Error indicating that exclusive access to the Payload could not be obtained because someone actually locked it."""
 	def __init__(self, iu):
 		super(IUPayloadLockedError, self).__init__('IU '+str(iu.uid)+' was locked during access attempt.')
 
 
-class IUPublishedError(Exception):
+class IUPublishedError(IpaacaError):
 	"""Error publishing of an IU failed since it is already in the buffer."""
 	def __init__(self, iu):
 		super(IUPublishedError, self).__init__('IU ' + str(iu.uid) + ' is already present in the output buffer.')
 
 
-class IUReadOnlyError(Exception):
+class IUReadOnlyError(IpaacaError):
 	"""Error indicating that an IU is immutable because it is 'read only'."""
 	def __init__(self, iu):
 		super(IUReadOnlyError, self).__init__('Writing to IU ' + str(iu.uid) + ' failed -- it is read-only.')
 
 
-class IUResendRequestFailedError(Exception):
+class IUResendRequestFailedError(IpaacaError):
 	"""Error indicating that a remote IU resend failed."""
 	def __init__(self, iu):
 		super(IUResendFailedError, self).__init__('Remote resend failed for IU ' + str(iu.uid) + '.')
 
 
-class IUUpdateFailedError(Exception):
+class IUUpdateFailedError(IpaacaError):
 	"""Error indicating that a remote IU update failed."""
 	def __init__(self, iu):
 		super(IUUpdateFailedError, self).__init__('Remote update failed for IU ' + str(iu.uid) + '.')
