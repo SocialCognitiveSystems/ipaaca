@@ -1,0 +1,149 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# This file is part of IPAACA, the
+#  "Incremental Processing Architecture
+#   for Artificial Conversational Agents".
+#
+# Copyright (c) 2009-2015 Social Cognitive Systems Group
+#                         CITEC, Bielefeld University
+#
+# http://opensource.cit-ec.de/projects/ipaaca/
+# http://purl.org/net/ipaaca
+#
+# This file may be licensed under the terms of of the
+# GNU Lesser General Public License Version 3 (the ``LGPL''),
+# or (at your option) any later version.
+#
+# Software distributed under the License is distributed
+# on an ``AS IS'' basis, WITHOUT WARRANTY OF ANY KIND, either
+# express or implied. See the LGPL for the specific language
+# governing rights and limitations.
+#
+# You should have received a copy of the LGPL along with this
+# program. If not, go to http://www.gnu.org/licenses/lgpl.html
+# or write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#
+# The development of this software was supported by the
+# Excellence Cluster EXC 277 Cognitive Interaction Technology.
+# The Excellence Cluster EXC 277 is a grant of the Deutsche
+# Forschungsgemeinschaft (DFG) in the context of the German
+# Excellence Initiative.
+
+from __future__ import print_function
+
+import logging
+import re
+import sys
+import time
+import argparse
+import os
+import platform
+
+import ipaaca
+
+
+def highlight_if_color(s, c='1'):
+	return s if not arguments.color else '['+c+'m'+s+'[m'
+
+def pretty_printed_iu_payload(iu):
+	s='{ '
+	for k,v in iu.payload.items():
+		v2 = (('\''+v+'\'') if len(v)<=arguments.max_size else ('\''+v[:arguments.max_size]+'\'<excess length omitted>')).replace('\\','\\\\').replace('\n',highlight_if_color('\\n'))
+		s += '\n' + '\t\t\'' + highlight_if_color(unicode(k),'1')+'\': '+unicode(v2)+', '
+	s+=' }'
+	return s
+
+def event_type_color(typ):
+	colors={'ADDED':'32;1', 'RETRACTED':'31;1', 'UPDATED':'33;1', 'MESSAGE':'34;1'}
+	return '1' if typ not in colors else colors[typ]
+
+def pretty_printed_iu_event(iu, event_type, local):
+	s = ''
+	t = time.time()
+	lt = time.localtime(t)
+	s += highlight_if_color('%.3f'%t, '1')+' '+"%02d:%02d:%02d"%(lt.tm_hour, lt.tm_min, lt.tm_sec)
+	s += ' '+highlight_if_color('%-9s'%event_type,event_type_color(event_type))+' category='+highlight_if_color(iu.category,event_type_color(event_type))+' uid='+iu.uid+' owner='+iu.owner_name+' payload='+pretty_printed_iu_payload(iu)
+	return s
+
+def my_update_handler(iu, event_type, local):
+	if arguments.regex:
+		for cat in arguments.categories: # actually now regexs, not categories
+			if re.match(cat, iu.category):
+				break
+		else:
+			return
+	print(pretty_printed_iu_event(iu, event_type, local))
+
+
+
+parser = ipaaca.IpaacaArgumentParser(description='Ipaaca IU Sniffer -- Selectively listen to IPAACA traffic')
+parser.add_argument(
+	'-r', '--regex',
+	action='store_true',
+	dest='regex',
+	help='match categories by regular expressions')
+parser.add_argument(
+	'-c', '--color',
+	action='store_true',
+	dest='color',
+	help='colorize output')
+parser.add_argument(
+	'--channels',
+	dest='channels',
+	default=['default'],
+	metavar='CHANNEL',
+	nargs='+',
+	help="set the channels to listen on (otherwise 'default')")
+parser.add_argument(
+	'--categories',
+	default=[''],
+	dest='categories',
+	metavar='CATEGORY',
+	nargs='+',
+	help='set categories (or regex patterns) to be matched')
+parser.add_argument(
+	'--size-limit',
+	default=2048,
+	dest='max_size',
+	metavar='LIMIT',
+	type=int,
+	help='limit payload display chars (default: 2048)')
+
+
+if __name__ == '__main__':
+	arguments = parser.parse_args()
+
+	buffers = {}
+	for channel in arguments.channels:
+		buffers[channel] = ipaaca.InputBuffer('IpaacaIUSniffer', arguments.categories if not arguments.regex else [''], channel)
+		buffers[channel].register_handler(my_update_handler)
+
+	print('')
+	print('Ipaaca IU Sniffer - run with --help to see options')
+	
+	channellist = 's ' if len(arguments.channels) > 1 else ' '
+	channellist += ', '.join(arguments.channels)
+	
+	print('Listening on channel' + channellist + ' for IU events of ', end='')
+	if arguments.categories == ['']:
+		print('any category ...')
+	else:
+		if arguments.regex:
+			print('whose category matches one of the regexes:')
+		else:
+			print('categories:')
+		print('\t' + ', '.join(arguments.categories))
+	print('')
+	try:
+		while True:
+			time.sleep(1)
+	except KeyboardInterrupt:
+		pass
+	
+	if platform.system() == 'Windows':
+		os._exit(0)
+	else:
+		sys.exit(0)
+	
