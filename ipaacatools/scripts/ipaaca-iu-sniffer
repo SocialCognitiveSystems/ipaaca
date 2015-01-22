@@ -34,12 +34,11 @@
 from __future__ import division, print_function
 
 import logging
+import os
+import platform
 import re
 import sys
 import time
-import argparse
-import os
-import platform
 
 import ipaaca
 
@@ -141,9 +140,6 @@ if __name__ == '__main__':
 			resend_active=True)
 		buffers[channel].register_handler(my_update_handler)
 
-	print('')
-	print('Ipaaca IU Sniffer - run with --help to see options')
-	
 	channellist = 's ' if len(arguments.channels) > 1 else ' '
 	channellist += ', '.join(arguments.channels)
 	
