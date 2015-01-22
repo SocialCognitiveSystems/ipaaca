@@ -38,13 +38,15 @@ import rsb.converter
 
 import ipaaca_pb2
 import ipaaca.iu
-from ipaaca.misc import logger
+import ipaaca.misc
+
+LOGGER = ipaaca.misc.get_library_logger()
 
 try:
 	import simplejson as json
 except ImportError:
 	import json
-	logger.warn('INFO: Using module "json" instead of "simplejson". Install "simplejson" for better performance.')
+	LOGGER.warn('INFO: Using module "json" instead of "simplejson". Install "simplejson" for better performance.')
 
 
 __all__ = [
@@ -87,7 +89,7 @@ def unpack_payload_entry(entry):
 	elif entry.type == 'str':
 		return entry.value
 	else:
-		logger.warn('Received payload entry with unsupported type "' + entry.type + '".')
+		LOGGER.warn('Received payload entry with unsupported type "' + entry.type + '".')
 		return entry.value
 
 
@@ -200,7 +202,7 @@ class IULinkUpdateConverter(rsb.converter.Converter):
 		if type == IULinkUpdate:
 			pbo = ipaaca_pb2.IULinkUpdate()
 			pbo.ParseFromString( str(byte_stream) )
-			logger.debug('received an IULinkUpdate for revision '+str(pbo.revision))
+			LOGGER.debug('received an IULinkUpdate for revision '+str(pbo.revision))
 			iu_link_up = IULinkUpdate( uid=pbo.uid, revision=pbo.revision, writer_name=pbo.writer_name, is_delta=pbo.is_delta)
 			for entry in pbo.new_links:
 				iu_link_up.new_links[str(entry.type)] = set(entry.targets)
@@ -253,7 +255,7 @@ class IUPayloadUpdateConverter(rsb.converter.Converter):
 		if type == IUPayloadUpdate:
 			pbo = ipaaca_pb2.IUPayloadUpdate()
 			pbo.ParseFromString( str(byte_stream) )
-			logger.debug('received an IUPayloadUpdate for revision '+str(pbo.revision))
+			LOGGER.debug('received an IUPayloadUpdate for revision '+str(pbo.revision))
 			iu_up = IUPayloadUpdate( uid=pbo.uid, revision=pbo.revision, writer_name=pbo.writer_name, is_delta=pbo.is_delta)
 			for entry in pbo.new_items:
 				iu_up.new_items[entry.key] = unpack_payload_entry(entry)

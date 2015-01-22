@@ -37,8 +37,6 @@ import copy
 import threading
 import uuid
 
-from ipaaca.misc import logger
-
 import ipaaca.converter
 import ipaaca.exception
 import ipaaca.misc
@@ -52,6 +50,7 @@ __all__ = [
 	'Message',
 ]
 
+LOGGER = ipaaca.misc.get_library_logger()
 
 IUAccessMode = ipaaca.misc.enum(
 	PUSH = 'PUSH',
@@ -328,18 +327,18 @@ class Message(IU):
 
 	def _modify_links(self, is_delta=False, new_links={}, links_to_remove={}, writer_name=None):
 		if self.is_published:
-			logger.info('Info: modifying a Message after sending has no global effects')
+			LOGGER.info('Info: modifying a Message after sending has no global effects')
 
 	def _modify_payload(self, is_delta=True, new_items={}, keys_to_remove=[], writer_name=None):
 		if self.is_published:
-			logger.info('Info: modifying a Message after sending has no global effects')
+			LOGGER.info('Info: modifying a Message after sending has no global effects')
 
 	def _increase_revision_number(self):
 		self._revision += 1
 
 	def _internal_commit(self, writer_name=None):
 		if self.is_published:
-			logger.info('Info: committing to a Message after sending has no global effects')
+			LOGGER.info('Info: committing to a Message after sending has no global effects')
 
 	def commit(self):
 		return self._internal_commit()
@@ -348,7 +347,7 @@ class Message(IU):
 		return self._payload
 	def _set_payload(self, new_pl, writer_name=None):
 		if self.is_published:
-			logger.info('Info: modifying a Message after sending has no global effects')
+			LOGGER.info('Info: modifying a Message after sending has no global effects')
 		else:
 			if self.committed:
 				raise ipaaca.exception.IUCommittedError(self)
@@ -409,18 +408,18 @@ class RemoteMessage(IUInterface):
 		self._links = links
 
 	def _modify_links(self, is_delta=False, new_links={}, links_to_remove={}, writer_name=None):
-		logger.info('Info: modifying a RemoteMessage only has local effects')
+		LOGGER.info('Info: modifying a RemoteMessage only has local effects')
 
 	def _modify_payload(self, is_delta=True, new_items={}, keys_to_remove=[], writer_name=None):
-		logger.info('Info: modifying a RemoteMessage only has local effects')
+		LOGGER.info('Info: modifying a RemoteMessage only has local effects')
 
 	def commit(self):
-		logger.info('Info: committing to a RemoteMessage only has local effects')
+		LOGGER.info('Info: committing to a RemoteMessage only has local effects')
 
 	def _get_payload(self):
 		return self._payload
 	def _set_payload(self, new_pl):
-		logger.info('Info: modifying a RemoteMessage only has local effects')
+		LOGGER.info('Info: modifying a RemoteMessage only has local effects')
 		self._payload = ipaaca.payload.Payload(iu=self, new_payload=new_pl, omit_init_update_message=True)
 	payload = property(
 			fget=_get_payload,
@@ -429,7 +428,7 @@ class RemoteMessage(IUInterface):
 
 	def _apply_link_update(self, update):
 		"""Apply a IULinkUpdate to the IU."""
-		logger.warning('Warning: should never be called: RemoteMessage._apply_link_update')
+		LOGGER.warning('Warning: should never be called: RemoteMessage._apply_link_update')
 		self._revision = update.revision
 		if update.is_delta:
 			self._add_and_remove_links(add=update.new_links, remove=update.links_to_remove)
@@ -438,7 +437,7 @@ class RemoteMessage(IUInterface):
 
 	def _apply_update(self, update):
 		"""Apply a IUPayloadUpdate to the IU."""
-		logger.warning('Warning: should never be called: RemoteMessage._apply_update')
+		LOGGER.warning('Warning: should never be called: RemoteMessage._apply_update')
 		self._revision = update.revision
 		if update.is_delta:
 			for k in update.keys_to_remove: self.payload._remotely_enforced_delitem(k)
@@ -449,12 +448,12 @@ class RemoteMessage(IUInterface):
 
 	def _apply_commission(self):
 		"""Apply commission to the IU"""
-		logger.warning('Warning: should never be called: RemoteMessage._apply_commission')
+		LOGGER.warning('Warning: should never be called: RemoteMessage._apply_commission')
 		self._committed = True
 
 	def _apply_retraction(self):
 		"""Apply retraction to the IU"""
-		logger.warning('Warning: should never be called: RemoteMessage._apply_retraction')
+		LOGGER.warning('Warning: should never be called: RemoteMessage._apply_retraction')
 		self._retracted = True
 
 
