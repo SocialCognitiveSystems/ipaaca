@@ -31,7 +31,7 @@
 # Forschungsgemeinschaft (DFG) in the context of the German
 # Excellence Initiative.
 
-from __future__ import print_function
+from __future__ import division, print_function
 
 import logging
 import re
@@ -44,27 +44,44 @@ import platform
 import ipaaca
 
 
-def highlight_if_color(s, c='1'):
-	return s if not arguments.color else '['+c+'m'+s+'[m'
-
-def pretty_printed_iu_payload(iu):
-	s='{ '
-	for k,v in iu.payload.items():
-		v2 = (('\''+v+'\'') if len(v)<=arguments.max_size else ('\''+v[:arguments.max_size]+'\'<excess length omitted>')).replace('\\','\\\\').replace('\n',highlight_if_color('\\n'))
-		s += '\n' + '\t\t\'' + highlight_if_color(unicode(k),'1')+'\': '+unicode(v2)+', '
-	s+=' }'
-	return s
-
 def event_type_color(typ):
-	colors={'ADDED':'32;1', 'RETRACTED':'31;1', 'UPDATED':'33;1', 'MESSAGE':'34;1'}
-	return '1' if typ not in colors else colors[typ]
+	colors = {
+		'ADDED': '32;1',
+		'RETRACTED': '31;1',
+		'UPDATED': '33;1',
+		'MESSAGE': '34;1',
+		'COMMITTED': '35;1',
+		'LINKSUPDATED': '36;1',
+		'RETRACTED': '37;1',
+	}
+	return colors.get(typ, '1')
+
+def highlight_if_color(s, c='1'):
+	return s if not arguments.color else '[' + c + 'm' + s +'[m'
+
+def pretty_printed_dict(d):
+	s='{\n'
+	for k, v in d.items():
+		v = str(v)
+		v2 = v if len(v) <= arguments.max_size else v[:arguments.max_size] + '<excess length omitted>'
+		v2.replace('\\','\\\\').replace('\n', highlight_if_color('\\n'))
+		s += "\t '%s': '%s'," % (highlight_if_color(unicode(k),'1'), unicode(v2))
+	s+='\n}'
+	return s
 
 def pretty_printed_iu_event(iu, event_type, local):
 	s = ''
 	t = time.time()
 	lt = time.localtime(t)
-	s += highlight_if_color('%.3f'%t, '1')+' '+"%02d:%02d:%02d"%(lt.tm_hour, lt.tm_min, lt.tm_sec)
-	s += ' '+highlight_if_color('%-9s'%event_type,event_type_color(event_type))+' category='+highlight_if_color(iu.category,event_type_color(event_type))+' uid='+iu.uid+' owner='+iu.owner_name+' payload='+pretty_printed_iu_payload(iu)
+	s += highlight_if_color('%.3f' % t, '1')
+	s += ' %02d:%02d:%02d' % (lt.tm_hour, lt.tm_min, lt.tm_sec)
+	s += ' ' + highlight_if_color('%-9s' % event_type, event_type_color(event_type))
+	s += ' category=' + highlight_if_color(iu.category,event_type_color(event_type)) 
+	s += ' uid=' + iu.uid
+	s += ' owner=' + iu.owner_name
+	if event_type is not 'MESSAGE':
+		s += '\nlinks=' + pretty_printed_dict(iu.get_all_links())
+	s += '\npayload=' + pretty_printed_dict(iu.payload)
 	return s
 
 def my_update_handler(iu, event_type, local):
@@ -74,7 +91,7 @@ def my_update_handler(iu, event_type, local):
 				break
 		else:
 			return
-	print(pretty_printed_iu_event(iu, event_type, local))
+	print(pretty_printed_iu_event(iu, event_type, local), end='\n\n')
 
 
 
@@ -117,7 +134,11 @@ if __name__ == '__main__':
 
 	buffers = {}
 	for channel in arguments.channels:
-		buffers[channel] = ipaaca.InputBuffer('IpaacaIUSniffer', arguments.categories if not arguments.regex else [''], channel)
+		buffers[channel] = ipaaca.InputBuffer(
+			'IpaacaIUSniffer',
+			category_interests=arguments.categories if not arguments.regex else [''],
+			channel=channel,
+			resend_active=True)
 		buffers[channel].register_handler(my_update_handler)
 
 	print('')
