@@ -61,6 +61,11 @@ parser.add_argument(
 	type=float,
 	help='set time in seconds to wait for potential IU updates (default: 3.0)')
 parser.add_argument(
+	'-j', '--json-payload',
+	dest='json_payload',
+	action='store_true',
+	help='allow structured data to be sent (treats payload VALUE arguments as Python expressions)'))
+parser.add_argument(
 	'-c', '--category',
 	dest='category',
 	metavar='CATEGORY',
@@ -81,22 +86,27 @@ if __name__ == '__main__':
 	ob = ipaaca.OutputBuffer('IpaacaIUInjector')
 	ob.register_handler(iu_update_handler)
 	iu = ipaaca.Message(arguments.category) if arguments.iu_type == 'Message' else ipaaca.IU(arguments.category)
-	iu.payload = {k: v for (k, v) in itertools.izip_longest(arguments.payload[::2],	arguments.payload[1::2])}
+	if arguments.json_payload:
+		# Treat payload values as Python expressions
+		iu.payload = {k: eval(v) for (k, v) in itertools.izip_longest(arguments.payload[::2],	arguments.payload[1::2])}
+	else:
+		iu.payload = {k: v for (k, v) in itertools.izip_longest(arguments.payload[::2],	arguments.payload[1::2])}
 	ob.add(iu)
+
 	print(
 		'Sent {iu_type} with category "{category}" and payload {{'.format(**vars(arguments)),
 		end='\n' if len(iu.payload) > 0 else '')
 	for k, v in iu.payload.items():
-		print('  "{key}": "{value}",'.format(key=k, value=v))
+		print("  '{key}': {value},".format(key=k, value=v))
 	print('}.')
 	
+	# Wait for updates to the IU
 	try:
 		if arguments.iu_type == 'IU':
 			print('Waiting %s s for the IU to be updated.' % arguments.keep_alive)
 			time.sleep(arguments.keep_alive)
 		else:
 			time.sleep(0.1)
-
 	except KeyboardInterrupt:
 		pass
 
