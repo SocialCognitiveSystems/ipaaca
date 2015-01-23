@@ -64,7 +64,7 @@ parser.add_argument(
 	'-j', '--json-payload',
 	dest='json_payload',
 	action='store_true',
-	help='allow structured data to be sent (treats payload VALUE arguments as Python expressions)'))
+	help='allow structured data to be sent (treats payload VALUE arguments as Python expressions)')
 parser.add_argument(
 	'-c', '--category',
 	dest='category',
