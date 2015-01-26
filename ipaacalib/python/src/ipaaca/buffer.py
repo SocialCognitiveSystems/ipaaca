@@ -196,9 +196,7 @@ class InputBuffer(Buffer):
 		# add own uuid as identifier for hidden category.
 		self._add_category_listener(str(self._uuid))
 		if category_interests is not None:
-			for cat in category_interests:
-				self._add_category_listener(cat)
-
+			self.add_category_interests(category_interests)
 
 	def _get_remote_server(self, iu):
 		'''Return (or create, store and return) a remote server.'''
@@ -216,13 +214,13 @@ class InputBuffer(Buffer):
 		return remote_server
 
 	def _add_category_listener(self, iu_category):
-		'''Return (or create, store and return) a category listener on a specific channel.'''
+		'''Create and store a listener on a specific category.'''
 		if iu_category not in self._listener_store:
 			cat_listener = rsb.createListener(rsb.Scope("/ipaaca/channel/"+str(self._channel)+"/category/"+str(iu_category)), config=self._participant_config)
 			cat_listener.addHandler(self._handle_iu_events)
 			self._listener_store[iu_category] = cat_listener
 			self._category_interests.append(iu_category)
-			LOGGER.info("Added listener in scope "+"/ipaaca/channel/"+str(self._channel)+"/category/"+iu_category)
+			LOGGER.info("Added listener in scope /ipaaca/channel/" + str(self._channel) + "/category/" + iu_category)
 
 	def _handle_iu_events(self, event):
 		'''Dispatch incoming IU events.
