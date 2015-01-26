@@ -155,6 +155,8 @@ class Buffer(object):
 		for_categories -- a list of category names or None if handler should
 			be called for all categories
 		"""
+		if handler_function in [h._handler_function for h in self._iu_event_handlers]:
+			LOGGER.warn("The handler function '" + handler_function.__name__ + '" has been registered before.')
 		handler = IUEventHandler(handler_function=handler_function, for_event_types=for_event_types, for_categories=for_categories)
 		self._iu_event_handlers.append(handler)
 		return handler
