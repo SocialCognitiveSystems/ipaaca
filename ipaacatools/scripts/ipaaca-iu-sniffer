@@ -64,8 +64,8 @@ def pretty_printed_dict(d):
 		v = str(v)
 		v2 = v if len(v) <= arguments.max_size else v[:arguments.max_size] + '<excess length omitted>'
 		v2.replace('\\','\\\\').replace('\n', highlight_if_color('\\n'))
-		s += "\t '%s': '%s'," % (highlight_if_color(unicode(k),'1'), unicode(v2))
-	s+='\n}'
+		s += "\t '%s': '%s',\n" % (highlight_if_color(unicode(k),'1'), unicode(v2))
+	s+='}'
 	return s
 
 def pretty_printed_iu_event(iu, event_type, local):

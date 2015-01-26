@@ -222,6 +222,13 @@ class InputBuffer(Buffer):
 			self._category_interests.append(iu_category)
 			LOGGER.info("Added listener in scope /ipaaca/channel/" + str(self._channel) + "/category/" + iu_category)
 
+	def _remove_category_listener(self, iu_category):
+		'''Remove the listener for a specific category.'''
+		if iu_category in self._listener_store and iu_category in self._category_interests:
+			del self._listener_store[iu_category]
+			self._category_interests.remove(iu_category)
+			LOGGER.info("Removed listener in scope /ipaaca/channel/" + str(self._channel) + "/category/ " + iu_category)
+
 	def _handle_iu_events(self, event):
 		'''Dispatch incoming IU events.
 
@@ -300,6 +307,13 @@ class InputBuffer(Buffer):
 				self._add_category_listener(interest)
 		else:
 			self._add_category_listener(category_interests)
+
+	def remove_category_interests(self, category_interests):
+		if hasattr(category_interests, '__iter__'):
+			for interest in category_interests:
+				self._remove_category_listener(interest)
+		else:
+			self._remove_category_listener(category_interests)
 
 	def _request_remote_resend(self, iu):
 		remote_server = self._get_remote_server(iu)
