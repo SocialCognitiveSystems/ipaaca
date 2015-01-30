@@ -213,8 +213,8 @@ IPAACA_EXPORT void Buffer::register_handler(IUEventHandlerFunction function, IUE
 }
 IPAACA_EXPORT void Buffer::call_iu_event_handlers(boost::shared_ptr<IUInterface> iu, bool local, IUEventType event_type, const std::string& category)
 {
-	IPAACA_INFO("handling an event " << ipaaca::iu_event_type_to_str(event_type) << " for IU " << iu->uid())
-	std::cout << "handling an event " << ipaaca::iu_event_type_to_str(event_type) << " for IU " << iu->uid() << std::endl;
+	//IPAACA_INFO("handling an event " << ipaaca::iu_event_type_to_str(event_type) << " for IU " << iu->uid())
+	//std::cout << "handling an event " << ipaaca::iu_event_type_to_str(event_type) << " for IU " << iu->uid() << std::endl;
 	for (std::vector<IUEventHandler::ptr>::iterator it = _event_handlers.begin(); it != _event_handlers.end(); ++it) {
 		(*it)->call(this, iu, local, event_type, category);
 	}

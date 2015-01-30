@@ -84,9 +84,10 @@ IPAACA_EXPORT PayloadEntryProxy& PayloadEntryProxy::operator=(bool value)
 	return *this;
 }
 
-IPAACA_EXPORT inline PayloadEntryProxy::operator std::string()
+IPAACA_EXPORT PayloadEntryProxy::operator std::string()
 {
-	return PayloadEntryProxy::get<std::string>(); }
+	return PayloadEntryProxy::get<std::string>();
+}
 IPAACA_EXPORT inline PayloadEntryProxy::operator long()
 {
 	return PayloadEntryProxy::get<long>();
