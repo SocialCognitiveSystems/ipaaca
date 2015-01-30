@@ -51,7 +51,7 @@ IPAACA_HEADER_EXPORT class RemotePushIUStore: public std::map<std::string, boost
 typedef std::set<std::string> LinkSet;
 typedef std::map<std::string, LinkSet> LinkMap;
 
-IPAACA_HEADER_EXPORT class SmartLinkMap {
+IPAACA_HEADER_EXPORT class SmartLinkMap {//{{{
 	friend std::ostream& operator<<(std::ostream& os, const SmartLinkMap& obj);
 	friend class IUInterface;
 	friend class IU;
@@ -66,12 +66,11 @@ IPAACA_HEADER_EXPORT class SmartLinkMap {
 		IPAACA_MEMBER_VAR_EXPORT static LinkSet empty_link_set;
 		IPAACA_HEADER_EXPORT void _add_and_remove_links(const LinkMap& add, const LinkMap& remove);
 		IPAACA_HEADER_EXPORT void _replace_links(const LinkMap& links);
-};
+};//}}}
 
 IPAACA_MEMBER_VAR_EXPORT const LinkSet EMPTY_LINK_SET;
 
-// BufferConfiguration
-IPAACA_HEADER_EXPORT class BufferConfiguration
+IPAACA_HEADER_EXPORT class BufferConfiguration//{{{
 {
 	protected:
 		IPAACA_MEMBER_VAR_EXPORT std::string _basename;
@@ -82,10 +81,9 @@ IPAACA_HEADER_EXPORT class BufferConfiguration
 		IPAACA_HEADER_EXPORT const std::string get_basename() const { return _basename; }
 		IPAACA_HEADER_EXPORT const std::vector<std::string> get_category_interests() const { return _category_interests; }
 		IPAACA_HEADER_EXPORT const std::string get_channel() const { return _channel; }
-};
+};//}}}
 
-// BufferConfigurationBuilder
-IPAACA_HEADER_EXPORT class BufferConfigurationBuilder: private BufferConfiguration
+IPAACA_HEADER_EXPORT class BufferConfigurationBuilder: private BufferConfiguration//{{{
 {
 	public:
 		IPAACA_HEADER_EXPORT inline BufferConfigurationBuilder(const std::string basename):BufferConfiguration(basename) {}
@@ -104,7 +102,7 @@ IPAACA_HEADER_EXPORT class BufferConfigurationBuilder: private BufferConfigurati
 
 		IPAACA_HEADER_EXPORT const BufferConfiguration& get_buffer_configuration() { return *this; }
 
-};
+};//}}}
 
 IPAACA_HEADER_EXPORT typedef boost::function<void (boost::shared_ptr<IUInterface>, IUEventType, bool)> IUEventHandlerFunction;
 

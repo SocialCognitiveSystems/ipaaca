@@ -147,6 +147,11 @@ link_directories( ${PROJECT_SOURCE_DIR}/../../deps/lib )
 # specify source files for ipaaca (auto-generated ones are in build/ )
 set (SOURCE
 	src/ipaaca.cc
+	src/ipaaca-buffers.cc
+	src/ipaaca-internal.cc
+	src/ipaaca-ius.cc
+	src/ipaaca-locking.cc
+	src/ipaaca-payload.cc
 	src/ipaaca-cmdline-parser.cc
 	src/ipaaca-string-utils.cc
 	src/util/notifier.cc

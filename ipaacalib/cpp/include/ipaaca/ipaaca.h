@@ -122,6 +122,17 @@
 #include <sys/time.h>
 #endif
 
+#include <cstdlib>
+
+
+#ifdef WIN32
+#include <rpc.h>
+#else
+#include <uuid/uuid.h>
+#include <glob.h>
+#endif
+
+
 #ifndef Q_MOC_RUN
 #include <boost/bind.hpp>
 #include <boost/function.hpp>

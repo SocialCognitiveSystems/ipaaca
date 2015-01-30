@@ -35,55 +35,9 @@
 
 namespace ipaaca {
 
-// UUID generation
-IPAACA_EXPORT std::string generate_uuid_string()//{{{
-{
-#ifdef WIN32
-	// Windows
-	UUID uuid;
-	RPC_STATUS stat;
-	stat = UuidCreate(&uuid);
-	if (stat == RPC_S_OK) {
-		unsigned char* uuid_str = NULL;
-		stat = UuidToString(&uuid, &uuid_str);
-		if (stat == RPC_S_OK) {
-			std::string result((const char*) uuid_str, 16);
-			RpcStringFree(&uuid_str);
-			return result;
-		}
-	} else {
-		throw UUIDGenerationError();
-	}
-#else
-	// POSIX
-	uuid_t uuidt;
-	uuid_generate(uuidt);
-#ifdef __MACOSX__
-	//   (Mac)
-	uuid_string_t uuidstr;
-	uuid_unparse_lower(uuidt, uuidstr);
-	return uuidstr;
-#else
-	//   (Linux)
-	char result_c[37];
-	uuid_unparse_lower(uuidt, result_c);
-	return result_c;
-#endif
-#endif
-}//}}}
-
-/*
-void init_inprocess_too() {
-	//ParticipantConfig config = getFactory().getDefaultParticipantConfig();
-	ParticipantConfig config = ParticipantConfig::fromFile("rsb.cfg");
-	//ParticipantConfig::Transport inprocess = config.getTransport("inprocess");
-	//inprocess.setEnabled(true);
-	//config.addTransport(inprocess);
-	getFactory().setDefaultParticipantConfig(config);
+Lock& logger_lock() {
+	static Lock lock;
+	return lock;
 }
-*/
-
 
 } // of namespace ipaaca
-
-

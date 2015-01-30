@@ -214,6 +214,7 @@ IPAACA_HEADER_EXPORT class Initializer
 		IPAACA_MEMBER_VAR_EXPORT static bool _initialized;
 };
 
+// in ipaaca-cmdline-parser.cc
 // additional misc classes ( Command line options )//{{{
 IPAACA_HEADER_EXPORT class CommandLineOptions {
 	public:
@@ -250,6 +251,7 @@ class CommandLineParser {
 	typedef boost::shared_ptr<CommandLineParser> ptr;
 };
 //}}}
+// in ipaaca-string-utils.cc
 // additional misc functions ( String splitting / joining )//{{{
 IPAACA_HEADER_EXPORT std::string str_join(const std::set<std::string>& set,const std::string& sep);
 IPAACA_HEADER_EXPORT std::string str_join(const std::vector<std::string>& vec,const std::string& sep);

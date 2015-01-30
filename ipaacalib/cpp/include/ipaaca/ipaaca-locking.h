@@ -96,11 +96,9 @@ IPAACA_HEADER_EXPORT class Locker
 		IPAACA_HEADER_EXPORT inline Locker(): _lock(NULL) { } // not available
 	public:
 		IPAACA_HEADER_EXPORT inline Locker(Lock& lock): _lock(&lock) {
-			//std::cout << "-- Locker: lock" << std::endl;
 			_lock->lock();
 		}
 		IPAACA_HEADER_EXPORT inline ~Locker() {
-			//std::cout << "-- Locker: unlock" << std::endl;
 			_lock->unlock();
 		}
 };
