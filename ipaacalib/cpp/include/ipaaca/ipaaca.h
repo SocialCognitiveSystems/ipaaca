@@ -98,6 +98,11 @@
 #include <rsb/rsbexports.h>
 #endif
 
+// new json-based payload API, used in several classes
+#include "rapidjson/document.h"
+#include "rapidjson/prettywriter.h"
+#include "rapidjson/filestream.h"
+#include <cstdio>
 
 /// marking pure virtual functions for extra readability
 #define _IPAACA_ABSTRACT_

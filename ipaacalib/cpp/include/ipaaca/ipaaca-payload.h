@@ -38,9 +38,47 @@
 #error "Please do not include this file directly, use ipaaca.h instead"
 #endif
 
-
-
 IPAACA_HEADER_EXPORT class PayloadEntryProxy//{{{
+{
+	protected:
+		//IPAACA_MEMBER_VAR_EXPORT rapidjson::Document* _json_parent_node;
+		//IPAACA_MEMBER_VAR_EXPORT rapidjson::Document* _json_node;
+		IPAACA_MEMBER_VAR_EXPORT Payload* _payload;
+		IPAACA_MEMBER_VAR_EXPORT std::string _key;
+	public:
+		IPAACA_HEADER_EXPORT PayloadEntryProxy(Payload* payload, const std::string& key);
+		IPAACA_HEADER_EXPORT PayloadEntryProxy& operator=(const std::string& value);
+		IPAACA_HEADER_EXPORT PayloadEntryProxy& operator=(const char* value);
+		IPAACA_HEADER_EXPORT PayloadEntryProxy& operator=(double value);
+		IPAACA_HEADER_EXPORT PayloadEntryProxy& operator=(bool value);
+		IPAACA_HEADER_EXPORT operator std::string();
+		IPAACA_HEADER_EXPORT operator long();
+		IPAACA_HEADER_EXPORT operator double();
+		IPAACA_HEADER_EXPORT operator bool();
+		IPAACA_HEADER_EXPORT std::string to_str();
+		//long to_int() { return operator long(); ;
+		IPAACA_HEADER_EXPORT long to_long();
+		IPAACA_HEADER_EXPORT double to_float();
+		IPAACA_HEADER_EXPORT bool to_bool();
+		// getters
+		IPAACA_HEADER_EXPORT template<typename T> T get(); // specializations below
+		// setters
+};
+// Available interpretations of payload entries (or children thereof) below.
+//  Usage of standard complex data structures (vector etc.) currently entails
+//  casting all entries to a uniform type (a-priori choice: std::string).
+IPAACA_HEADER_EXPORT template<> long PayloadEntryProxy::get();
+IPAACA_HEADER_EXPORT template<> double PayloadEntryProxy::get();
+IPAACA_HEADER_EXPORT template<> bool PayloadEntryProxy::get();
+IPAACA_HEADER_EXPORT template<> std::string PayloadEntryProxy::get();
+IPAACA_HEADER_EXPORT template<> std::vector<std::string> PayloadEntryProxy::get();
+IPAACA_HEADER_EXPORT template<> std::list<std::string> PayloadEntryProxy::get();
+IPAACA_HEADER_EXPORT template<> std::map<std::string, std::string> PayloadEntryProxy::get();
+
+//}}}
+
+/*
+IPAACA_HEADER_EXPORT class LegacyStringPayloadEntryProxy//{{{
 {
 	protected:
 		IPAACA_MEMBER_VAR_EXPORT Payload* _payload;
@@ -76,6 +114,7 @@ IPAACA_HEADER_EXPORT template<> std::list<std::string> PayloadEntryProxy::get();
 IPAACA_HEADER_EXPORT template<> std::map<std::string, std::string> PayloadEntryProxy::get();
 
 //}}}
+*/
 
 IPAACA_HEADER_EXPORT class Payload//{{{
 {
@@ -90,7 +129,8 @@ IPAACA_HEADER_EXPORT class Payload//{{{
 	friend class CallbackIUPayloadUpdate;
 	protected:
 		IPAACA_MEMBER_VAR_EXPORT std::string _owner_name;
-		IPAACA_MEMBER_VAR_EXPORT std::map<std::string, std::string> _store;
+		IPAACA_MEMBER_VAR_EXPORT rapidjson::Document _json_document;
+		//IPAACA_MEMBER_VAR_EXPORT std::map<std::string, std::string> _store;
 		IPAACA_MEMBER_VAR_EXPORT boost::weak_ptr<IUInterface> _iu;
 	protected:
 		IPAACA_HEADER_EXPORT void initialize(boost::shared_ptr<IUInterface> iu);

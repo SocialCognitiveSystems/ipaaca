@@ -168,6 +168,7 @@ IPAACA_EXPORT std::string IUConverter::serialize(const AnnotatedData& data, std:
 	}
 	pbo->set_access_mode(a_m);
 	pbo->set_read_only(obj->read_only());
+	// TODO JSONIZE
 	for (std::map<std::string, std::string>::const_iterator it=obj->_payload._store.begin(); it!=obj->_payload._store.end(); ++it) {
 		protobuf::PayloadItem* item = pbo->add_payload();
 		item->set_key(it->first);
@@ -216,6 +217,7 @@ IPAACA_EXPORT AnnotatedData IUConverter::deserialize(const std::string& wireSche
 			obj->_committed = pbo->committed();
 			obj->_read_only = pbo->read_only();
 			obj->_access_mode = IU_ACCESS_PUSH;
+			// TODO JSONIZE
 			for (int i=0; i<pbo->payload_size(); i++) {
 				const protobuf::PayloadItem& it = pbo->payload(i);
 				obj->_payload._store[it.key()] = it.value();
@@ -245,6 +247,7 @@ IPAACA_EXPORT AnnotatedData IUConverter::deserialize(const std::string& wireSche
 			obj->_committed = pbo->committed();
 			obj->_read_only = pbo->read_only();
 			obj->_access_mode = IU_ACCESS_MESSAGE;
+			// TODO JSONIZE
 			for (int i=0; i<pbo->payload_size(); i++) {
 				const protobuf::PayloadItem& it = pbo->payload(i);
 				obj->_payload._store[it.key()] = it.value();
@@ -302,6 +305,7 @@ IPAACA_EXPORT std::string MessageConverter::serialize(const AnnotatedData& data,
 	}
 	pbo->set_access_mode(a_m);
 	pbo->set_read_only(obj->read_only());
+	// TODO JSONIZE
 	for (std::map<std::string, std::string>::const_iterator it=obj->_payload._store.begin(); it!=obj->_payload._store.end(); ++it) {
 		protobuf::PayloadItem* item = pbo->add_payload();
 		item->set_key(it->first);
@@ -347,6 +351,7 @@ IPAACA_EXPORT AnnotatedData MessageConverter::deserialize(const std::string& wir
 			obj->_committed = pbo->committed();
 			obj->_read_only = pbo->read_only();
 			obj->_access_mode = IU_ACCESS_PUSH;
+			// TODO JSONIZE
 			for (int i=0; i<pbo->payload_size(); i++) {
 				const protobuf::PayloadItem& it = pbo->payload(i);
 				obj->_payload._store[it.key()] = it.value();
@@ -375,6 +380,7 @@ IPAACA_EXPORT AnnotatedData MessageConverter::deserialize(const std::string& wir
 			obj->_committed = pbo->committed();
 			obj->_read_only = pbo->read_only();
 			obj->_access_mode = IU_ACCESS_MESSAGE;
+			// TODO JSONIZE
 			for (int i=0; i<pbo->payload_size(); i++) {
 				const protobuf::PayloadItem& it = pbo->payload(i);
 				obj->_payload._store[it.key()] = it.value();
@@ -414,12 +420,14 @@ IPAACA_EXPORT std::string IUPayloadUpdateConverter::serialize(const AnnotatedDat
 	pbo->set_revision(obj->revision);
 	pbo->set_writer_name(obj->writer_name);
 	pbo->set_is_delta(obj->is_delta);
+	// TODO JSONIZE
 	for (std::map<std::string, std::string>::const_iterator it=obj->new_items.begin(); it!=obj->new_items.end(); ++it) {
 		protobuf::PayloadItem* item = pbo->add_new_items();
 		item->set_key(it->first);
 		item->set_value(it->second);
 		item->set_type("str"); // FIXME other types than str (later)
 	}
+	// TODO JSONIZE
 	for (std::vector<std::string>::const_iterator it=obj->keys_to_remove.begin(); it!=obj->keys_to_remove.end(); ++it) {
 		pbo->add_keys_to_remove(*it);
 	}
@@ -438,10 +446,12 @@ AnnotatedData IUPayloadUpdateConverter::deserialize(const std::string& wireSchem
 	obj->revision = pbo->revision();
 	obj->writer_name = pbo->writer_name();
 	obj->is_delta = pbo->is_delta();
+	// TODO JSONIZE
 	for (int i=0; i<pbo->new_items_size(); i++) {
 		const protobuf::PayloadItem& it = pbo->new_items(i);
 		obj->new_items[it.key()] = it.value();
 	}
+	// TODO JSONIZE
 	for (int i=0; i<pbo->keys_to_remove_size(); i++) {
 		obj->keys_to_remove.push_back(pbo->keys_to_remove(i));
 	}
