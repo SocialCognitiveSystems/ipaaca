@@ -34,14 +34,14 @@
 #define __IPAACA_H__
 
 /// ipaaca/IU/RSB protocol major version number
-#define IPAACA_PROTOCOL_VERSION_MAJOR         1
+#define IPAACA_PROTOCOL_VERSION_MAJOR         2
 /// ipaaca/IU/RSB protocol minor version number
 #define IPAACA_PROTOCOL_VERSION_MINOR         0
 
 /// running release number of ipaaca-c++
-#define IPAACA_CPP_RELEASE_NUMBER             11
+#define IPAACA_CPP_RELEASE_NUMBER             12
 /// date of last release number increment
-#define IPAACA_CPP_RELEASE_DATE     "2014-02-10"
+#define IPAACA_CPP_RELEASE_DATE     "2015-01-15"
 
 #ifndef __FUNCTION_NAME__
 	#ifdef WIN32   // Windows
@@ -133,6 +133,7 @@
 #include <ipaaca/ipaaca.pb.h>
 
 #include <set>
+#include <list>
 
 namespace ipaaca {
 
@@ -611,12 +612,27 @@ IPAACA_HEADER_EXPORT class PayloadEntryProxy//{{{
 		IPAACA_HEADER_EXPORT operator long();
 		IPAACA_HEADER_EXPORT operator double();
 		IPAACA_HEADER_EXPORT operator bool();
-		IPAACA_HEADER_EXPORT inline std::string to_str() { return operator std::string(); }
-		//inline long to_int() { return operator long(); }
-		IPAACA_HEADER_EXPORT inline long to_long() { return operator long(); }
-		IPAACA_HEADER_EXPORT inline double to_float() { return operator double(); }
-		IPAACA_HEADER_EXPORT inline bool to_bool() { return operator bool(); }
-};//}}}
+		IPAACA_HEADER_EXPORT std::string to_str();
+		//long to_int() { return operator long(); ;
+		IPAACA_HEADER_EXPORT long to_long();
+		IPAACA_HEADER_EXPORT double to_float();
+		IPAACA_HEADER_EXPORT bool to_bool();
+		// getters
+		IPAACA_HEADER_EXPORT template<typename T> T get(); // specializations below
+		// setters
+};
+// Available interpretations of payload entries (or children thereof) below.
+//  Usage of standard complex data structures (vector etc.) currently entails
+//  casting all entries to a uniform type (a-priori choice: std::string).
+IPAACA_HEADER_EXPORT template<> long PayloadEntryProxy::get();
+IPAACA_HEADER_EXPORT template<> double PayloadEntryProxy::get();
+IPAACA_HEADER_EXPORT template<> bool PayloadEntryProxy::get();
+IPAACA_HEADER_EXPORT template<> std::string PayloadEntryProxy::get();
+IPAACA_HEADER_EXPORT template<> std::vector<std::string> PayloadEntryProxy::get();
+IPAACA_HEADER_EXPORT template<> std::list<std::string> PayloadEntryProxy::get();
+IPAACA_HEADER_EXPORT template<> std::map<std::string, std::string> PayloadEntryProxy::get();
+
+//}}}
 
 IPAACA_HEADER_EXPORT class Payload//{{{
 {

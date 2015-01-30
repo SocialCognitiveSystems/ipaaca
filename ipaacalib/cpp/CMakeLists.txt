@@ -3,6 +3,9 @@ cmake_minimum_required (VERSION 2.6)
 # project name
 project (ipaaca_cpp)
 
+# use C++11 (starting with proto v2 / ipaaca-c++ release 12)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+
 ## use the following line to enable console debug messages in ipaaca
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DIPAACA_DEBUG_MESSAGES")
 
@@ -13,7 +16,6 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DIPAACA_EXPOSE_FULL_RSB_API")
 # find cmake modules locally too
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMakeModules )
 #set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/../../deps/share/rsc0.10/cmake/Modules )
-	
 
 if(WIN32) # Check if we are on Windows
 	if(MSVC) # Check if we are using the Visual Studio compiler
@@ -151,6 +153,10 @@ set (SOURCE
 	build/ipaaca/ipaaca.pb.cc
 	)
 
+set (JSON_TEST_SOURCE
+	src/ipaaca-json.cc
+	)
+
 
 
 
@@ -159,8 +165,8 @@ add_library(ipaaca SHARED ${SOURCE})
 # and link all the required external libs (found above using find_package etc.)
 target_link_libraries(ipaaca ${LIBS})
 
-#add_executable (ipaaca-test-main src/ipaaca-test-main.cc)
-#target_link_libraries (ipaaca-test-main ${LIBS})
+add_executable (ipaaca-test-json ${JSON_TEST_SOURCE})
+target_link_libraries (ipaaca-test-json ${LIBS})
 
 set(DEFAULT_BIN_SUBDIR bin)
 set(DEFAULT_LIB_SUBDIR lib)
@@ -183,4 +189,10 @@ install(
 	DESTINATION include/ipaaca/
 	)
 
+install (
+	TARGETS ipaaca-test-json
+	RUNTIME DESTINATION bin
+	LIBRARY DESTINATION lib
+	ARCHIVE DESTINATION lib
+	)
 

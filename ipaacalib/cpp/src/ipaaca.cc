@@ -1418,24 +1418,78 @@ IPAACA_EXPORT PayloadEntryProxy& PayloadEntryProxy::operator=(bool value)
 	_payload->set(_key, boost::lexical_cast<std::string>(value));
 	return *this;
 }
-IPAACA_EXPORT PayloadEntryProxy::operator std::string()
+
+IPAACA_EXPORT inline PayloadEntryProxy::operator std::string()
+{
+	return PayloadEntryProxy::get<std::string>(); }
+IPAACA_EXPORT inline PayloadEntryProxy::operator long()
+{
+	return PayloadEntryProxy::get<long>();
+}
+IPAACA_EXPORT inline PayloadEntryProxy::operator double()
+{
+	return PayloadEntryProxy::get<double>();
+}
+IPAACA_EXPORT inline PayloadEntryProxy::operator bool()
+{
+	return PayloadEntryProxy::get<bool>();
+}
+IPAACA_EXPORT inline std::string PayloadEntryProxy::to_str()
+{
+	return PayloadEntryProxy::get<std::string>(); 
+}
+IPAACA_EXPORT inline long PayloadEntryProxy::to_long()
+{
+	return PayloadEntryProxy::get<long>();
+}
+IPAACA_EXPORT inline double PayloadEntryProxy::to_float()
+{
+	return PayloadEntryProxy::get<double>();
+}
+IPAACA_EXPORT inline bool PayloadEntryProxy::to_bool()
+{
+	return PayloadEntryProxy::get<bool>();
+}
+
+
+//
+// new stuff for protocol v2
+//
+IPAACA_HEADER_EXPORT template<> std::string PayloadEntryProxy::get<std::string>()
 {
 	return _payload->get(_key);
 }
-IPAACA_EXPORT PayloadEntryProxy::operator bool()
+IPAACA_HEADER_EXPORT template<> long PayloadEntryProxy::get<long>()
+{
+	return atof(operator std::string().c_str());
+}
+IPAACA_HEADER_EXPORT template<> double PayloadEntryProxy::get<double>()
+{
+	return atol(operator std::string().c_str());
+}
+IPAACA_HEADER_EXPORT template<> bool PayloadEntryProxy::get<bool>()
 {
 	std::string s = operator std::string();
 	return ((s=="1")||(s=="true")||(s=="True"));
 }
-IPAACA_EXPORT PayloadEntryProxy::operator long()
+// complex types
+IPAACA_HEADER_EXPORT template<> std::list<std::string> PayloadEntryProxy::get<std::list<std::string> >()
 {
-	//return boost::lexical_cast<long>(operator std::string().c_str());
-	return atof(operator std::string().c_str());
+	std::list<std::string> l;
+	l.push_back(PayloadEntryProxy::get<std::string>());
+	return l;
 }
-IPAACA_EXPORT PayloadEntryProxy::operator double()
+IPAACA_HEADER_EXPORT template<> std::vector<std::string> PayloadEntryProxy::get<std::vector<std::string> >()
 {
-	//return boost::lexical_cast<double>(operator std::string().c_str());
-	return atol(operator std::string().c_str());
+	std::vector<std::string> v;
+	v.push_back(PayloadEntryProxy::get<std::string>());
+	return v;
+}
+IPAACA_HEADER_EXPORT template<> std::map<std::string, std::string> PayloadEntryProxy::get<std::map<std::string, std::string> >()
+{
+	std::map<std::string, std::string> m;
+	m["__automatic__"] = PayloadEntryProxy::get<std::string>();
+	return m;
 }
 //}}}
 
