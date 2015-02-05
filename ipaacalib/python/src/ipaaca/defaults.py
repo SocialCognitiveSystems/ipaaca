@@ -31,5 +31,8 @@
 # Excellence Initiative.
 
 IPAACA_DEFAULT_CHANNEL = 'default'
+
 IPAACA_LOGGER_NAME = 'ipaaca'
 IPAACA_DEFAULT_LOGGING_LEVEL = 'WARNING'
+
+IPAACA_DEFAULT_IU_PAYLOAD_TYPE = 'JSON' # one of ipaaca.iu.IUPayloadType

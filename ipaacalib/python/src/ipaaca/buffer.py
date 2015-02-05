@@ -567,7 +567,11 @@ class OutputBuffer(Buffer):
 			new_items = {}
 		if keys_to_remove is None:
 			keys_to_remove = []
-		payload_update = ipaaca.converter.IUPayloadUpdate(iu._uid, is_delta=is_delta, revision=revision)
+		payload_update = ipaaca.converter.IUPayloadUpdate(
+			uid=iu._uid,
+			revision=revision,
+			is_delta=is_delta,
+			payload_type=iu.payload_type)
 		payload_update.new_items = new_items 
 		if is_delta:
 			payload_update.keys_to_remove = keys_to_remove

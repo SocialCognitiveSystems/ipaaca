@@ -99,7 +99,7 @@ public class RemotePushIU extends AbstractIU
         {
             throw new IUReadOnlyException(this);
         }
-        PayloadItem newItem = PayloadItem.newBuilder().setKey(key).setValue(value).setType("str").build();// TODO use default type in .proto
+        PayloadItem newItem = PayloadItem.newBuilder().setKey(key).setValue(value).setType("STR").build();
         IUPayloadUpdate update = IUPayloadUpdate.newBuilder().setIsDelta(true).setUid(getUid()).setRevision(getRevision())
                 .setWriterName(getBuffer().getUniqueName()).addNewItems(newItem).build();
 
@@ -144,7 +144,7 @@ public class RemotePushIU extends AbstractIU
                 .setWriterName(getBuffer().getUniqueName());
         for (Map.Entry<? extends String, ? extends String> item : newItems.entrySet())
         {
-            PayloadItem newItem = PayloadItem.newBuilder().setKey(item.getKey()).setValue(item.getValue()).setType("str") // TODO: fix this, default in .proto?
+            PayloadItem newItem = PayloadItem.newBuilder().setKey(item.getKey()).setValue(item.getValue()).setType("STR")
                     .build();
             builder.addNewItems(newItem);
 
@@ -301,9 +301,9 @@ public class RemotePushIU extends AbstractIU
     			payload.enforcedRemoveItem(key);
     		}
     		for (PayloadItem item : update.getNewItemsList()) {
-    			if (item.getType().equals("str")) {
+    			if (item.getType().equals("STR")) {
     				payload.enforcedSetItem(item.getKey(), item.getValue());
-    			} else if (item.getType().equals("json")) {
+    			} else if (item.getType().equals("JSON")) {
     				String value = item.getValue();
     				if (value.startsWith("\"")) {
     					payload.enforcedSetItem(item.getKey(), value.replaceAll("\\\"", ""));

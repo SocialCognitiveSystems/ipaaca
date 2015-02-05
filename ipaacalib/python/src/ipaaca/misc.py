@@ -53,8 +53,8 @@ def enum(*sequential, **named):
 		whats-the-best-way-to-implement-an-enum-in-python/1695250#1695250
 	"""
 	enums = dict(zip(sequential, range(len(sequential))), **named)
-	return type('Enum', (), enums)
-
+	enums['_choices'] = enums.keys()
+	return type('Enum', (object,), enums)
 
 
 class IpaacaLoggingHandler(logging.Handler):
@@ -106,6 +106,11 @@ class IpaacaArgumentParser(argparse.ArgumentParser):
 		def __call__(self, parser, namespace, values, option_string=None):
 			ipaaca.defaults.IPAACA_DEFAULT_CHANNEL = values
 
+	class IpaacaPayloadTypeAction(argparse.Action):
+
+		def __call__(self, parser, namespace, values, option_string=None):
+			ipaaca.defaults.IPAACA_DEFAULT_IU_PAYLOAD_TYPE = values
+
 	class IpaacaLoggingLevelAction(argparse.Action):
 
 		def __call__(self, parser, namespace, values, option_string=None):
@@ -132,6 +137,13 @@ class IpaacaArgumentParser(argparse.ArgumentParser):
 
 	def _add_ipaaca_lib_arguments(self):
 		ipaacalib_group = self.add_argument_group('IPAACA library arguments')
+		ipaacalib_group.add_argument(
+			'--ipaaca-payload-type', 
+			action=self.IpaacaPayloadTypeAction,
+			choices=['JSON', 'STR'], # one of ipaaca.iu.IUPayloadTypes
+			dest='_ipaaca_payload_type_',
+			default='JSON',
+			help="specify payload type (default: 'JSON')")
 		ipaacalib_group.add_argument(
 			'--ipaaca-default-channel', 
 			action=self.IpaacaDefaultChannelAction,

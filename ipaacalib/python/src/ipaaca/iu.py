@@ -46,6 +46,7 @@ import ipaaca.payload
 __all__ = [
 	'IUAccessMode',
 	'IUEventType',
+	'IUPayloadType',
 	'IU',
 	'Message',
 ]
@@ -70,11 +71,17 @@ IUEventType = ipaaca.misc.enum(
 )
 
 
+IUPayloadType = ipaaca.misc.enum(
+	JSON = 'JSON',
+	STR = 'STR'
+)
+
+
 class IUInterface(object):
 
 	"""Base class of all specialised IU classes."""
 
-	def __init__(self, uid, access_mode=IUAccessMode.PUSH, read_only=False):
+	def __init__(self, uid, access_mode=IUAccessMode.PUSH, read_only=False, payload_type=None):
 		"""Creates an IU.
 
 		Keyword arguments:
@@ -85,12 +92,12 @@ class IUInterface(object):
 		self._uid = uid
 		self._revision = None
 		self._category = None
-		self._payload_type = None
 		self._owner_name = None
 		self._committed = False
 		self._retracted = False
 		self._access_mode = access_mode
 		self._read_only = read_only
+		self._payload_type = payload_type if payload_type is not None else ipaaca.defaults.IPAACA_DEFAULT_IU_PAYLOAD_TYPE
 		self._buffer = None
 		# payload is not present here
 		self._links = collections.defaultdict(set)
@@ -161,7 +168,15 @@ class IUInterface(object):
 
 	def _get_payload_type(self):
 		return self._payload_type
-	payload_type = property(fget=_get_payload_type, doc='Type of the IU payload')
+	def _set_payload_type(self, type):
+		if self._buffer is None:
+			self._payload_type = type
+		else:
+			raise IpaacaException('The IU is already in a buffer, cannot change payload type anymore.')
+	payload_type = property(
+		fget=_get_payload_type, 
+		fset=_set_payload_type,
+		 doc='Type of the IU payload')
 
 	def _get_committed(self):
 		return self._committed
@@ -193,7 +208,7 @@ class IUInterface(object):
 		return self._buffer
 	def _set_buffer(self, buffer):
 		if self._buffer is not None:
-			raise Exception('The IU is already in a buffer, cannot move it.')
+			raise IpaacaException('The IU is already in a buffer, cannot move it.')
 		self._buffer = buffer
 	buffer = property(
 			fget=_get_buffer,
@@ -216,12 +231,11 @@ class IU(IUInterface):
 
 	"""A local IU."""
 
-	def __init__(self, category='undef', access_mode=IUAccessMode.PUSH, read_only=False, _payload_type='MAP'):
-		super(IU, self).__init__(uid=None, access_mode=access_mode, read_only=read_only)
+	def __init__(self, category='undef', access_mode=IUAccessMode.PUSH, read_only=False, payload_type=None):
+		super(IU, self).__init__(uid=None, access_mode=access_mode, read_only=read_only, payload_type=payload_type)
 		self._revision = 1
 		self.uid = str(uuid.uuid4())
 		self._category = str(category)
-		self._payload_type = _payload_type
 		self.revision_lock = threading.RLock()
 		self._payload = ipaaca.payload.Payload(iu=self)
 
@@ -322,8 +336,8 @@ class IU(IUInterface):
 
 class Message(IU):
 	"""Local IU of Message sub-type. Can be handled like a normal IU, but on the remote side it is only existent during the handler calls."""
-	def __init__(self, category='undef', access_mode=IUAccessMode.MESSAGE, read_only=True, _payload_type='MAP'):
-		super(Message, self).__init__(category=str(category), access_mode=access_mode, read_only=read_only, _payload_type=_payload_type)
+	def __init__(self, category='undef', access_mode=IUAccessMode.MESSAGE, read_only=True, payload_type=None):
+		super(Message, self).__init__(category=str(category), access_mode=access_mode, read_only=read_only, payload_type=payload_type)
 
 	def _modify_links(self, is_delta=False, new_links={}, links_to_remove={}, writer_name=None):
 		if self.is_published:
@@ -394,11 +408,10 @@ class RemoteMessage(IUInterface):
 	"""A remote IU with access mode 'MESSAGE'."""
 
 	def __init__(self, uid, revision, read_only, owner_name, category, payload_type, committed, payload, links):
-		super(RemoteMessage, self).__init__(uid=uid, access_mode=IUAccessMode.PUSH, read_only=read_only)
+		super(RemoteMessage, self).__init__(uid=uid, access_mode=IUAccessMode.PUSH, read_only=read_only, payload_type=payload_type)
 		self._revision = revision
 		self._category = category
 		self.owner_name = owner_name
-		self._payload_type = payload_type
 		self._committed = committed
 		self._retracted = False
 		# NOTE Since the payload is an already-existant Payload which we didn't modify ourselves,
@@ -462,11 +475,10 @@ class RemotePushIU(IUInterface):
 	"""A remote IU with access mode 'PUSH'."""
 
 	def __init__(self, uid, revision, read_only, owner_name, category, payload_type, committed, payload, links):
-		super(RemotePushIU, self).__init__(uid=uid, access_mode=IUAccessMode.PUSH, read_only=read_only)
+		super(RemotePushIU, self).__init__(uid=uid, access_mode=IUAccessMode.PUSH, read_only=read_only, payload_type=payload_type)
 		self._revision = revision
 		self._category = category
 		self.owner_name = owner_name
-		self._payload_type = payload_type
 		self._committed = committed
 		self._retracted = False
 		# NOTE Since the payload is an already-existant Payload which we didn't modify ourselves,
@@ -504,6 +516,7 @@ class RemotePushIU(IUInterface):
 		requested_update = ipaaca.converter.IUPayloadUpdate(
 				uid=self.uid,
 				revision=self.revision,
+				payload_type=self.payload_type,
 				is_delta=is_delta,
 				writer_name=self.buffer.unique_name,
 				new_items=new_items,
@@ -545,6 +558,7 @@ class RemotePushIU(IUInterface):
 		requested_update = ipaaca.converter.IUPayloadUpdate(
 				uid=self.uid,
 				revision=self.revision,
+				payload_type=self.payload_type,
 				is_delta=False,
 				writer_name=self.buffer.unique_name,
 				new_items=new_pl,
