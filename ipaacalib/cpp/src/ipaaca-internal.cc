@@ -168,12 +168,11 @@ IPAACA_EXPORT std::string IUConverter::serialize(const AnnotatedData& data, std:
 	}
 	pbo->set_access_mode(a_m);
 	pbo->set_read_only(obj->read_only());
-	// TODO JSONIZE
-	for (std::map<std::string, std::string>::const_iterator it=obj->_payload._store.begin(); it!=obj->_payload._store.end(); ++it) {
+	for (auto& kv: obj->_payload._store) {
 		protobuf::PayloadItem* item = pbo->add_payload();
-		item->set_key(it->first);
-		item->set_value(it->second);
-		item->set_type("str"); // FIXME other types than str (later)
+		item->set_key(kv.first);
+		item->set_value(kv.second);
+		item->set_type("json");
 	}
 	for (LinkMap::const_iterator it=obj->_links._links.begin(); it!=obj->_links._links.end(); ++it) {
 		protobuf::LinkSet* links = pbo->add_links();

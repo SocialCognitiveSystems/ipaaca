@@ -129,27 +129,27 @@ IPAACA_HEADER_EXPORT class Payload//{{{
 	friend class CallbackIUPayloadUpdate;
 	protected:
 		IPAACA_MEMBER_VAR_EXPORT std::string _owner_name;
-		IPAACA_MEMBER_VAR_EXPORT rapidjson::Document _json_document;
-		//IPAACA_MEMBER_VAR_EXPORT std::map<std::string, std::string> _store;
+		//IPAACA_MEMBER_VAR_EXPORT rapidjson::Document _json_document;
+		IPAACA_MEMBER_VAR_EXPORT std::map<std::string, rapidjson::Document> _json_store;
 		IPAACA_MEMBER_VAR_EXPORT boost::weak_ptr<IUInterface> _iu;
 	protected:
 		IPAACA_HEADER_EXPORT void initialize(boost::shared_ptr<IUInterface> iu);
 		IPAACA_HEADER_EXPORT inline void _set_owner_name(const std::string& name) { _owner_name = name; }
 		IPAACA_HEADER_EXPORT void _remotely_enforced_wipe();
 		IPAACA_HEADER_EXPORT void _remotely_enforced_delitem(const std::string& k);
-		IPAACA_HEADER_EXPORT void _remotely_enforced_setitem(const std::string& k, const std::string& v);
-		IPAACA_HEADER_EXPORT void _internal_replace_all(const std::map<std::string, std::string>& new_contents, const std::string& writer_name="");
-		IPAACA_HEADER_EXPORT void _internal_merge(const std::map<std::string, std::string>& contents_to_merge, const std::string& writer_name="");
-		IPAACA_HEADER_EXPORT void _internal_set(const std::string& k, const std::string& v, const std::string& writer_name="");
+		IPAACA_HEADER_EXPORT void _remotely_enforced_setitem(const std::string& k, const rapidjson::Document& v);
+		IPAACA_HEADER_EXPORT void _internal_replace_all(const std::map<std::string, const rapidjson::Document&>& new_contents, const std::string& writer_name="");
+		IPAACA_HEADER_EXPORT void _internal_merge(const std::map<std::string, const rapidjson::Document&>& contents_to_merge, const std::string& writer_name="");
+		IPAACA_HEADER_EXPORT void _internal_set(const std::string& k, const rapidjson::Document& v, const std::string& writer_name="");
 		IPAACA_HEADER_EXPORT void _internal_remove(const std::string& k, const std::string& writer_name="");
 	public:
 		IPAACA_HEADER_EXPORT inline const std::string& owner_name() { return _owner_name; }
 		// access
 		IPAACA_HEADER_EXPORT PayloadEntryProxy operator[](const std::string& key);
 		IPAACA_HEADER_EXPORT operator std::map<std::string, std::string>();
-		IPAACA_HEADER_EXPORT inline void set(const std::map<std::string, std::string>& all_elems) { _internal_replace_all(all_elems); }
-		IPAACA_HEADER_EXPORT inline void set(const std::string& k, const std::string& v) { _internal_set(k, v); }
-		IPAACA_HEADER_EXPORT inline void merge(const std::map<std::string, std::string>& elems_to_merge) { _internal_merge(elems_to_merge); }
+		IPAACA_HEADER_EXPORT inline void set(const std::map<std::string, const rapidjson::Document&>& all_elems) { _internal_replace_all(all_elems); }
+		IPAACA_HEADER_EXPORT inline void set(const std::string& k, const rapidjson::Document& v) { _internal_set(k, v); }
+		IPAACA_HEADER_EXPORT inline void merge(const std::map<std::string, const rapidjson::Document&>& elems_to_merge) { _internal_merge(elems_to_merge); }
 		IPAACA_HEADER_EXPORT inline void remove(const std::string& k) { _internal_remove(k); }
 		IPAACA_HEADER_EXPORT std::string get(const std::string& k);
 	typedef boost::shared_ptr<Payload> ptr;

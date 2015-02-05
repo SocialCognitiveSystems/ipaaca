@@ -145,7 +145,8 @@ IPAACA_HEADER_EXPORT class IUEventHandler {//{{{
 
 
 			IPAACA_HEADER_EXPORT _IPAACA_ABSTRACT_ virtual void _send_iu_link_update(IUInterface* iu, bool is_delta, revision_t revision, const LinkMap& new_links, const LinkMap& links_to_remove, const std::string& writer_name="undef") = 0;
-			IPAACA_HEADER_EXPORT _IPAACA_ABSTRACT_ virtual void _send_iu_payload_update(IUInterface* iu, bool is_delta, revision_t revision, const std::map<std::string, std::string>& new_items, const std::vector<std::string>& keys_to_remove, const std::string& writer_name="undef") = 0;
+// LAST POSITION OPENED FIXME
+			IPAACA_HEADER_EXPORT _IPAACA_ABSTRACT_ virtual void _send_iu_payload_update(IUInterface* iu, bool is_delta, revision_t revision, const std::map<std::string, const rapidjson::Document&>& new_items, const std::vector<std::string>& keys_to_remove, const std::string& writer_name="undef") = 0;
 			IPAACA_HEADER_EXPORT _IPAACA_ABSTRACT_ virtual void _send_iu_commission(IUInterface* iu, revision_t revision, const std::string& writer_name="undef") = 0;
 	//		IPAACA_HEADER_EXPORT _IPAACA_ABSTRACT_ virtual void _send_iu_resendrequest(IUInterface* iu, revision_t revision, const std::string& writer_name="undef") = 0;
 			IPAACA_HEADER_EXPORT void _allocate_unique_name(const std::string& basename, const std::string& function);
@@ -187,7 +188,7 @@ IPAACA_HEADER_EXPORT class IUEventHandler {//{{{
 			IPAACA_HEADER_EXPORT void _send_iu_link_update(IUInterface* iu, bool is_delta, revision_t revision, const LinkMap& new_links, const LinkMap& links_to_remove, const std::string& writer_name="undef");
 	IPAACA_HEADER_EXPORT void _publish_iu_resend(boost::shared_ptr<IU> iu, const std::string& hidden_scope_name);
 
-			IPAACA_HEADER_EXPORT void _send_iu_payload_update(IUInterface* iu, bool is_delta, revision_t revision, const std::map<std::string, std::string>& new_items, const std::vector<std::string>& keys_to_remove, const std::string& writer_name="undef");
+			IPAACA_HEADER_EXPORT void _send_iu_payload_update(IUInterface* iu, bool is_delta, revision_t revision, const std::map<std::string, const rapidjson::Document&>& new_items, const std::vector<std::string>& keys_to_remove, const std::string& writer_name="undef");
 			IPAACA_HEADER_EXPORT void _send_iu_commission(IUInterface* iu, revision_t revision, const std::string& writer_name);
 			IPAACA_HEADER_EXPORT void _send_iu_resendrequest(IUInterface* iu, revision_t revision, const std::string& writer_name);
 			// remote access functions
@@ -238,7 +239,7 @@ IPAACA_HEADER_EXPORT class IUEventHandler {//{{{
 			{
 				IPAACA_WARNING("(ERROR) InputBuffer::_publish_iu_resend() should never be invoked")
 			}
-			IPAACA_HEADER_EXPORT inline void _send_iu_payload_update(IUInterface* iu, bool is_delta, revision_t revision, const std::map<std::string, std::string>& new_items, const std::vector<std::string>& keys_to_remove, const std::string& writer_name="undef")
+			IPAACA_HEADER_EXPORT inline void _send_iu_payload_update(IUInterface* iu, bool is_delta, revision_t revision, const std::map<std::string, const rapidjson::Document&>& new_items, const std::vector<std::string>& keys_to_remove, const std::string& writer_name="undef")
 			{
 				IPAACA_WARNING("(ERROR) InputBuffer::_send_iu_payload_update() should never be invoked")
 			}
@@ -286,7 +287,7 @@ IPAACA_HEADER_EXPORT class IUEventHandler {//{{{
 			IPAACA_MEMBER_VAR_EXPORT revision_t revision;
 			IPAACA_MEMBER_VAR_EXPORT std::string writer_name;
 			IPAACA_MEMBER_VAR_EXPORT bool is_delta;
-			IPAACA_MEMBER_VAR_EXPORT std::map<std::string, std::string> new_items;
+			IPAACA_MEMBER_VAR_EXPORT std::map<std::string, const rapidjson::Document&> new_items;
 			IPAACA_MEMBER_VAR_EXPORT std::vector<std::string> keys_to_remove;
 		friend std::ostream& operator<<(std::ostream& os, const IUPayloadUpdate& obj);
 		typedef boost::shared_ptr<IUPayloadUpdate> ptr;

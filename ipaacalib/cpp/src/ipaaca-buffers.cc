@@ -66,9 +66,10 @@ IPAACA_EXPORT std::ostream& operator<<(std::ostream& os, const IUPayloadUpdate& 
 	os << ", writer_name=" << obj.writer_name << ", is_delta=" << (obj.is_delta?"True":"False");
 	os << ", new_items = {";
 	bool first = true;
-	for (std::map<std::string, std::string>::const_iterator it=obj.new_items.begin(); it!=obj.new_items.end(); ++it) {
+	for (auto& : obj.new_items) {
 		if (first) { first=false; } else { os << ", "; }
-		os << "'" << it->first << "':'" << it->second << "'";
+		//os << "'" << it->first << "':'" << it->second << "'";
+		os << "'" << it->first << "': ???";  // FIXME JSONIZE
 	}
 	os << "}, keys_to_remove = [";
 	first = true;
@@ -391,7 +392,7 @@ IPAACA_EXPORT void OutputBuffer::_send_iu_link_update(IUInterface* iu, bool is_d
 	informer->publish(ldata);
 }
 
-IPAACA_EXPORT void OutputBuffer::_send_iu_payload_update(IUInterface* iu, bool is_delta, revision_t revision, const std::map<std::string, std::string>& new_items, const std::vector<std::string>& keys_to_remove, const std::string& writer_name)
+IPAACA_EXPORT void OutputBuffer::_send_iu_payload_update(IUInterface* iu, bool is_delta, revision_t revision, const std::map<std::string, const rapidjson::Document&>& new_items, const std::vector<std::string>& keys_to_remove, const std::string& writer_name)
 {
 	IUPayloadUpdate* pup = new ipaaca::IUPayloadUpdate();
 	Informer<ipaaca::IUPayloadUpdate>::DataPtr pdata(pup);

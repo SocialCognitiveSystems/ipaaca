@@ -44,7 +44,7 @@ IPAACA_EXPORT std::ostream& operator<<(std::ostream& os, const Payload& obj)//{{
 {
 	os << "{";
 	bool first = true;
-	for (std::map<std::string, std::string>::const_iterator it=obj._store.begin(); it!=obj._store.end(); ++it) {
+	for (std::map<std::string, std::string>::const_iterator it=obj._json_store.begin(); it!=obj._json_store.end(); ++it) {
 		if (first) { first=false; } else { os << ", "; }
 		os << "'" << it->first << "':'" << it->second << "'";
 	}
@@ -173,53 +173,57 @@ IPAACA_EXPORT PayloadEntryProxy Payload::operator[](const std::string& key)
 }
 IPAACA_EXPORT Payload::operator std::map<std::string, std::string>()
 {
-	return _store;
+	std::map<std::string, std::string> result;
+	std::foreach(_json_store.begin(), _json_store.end(), [&result](auto pair) {
+			result[pair.first] =  pair.second.GetString();
+			});
+	return result;
 }
 
-IPAACA_EXPORT void Payload::_internal_set(const std::string& k, const std::string& v, const std::string& writer_name) {
-	std::map<std::string, std::string> _new;
+IPAACA_EXPORT void Payload::_internal_set(const std::string& k, const rapidjson::Document& v, const std::string& writer_name) {
+	std::map<std::string, const rapidjson::Document&> _new;
 	std::vector<std::string> _remove;
 	_new[k]=v;
 	_iu.lock()->_modify_payload(true, _new, _remove, writer_name );
-	_store[k] = v;
+	_json_store[k] = v;
 }
 IPAACA_EXPORT void Payload::_internal_remove(const std::string& k, const std::string& writer_name) {
-	std::map<std::string, std::string> _new;
+	std::map<std::string, const rapidjson::Document&> _new;
 	std::vector<std::string> _remove;
 	_remove.push_back(k);
 	_iu.lock()->_modify_payload(true, _new, _remove, writer_name );
 	_store.erase(k);
 }
-IPAACA_EXPORT void Payload::_internal_replace_all(const std::map<std::string, std::string>& new_contents, const std::string& writer_name)
+IPAACA_EXPORT void Payload::_internal_replace_all(const std::map<std::string, const rapidjson::Document&>& new_contents, const std::string& writer_name)
 {
 	std::vector<std::string> _remove;
 	_iu.lock()->_modify_payload(false, new_contents, _remove, writer_name );
 	_store = new_contents;
 }
-IPAACA_EXPORT void Payload::_internal_merge(const std::map<std::string, std::string>& contents_to_merge, const std::string& writer_name)
+IPAACA_EXPORT void Payload::_internal_merge(const std::map<std::string, const rapidjson::Document&>& contents_to_merge, const std::string& writer_name)
 {
 	std::vector<std::string> _remove;
 	_iu.lock()->_modify_payload(true, contents_to_merge, _remove, writer_name );
-	_store.insert(contents_to_merge.begin(), contents_to_merge.end());
+	_json_store.insert(contents_to_merge.begin(), contents_to_merge.end());
 	//for (std::map<std::string, std::string>::iterator it = contents_to_merge.begin(); it!=contents_to_merge.end(); i++) {
 	//	_store[it->first] = it->second;
 	//}
 }
-IPAACA_EXPORT inline std::string Payload::get(const std::string& k) {
-	if (_store.count(k)>0) return _store[k];
-	else return IPAACA_PAYLOAD_DEFAULT_STRING_VALUE;
+IPAACA_EXPORT inline rapidjson::Document& Payload::get(const std::string& k) {
+	if (_json_store.count(k)>0) return _json_store[k];
+	else return rapidjson::Document();  // if not found; contains 'null' value
 }
 IPAACA_EXPORT void Payload::_remotely_enforced_wipe()
 {
-	_store.clear();
+	_json_store.clear();
 }
 IPAACA_EXPORT void Payload::_remotely_enforced_delitem(const std::string& k)
 {
-	_store.erase(k);
+	_json_store.erase(k);
 }
-IPAACA_EXPORT void Payload::_remotely_enforced_setitem(const std::string& k, const std::string& v)
+IPAACA_EXPORT void Payload::_remotely_enforced_setitem(const std::string& k, const rapidjson::Document&)
 {
-	_store[k] = v;
+	_json_store[k] = v;
 }
 
 //}}}

@@ -45,11 +45,16 @@ int main(int, char*[]) {
 	puts("WARNING - no c++11 rvalue refs!");
 #endif
 
+	std::map<std::string, Document> documents;
 	////////////////////////////////////////////////////////////////////////////
 	// 1. Parse a JSON text string to a document.
 	const char json[] = " { \"hello\" : \"world\", \"t\" : true , \"f\" : false, \"n\": null, \"i\":123, \"pi\": 3.1416, \"a\":[1, 2, 3, 4], \"dict\":{\"s\":\"stringvalue\", \"arr\":[6, 7, \"test\"]} } ";
 	printf("Original JSON:\n %s\n", json);
-	Document document; // Default template parameter uses UTF8 and MemoryPoolAllocator.
+	Document _document; // Default template parameter uses UTF8 and MemoryPoolAllocator.
+	documents["document_test"] = std::move(_document);
+	Document& document = documents["document_test"];
+	printf("Check whether document contains 'none' initially ...");
+	assert(document.IsNull()); // initial state of object
 #if 0
 	// "normal" parsing, decode strings to new buffers. Can use other input stream via ParseStream().
 	if (document.Parse(json).HasParseError())
