@@ -38,6 +38,18 @@
 #error "Please do not include this file directly, use ipaaca.h instead"
 #endif
 
+IPAACA_HEADER_EXPORT class PayloadDocumentEntry//{{{
+{
+	public:
+		IPAACA_MEMBER_VAR_EXPORT ipaaca::Lock lock;
+		IPAACA_MEMBER_VAR_EXPORT rapidjson::Document document;
+		IPAACA_HEADER_EXPORT PayloadDocumentEntry(rapidjson::Document&& doc): document(std::move(doc)) {};
+		IPAACA_HEADER_EXPORT PayloadDocumentEntry() {};
+		IPAACA_HEADER_EXPORT std::string to_json_string_representation();
+		static std::shared_ptr<PayloadDocumentEntry> from_json_string_representation(const std::string& input);
+	typedef std::shared_ptr<PayloadDocumentEntry> ptr;
+};
+//}}}
 IPAACA_HEADER_EXPORT class PayloadEntryProxy//{{{
 {
 	protected:
@@ -45,8 +57,29 @@ IPAACA_HEADER_EXPORT class PayloadEntryProxy//{{{
 		//IPAACA_MEMBER_VAR_EXPORT rapidjson::Document* _json_node;
 		IPAACA_MEMBER_VAR_EXPORT Payload* _payload;
 		IPAACA_MEMBER_VAR_EXPORT std::string _key;
+		//
+		// new json stuff / hierarchical navigation
+		//
+		PayloadEntryProxy* parent; // parent (up to document root -> then null)
+		PayloadDocumentEntry::ptr document_entry; // contains lock and json Doc
+		bool existant; // whether Value exist already (or blindly navigated)
+		bool addressed_as_array; // whether long or string navigation used
+		long addressed_index;
+		std::string addressed_key;
+		/// currently navigated value in json tree (or a new Null value)
+		rapidjson::Value& json_value;
 	public:
-		IPAACA_HEADER_EXPORT PayloadEntryProxy(Payload* payload, const std::string& key);
+		IPAACA_HEADER_EXPORT PayloadEntryProxy& operator[](long index); // array-style navigation
+		IPAACA_HEADER_EXPORT PayloadEntryProxy& operator[](const std::string& key);
+	protected:
+		IPAACA_HEADER_EXPORT void connect_to_existing_parents();
+	protected:
+		IPAACA_HEADER_EXPORT template<typename T> void pack_into_json_value(T t); //specializations below
+	public:
+		IPAACA_HEADER_EXPORT PayloadEntryProxy(Payload* payload, const std::string& key, PayloadDocumentEntry::ptr entry);
+		IPAACA_HEADER_EXPORT PayloadEntryProxy(PayloadEntryProxy* parent, const std::string& addressed_key);
+		IPAACA_HEADER_EXPORT PayloadEntryProxy(PayloadEntryProxy* parent, long addressed_index);
+		//
 		IPAACA_HEADER_EXPORT PayloadEntryProxy& operator=(const std::string& value);
 		IPAACA_HEADER_EXPORT PayloadEntryProxy& operator=(const char* value);
 		IPAACA_HEADER_EXPORT PayloadEntryProxy& operator=(double value);
@@ -63,6 +96,12 @@ IPAACA_HEADER_EXPORT class PayloadEntryProxy//{{{
 		// getters
 		IPAACA_HEADER_EXPORT template<typename T> T get(); // specializations below
 		// setters
+		IPAACA_HEADER_EXPORT template<typename T> PayloadEntryProxy& set(T t);
+		/*{
+			pack_into_json_value<T>(t);
+			connect_to_existing_parents();
+			_payload->set(key, document_entry->document);
+		}*/
 };
 // Available interpretations of payload entries (or children thereof) below.
 //  Usage of standard complex data structures (vector etc.) currently entails
@@ -74,7 +113,14 @@ IPAACA_HEADER_EXPORT template<> std::string PayloadEntryProxy::get();
 IPAACA_HEADER_EXPORT template<> std::vector<std::string> PayloadEntryProxy::get();
 IPAACA_HEADER_EXPORT template<> std::list<std::string> PayloadEntryProxy::get();
 IPAACA_HEADER_EXPORT template<> std::map<std::string, std::string> PayloadEntryProxy::get();
-
+// value converters
+IPAACA_HEADER_EXPORT template<> void PayloadEntryProxy::pack_into_json_value(long);
+IPAACA_HEADER_EXPORT template<> void PayloadEntryProxy::pack_into_json_value(double);
+IPAACA_HEADER_EXPORT template<> void PayloadEntryProxy::pack_into_json_value(bool);
+IPAACA_HEADER_EXPORT template<> void PayloadEntryProxy::pack_into_json_value(const std::string&);
+IPAACA_HEADER_EXPORT template<> void PayloadEntryProxy::pack_into_json_value(const std::vector<std::string>&);
+IPAACA_HEADER_EXPORT template<> void PayloadEntryProxy::pack_into_json_value(const std::list<std::string>&);
+IPAACA_HEADER_EXPORT template<> void PayloadEntryProxy::pack_into_json_value(const std::map<std::string, std::string>&);
 //}}}
 
 /*
@@ -116,6 +162,16 @@ IPAACA_HEADER_EXPORT template<> std::map<std::string, std::string> PayloadEntryP
 //}}}
 */
 
+// shared_ptrs stored for shared read access, ref must be held
+// even if the key for the entry is overwritten remotely
+IPAACA_HEADER_EXPORT class PayloadDocumentStore//{{{
+: public std::map<std::string, PayloadDocumentEntry::ptr>
+{
+	public:
+	typedef std::shared_ptr<PayloadDocumentStore> ptr;
+};
+//}}}
+
 IPAACA_HEADER_EXPORT class Payload//{{{
 {
 	friend std::ostream& operator<<(std::ostream& os, const Payload& obj);
@@ -130,28 +186,31 @@ IPAACA_HEADER_EXPORT class Payload//{{{
 	protected:
 		IPAACA_MEMBER_VAR_EXPORT std::string _owner_name;
 		//IPAACA_MEMBER_VAR_EXPORT rapidjson::Document _json_document;
-		IPAACA_MEMBER_VAR_EXPORT std::map<std::string, rapidjson::Document> _json_store;
+		//IPAACA_MEMBER_VAR_EXPORT std::map<std::string, rapidjson::Document> _json_store;
+		IPAACA_MEMBER_VAR_EXPORT PayloadDocumentStore _document_store;
 		IPAACA_MEMBER_VAR_EXPORT boost::weak_ptr<IUInterface> _iu;
 	protected:
 		IPAACA_HEADER_EXPORT void initialize(boost::shared_ptr<IUInterface> iu);
 		IPAACA_HEADER_EXPORT inline void _set_owner_name(const std::string& name) { _owner_name = name; }
 		IPAACA_HEADER_EXPORT void _remotely_enforced_wipe();
 		IPAACA_HEADER_EXPORT void _remotely_enforced_delitem(const std::string& k);
-		IPAACA_HEADER_EXPORT void _remotely_enforced_setitem(const std::string& k, const rapidjson::Document& v);
-		IPAACA_HEADER_EXPORT void _internal_replace_all(const std::map<std::string, const rapidjson::Document&>& new_contents, const std::string& writer_name="");
-		IPAACA_HEADER_EXPORT void _internal_merge(const std::map<std::string, const rapidjson::Document&>& contents_to_merge, const std::string& writer_name="");
-		IPAACA_HEADER_EXPORT void _internal_set(const std::string& k, const rapidjson::Document& v, const std::string& writer_name="");
+		IPAACA_HEADER_EXPORT void _remotely_enforced_setitem(const std::string& k, PayloadDocumentEntry::ptr entry);
+		IPAACA_HEADER_EXPORT void _internal_replace_all(const std::map<std::string, PayloadDocumentEntry::ptr>& new_contents, const std::string& writer_name="");
+		IPAACA_HEADER_EXPORT void _internal_merge(const std::map<std::string, PayloadDocumentEntry::ptr>& contents_to_merge, const std::string& writer_name="");
+		IPAACA_HEADER_EXPORT void _internal_set(const std::string& k, PayloadDocumentEntry::ptr v, const std::string& writer_name="");
 		IPAACA_HEADER_EXPORT void _internal_remove(const std::string& k, const std::string& writer_name="");
 	public:
 		IPAACA_HEADER_EXPORT inline const std::string& owner_name() { return _owner_name; }
 		// access
 		IPAACA_HEADER_EXPORT PayloadEntryProxy operator[](const std::string& key);
 		IPAACA_HEADER_EXPORT operator std::map<std::string, std::string>();
-		IPAACA_HEADER_EXPORT inline void set(const std::map<std::string, const rapidjson::Document&>& all_elems) { _internal_replace_all(all_elems); }
-		IPAACA_HEADER_EXPORT inline void set(const std::string& k, const rapidjson::Document& v) { _internal_set(k, v); }
-		IPAACA_HEADER_EXPORT inline void merge(const std::map<std::string, const rapidjson::Document&>& elems_to_merge) { _internal_merge(elems_to_merge); }
+		IPAACA_HEADER_EXPORT inline void set(const std::string& k, PayloadDocumentEntry::ptr entry) { _internal_set(k, entry); }
 		IPAACA_HEADER_EXPORT inline void remove(const std::string& k) { _internal_remove(k); }
-		IPAACA_HEADER_EXPORT std::string get(const std::string& k);
+		// FIXME: json: these two must support a bunch of standard types, not [only] json (users touch them)
+		//  to be more precise: types of map<string, T> with T several interesting things (string, list<string>, etc.)
+		//IPAACA_HEADER_EXPORT inline void set(const std::map<std::string, const rapidjson::Document&>& all_elems) { _internal_replace_all(all_elems); }
+		//IPAACA_HEADER_EXPORT inline void merge(const std::map<std::string, const rapidjson::Document&>& elems_to_merge) { _internal_merge(elems_to_merge); }
+		IPAACA_HEADER_EXPORT PayloadEntryProxy get(const std::string& k); // json, changed str to proxy here, too
 	typedef boost::shared_ptr<Payload> ptr;
 };//}}}
 

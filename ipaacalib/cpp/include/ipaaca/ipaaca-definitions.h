@@ -38,6 +38,8 @@
 #error "Please do not include this file directly, use ipaaca.h instead"
 #endif
 
+// LAST FIXME LAST
+//typedef boost::shared_ptr<rapidjson::Document> JsonDocPtr;
 
 typedef uint32_t revision_t;
 
@@ -200,7 +202,22 @@ IPAACA_HEADER_EXPORT class NotImplementedError: public Exception//{{{
 			_description = "NotImplementedError";
 		}
 };//}}}
-
+IPAACA_HEADER_EXPORT class PayloadAddressingError: public Exception//{{{
+{
+	public:
+		IPAACA_HEADER_EXPORT inline ~PayloadAddressingError() throw() { }
+		IPAACA_HEADER_EXPORT inline PayloadAddressingError() { //boost::shared_ptr<IU> iu) {
+			_description = "PayloadAddressingError";
+		}
+};//}}}
+IPAACA_HEADER_EXPORT class JsonParsingError: public Exception//{{{
+{
+	public:
+		IPAACA_HEADER_EXPORT inline ~JsonParsingError() throw() { }
+		IPAACA_HEADER_EXPORT inline JsonParsingError() { //boost::shared_ptr<IU> iu) {
+			_description = "JsonParsingError";
+		}
+};//}}}
 
 /// Static library initialization
 IPAACA_HEADER_EXPORT class Initializer

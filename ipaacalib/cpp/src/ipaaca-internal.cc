@@ -168,10 +168,10 @@ IPAACA_EXPORT std::string IUConverter::serialize(const AnnotatedData& data, std:
 	}
 	pbo->set_access_mode(a_m);
 	pbo->set_read_only(obj->read_only());
-	for (auto& kv: obj->_payload._store) {
+	for (auto& kv: obj->_payload._document_store) {
 		protobuf::PayloadItem* item = pbo->add_payload();
 		item->set_key(kv.first);
-		item->set_value(kv.second);
+		item->set_value( kv.second.document.to_json_string_representation() );
 		item->set_type("json");
 	}
 	for (LinkMap::const_iterator it=obj->_links._links.begin(); it!=obj->_links._links.end(); ++it) {
@@ -216,10 +216,18 @@ IPAACA_EXPORT AnnotatedData IUConverter::deserialize(const std::string& wireSche
 			obj->_committed = pbo->committed();
 			obj->_read_only = pbo->read_only();
 			obj->_access_mode = IU_ACCESS_PUSH;
-			// TODO JSONIZE
 			for (int i=0; i<pbo->payload_size(); i++) {
 				const protobuf::PayloadItem& it = pbo->payload(i);
-				obj->_payload._store[it.key()] = it.value();
+				PayloadDocumentEntry::ptr entry;
+				if (it.type() == "json") {
+					// fully parse json text
+					entry = PayloadDocumentEntry::from_json_string_representation( it.value() )
+				} else {
+					// implying legacy "str" -> just copy value to raw string in document
+					entry = std::make_shared<PayloadDocumentEntry>();
+					entry->document.SetString(it.value(), entry->document.GetAllocator());
+				}
+				obj->_payload._document_store[it.key()] = entry;
 			}
 			for (int i=0; i<pbo->links_size(); i++) {
 				const protobuf::LinkSet& pls = pbo->links(i);
@@ -246,10 +254,18 @@ IPAACA_EXPORT AnnotatedData IUConverter::deserialize(const std::string& wireSche
 			obj->_committed = pbo->committed();
 			obj->_read_only = pbo->read_only();
 			obj->_access_mode = IU_ACCESS_MESSAGE;
-			// TODO JSONIZE
 			for (int i=0; i<pbo->payload_size(); i++) {
 				const protobuf::PayloadItem& it = pbo->payload(i);
-				obj->_payload._store[it.key()] = it.value();
+				PayloadDocumentEntry::ptr entry;
+				if (it.type() == "json") {
+					// fully parse json text
+					entry = PayloadDocumentEntry::from_json_string_representation( it.value() )
+				} else {
+					// implying legacy "str" -> just copy value to raw string in document
+					entry = std::make_shared<PayloadDocumentEntry>();
+					entry->document.SetString(it.value(), entry->document.GetAllocator());
+				}
+				obj->_payload._document_store[it.key()] = entry;
 			}
 			for (int i=0; i<pbo->links_size(); i++) {
 				const protobuf::LinkSet& pls = pbo->links(i);
@@ -304,12 +320,11 @@ IPAACA_EXPORT std::string MessageConverter::serialize(const AnnotatedData& data,
 	}
 	pbo->set_access_mode(a_m);
 	pbo->set_read_only(obj->read_only());
-	// TODO JSONIZE
-	for (std::map<std::string, std::string>::const_iterator it=obj->_payload._store.begin(); it!=obj->_payload._store.end(); ++it) {
+	for (auto& kv: obj->_payload._document_store) {
 		protobuf::PayloadItem* item = pbo->add_payload();
-		item->set_key(it->first);
-		item->set_value(it->second);
-		item->set_type("str"); // FIXME other types than str (later)
+		item->set_key(kv.first);
+		item->set_value( kv.second.document.to_json_string_representation() );
+		item->set_type("json");
 	}
 	for (LinkMap::const_iterator it=obj->_links._links.begin(); it!=obj->_links._links.end(); ++it) {
 		protobuf::LinkSet* links = pbo->add_links();
@@ -350,10 +365,18 @@ IPAACA_EXPORT AnnotatedData MessageConverter::deserialize(const std::string& wir
 			obj->_committed = pbo->committed();
 			obj->_read_only = pbo->read_only();
 			obj->_access_mode = IU_ACCESS_PUSH;
-			// TODO JSONIZE
 			for (int i=0; i<pbo->payload_size(); i++) {
 				const protobuf::PayloadItem& it = pbo->payload(i);
-				obj->_payload._store[it.key()] = it.value();
+				PayloadDocumentEntry::ptr entry;
+				if (it.type() == "json") {
+					// fully parse json text
+					entry = PayloadDocumentEntry::from_json_string_representation( it.value() )
+				} else {
+					// implying legacy "str" -> just copy value to raw string in document
+					entry = std::make_shared<PayloadDocumentEntry>();
+					entry->document.SetString(it.value(), entry->document.GetAllocator());
+				}
+				obj->_payload._document_store[it.key()] = entry;
 			}
 			for (int i=0; i<pbo->links_size(); i++) {
 				const protobuf::LinkSet& pls = pbo->links(i);
@@ -379,10 +402,18 @@ IPAACA_EXPORT AnnotatedData MessageConverter::deserialize(const std::string& wir
 			obj->_committed = pbo->committed();
 			obj->_read_only = pbo->read_only();
 			obj->_access_mode = IU_ACCESS_MESSAGE;
-			// TODO JSONIZE
 			for (int i=0; i<pbo->payload_size(); i++) {
 				const protobuf::PayloadItem& it = pbo->payload(i);
-				obj->_payload._store[it.key()] = it.value();
+				PayloadDocumentEntry::ptr entry;
+				if (it.type() == "json") {
+					// fully parse json text
+					entry = PayloadDocumentEntry::from_json_string_representation( it.value() )
+				} else {
+					// implying legacy "str" -> just copy value to raw string in document
+					entry = std::make_shared<PayloadDocumentEntry>();
+					entry->document.SetString(it.value(), entry->document.GetAllocator());
+				}
+				obj->_payload._document_store[it.key()] = entry;
 			}
 			for (int i=0; i<pbo->links_size(); i++) {
 				const protobuf::LinkSet& pls = pbo->links(i);
@@ -419,16 +450,14 @@ IPAACA_EXPORT std::string IUPayloadUpdateConverter::serialize(const AnnotatedDat
 	pbo->set_revision(obj->revision);
 	pbo->set_writer_name(obj->writer_name);
 	pbo->set_is_delta(obj->is_delta);
-	// TODO JSONIZE
-	for (std::map<std::string, std::string>::const_iterator it=obj->new_items.begin(); it!=obj->new_items.end(); ++it) {
+	for (auto& kv: obj->new_items) {
 		protobuf::PayloadItem* item = pbo->add_new_items();
-		item->set_key(it->first);
-		item->set_value(it->second);
-		item->set_type("str"); // FIXME other types than str (later)
+		item->set_key(kv.first);
+		item->set_value( kv.second.document.to_json_string_representation() );
+		item->set_type("json");
 	}
-	// TODO JSONIZE
-	for (std::vector<std::string>::const_iterator it=obj->keys_to_remove.begin(); it!=obj->keys_to_remove.end(); ++it) {
-		pbo->add_keys_to_remove(*it);
+	for (auto& key: obj->keys_to_remove) {
+		pbo->add_keys_to_remove(key);
 	}
 	pbo->SerializeToString(&wire);
 	return getWireSchema();
@@ -445,12 +474,19 @@ AnnotatedData IUPayloadUpdateConverter::deserialize(const std::string& wireSchem
 	obj->revision = pbo->revision();
 	obj->writer_name = pbo->writer_name();
 	obj->is_delta = pbo->is_delta();
-	// TODO JSONIZE
 	for (int i=0; i<pbo->new_items_size(); i++) {
 		const protobuf::PayloadItem& it = pbo->new_items(i);
-		obj->new_items[it.key()] = it.value();
+		PayloadDocumentEntry::ptr entry;
+		if (it.type() == "json") {
+			// fully parse json text
+			entry = PayloadDocumentEntry::from_json_string_representation( it.value() )
+		} else {
+			// implying legacy "str" -> just copy value to raw string in document
+			entry = std::make_shared<PayloadDocumentEntry>();
+			entry->document.SetString(it.value(), entry->document.GetAllocator());
+		}
+		obj->new_items[it.key()] = entry;
 	}
-	// TODO JSONIZE
 	for (int i=0; i<pbo->keys_to_remove_size(); i++) {
 		obj->keys_to_remove.push_back(pbo->keys_to_remove(i));
 	}

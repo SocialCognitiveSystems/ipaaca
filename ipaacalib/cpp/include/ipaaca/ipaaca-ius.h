@@ -65,7 +65,7 @@ IPAACA_HEADER_EXPORT class IUInterface {//{{{
 		// Internal functions that perform the update logic,
 		//  e.g. sending a notification across the network
 		IPAACA_HEADER_EXPORT _IPAACA_ABSTRACT_ virtual void _modify_links(bool is_delta, const LinkMap& new_links, const LinkMap& links_to_remove, const std::string& writer_name) = 0;
-		IPAACA_HEADER_EXPORT _IPAACA_ABSTRACT_ virtual void _modify_payload(bool is_delta, const std::map<std::string, std::string>& new_items, const std::vector<std::string>& keys_to_remove, const std::string& writer_name) = 0;
+		IPAACA_HEADER_EXPORT _IPAACA_ABSTRACT_ virtual void _modify_payload(bool is_delta, const std::map<std::string, PayloadDocumentEntry::ptr>& new_items, const std::vector<std::string>& keys_to_remove, const std::string& writer_name) = 0;
 		//void _set_buffer(boost::shared_ptr<Buffer> buffer);
 		IPAACA_HEADER_EXPORT void _associate_with_buffer(Buffer* buffer);
 		IPAACA_HEADER_EXPORT void _set_buffer(Buffer* buffer);
@@ -96,7 +96,7 @@ IPAACA_HEADER_EXPORT class IUInterface {//{{{
 		// setters
 		IPAACA_HEADER_EXPORT _IPAACA_ABSTRACT_ virtual void commit() = 0;
 		// functions to modify and update links:
-		IPAACA_HEADER_EXPORT void _publish_resend(boost::shared_ptr<IU> iu, const std::string& hidden_scope_name);
+		//IPAACA_HEADER_EXPORT void _publish_resend(boost::shared_ptr<IU> iu, const std::string& hidden_scope_name);
 
 		IPAACA_HEADER_EXPORT void add_links(const std::string& type, const LinkSet& targets, const std::string& writer_name = "");
 		IPAACA_HEADER_EXPORT void remove_links(const std::string& type, const LinkSet& targets, const std::string& writer_name = "");
@@ -134,7 +134,7 @@ IPAACA_HEADER_EXPORT class IU: public IUInterface {//{{{
 	protected:
 		IPAACA_HEADER_EXPORT virtual void _modify_links(bool is_delta, const LinkMap& new_links, const LinkMap& links_to_remove, const std::string& writer_name = "");
 
-		IPAACA_HEADER_EXPORT virtual void _publish_resend(boost::shared_ptr<IU> iu, const std::string& hidden_scope_name);
+		//IPAACA_HEADER_EXPORT virtual void _publish_resend(boost::shared_ptr<IU> iu, const std::string& hidden_scope_name);
 
 		IPAACA_HEADER_EXPORT virtual void _modify_payload(bool is_delta, const std::map<std::string, std::string>& new_items, const std::vector<std::string>& keys_to_remove, const std::string& writer_name = "");
 	protected:

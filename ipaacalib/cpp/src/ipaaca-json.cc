@@ -39,23 +39,23 @@ using namespace std;
 
 int main(int, char*[]) {
 
-#ifdef RAPIDJSON_HAS_CXX11_RVALUE_REFS
-	puts("OK - c++11 rvalue refs possible.");
-#else
-	puts("WARNING - no c++11 rvalue refs!");
-#endif
-
-	std::map<std::string, Document> documents;
 	////////////////////////////////////////////////////////////////////////////
 	// 1. Parse a JSON text string to a document.
 	const char json[] = " { \"hello\" : \"world\", \"t\" : true , \"f\" : false, \"n\": null, \"i\":123, \"pi\": 3.1416, \"a\":[1, 2, 3, 4], \"dict\":{\"s\":\"stringvalue\", \"arr\":[6, 7, \"test\"]} } ";
 	printf("Original JSON:\n %s\n", json);
-	Document _document; // Default template parameter uses UTF8 and MemoryPoolAllocator.
-	documents["document_test"] = std::move(_document);
-	Document& document = documents["document_test"];
+	
+	ipaaca::PayloadDocumentStore ds;
+	ds["document_test"] = std::make_shared<ipaaca::PayloadDocumentEntry>();
+	Document& document = ds["document_test"]->document;
+
+	//std::map<std::string, Document> documents;
+	//Document _document; // Default template parameter uses UTF8 and MemoryPoolAllocator.
+	//documents["document_test"] = std::move(_document);
+	//Document& document = documents["document_test"];
+	
 	printf("Check whether document contains 'none' initially ...");
 	assert(document.IsNull()); // initial state of object
-#if 0
+#if 1
 	// "normal" parsing, decode strings to new buffers. Can use other input stream via ParseStream().
 	if (document.Parse(json).HasParseError())
 		return 1;
@@ -90,9 +90,15 @@ int main(int, char*[]) {
 	puts("Putting new dict in array.\n");
 	Document::AllocatorType& allocator = document.GetAllocator();
 	Value dict;
+	Value insertstr;
+	insertstr.SetString("testvalue", allocator);
 	dict.SetObject();
-	dict.AddMember("testkey", "testvalue", allocator);
+	dict.AddMember("testkey", insertstr, allocator);
 	arr.PushBack(dict, allocator);
+	
+	Value newint;
+	newint.SetInt(12345);
+	document["i"] = newint;
 	puts("Done.\n");
 	// ->Assertion failed in []:
 	//   Value& nonexisting = document["dict"]["NONEXISTING"];
@@ -183,11 +189,16 @@ int main(int, char*[]) {
 	assert(author.IsNull()); // Move semantic for assignment. After this variable is assigned as a member, the variable becomes null.
 	////////////////////////////////////////////////////////////////////////////
 #endif
-	
-	// 4. Stringify JSON
-	printf("\nModified JSON with reformatting:\n");
-	FileStream f(stdout);
-	PrettyWriter<FileStream> writer(f);
-	document.Accept(writer); // Accept() traverses the DOM and generates Handler events.
+	StringBuffer buffer;
+	Writer<StringBuffer> writer(buffer);
+	document.Accept(writer);
+	std::string docstring = buffer.GetString();
+	std::cout << "FIRST DUMP:  " << docstring << std::endl;
+
+	//// 4. Stringify JSON
+	//printf("\nModified JSON with reformatting:\n");
+	//FileStream f(stdout);
+	//PrettyWriter<FileStream> writer(f);
+	//document.Accept(writer); // Accept() traverses the DOM and generates Handler events.
 	return 0;
 }

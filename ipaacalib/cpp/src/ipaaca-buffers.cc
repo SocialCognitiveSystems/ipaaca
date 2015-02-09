@@ -323,7 +323,8 @@ IPAACA_EXPORT boost::shared_ptr<int> CallbackIUResendRequest::call(const std::st
 		//_buffer->call_iu_event_handlers(iu, true, IU_UPDATED, update->hidden_scope_name());
 		revision_t revision = iu->revision();
 
-		iu->_publish_resend(iu, update->hidden_scope_name());
+		_buffer->_publish_iu_resend(iu, update->hidden_scope_name());
+		//iu->_publish_resend(iu, update->hidden_scope_name());
 
 		return boost::shared_ptr<int>(new int(revision));
 	} else {
@@ -392,7 +393,7 @@ IPAACA_EXPORT void OutputBuffer::_send_iu_link_update(IUInterface* iu, bool is_d
 	informer->publish(ldata);
 }
 
-IPAACA_EXPORT void OutputBuffer::_send_iu_payload_update(IUInterface* iu, bool is_delta, revision_t revision, const std::map<std::string, const rapidjson::Document&>& new_items, const std::vector<std::string>& keys_to_remove, const std::string& writer_name)
+IPAACA_EXPORT void OutputBuffer::_send_iu_payload_update(IUInterface* iu, bool is_delta, revision_t revision, const std::map<std::string, PayloadDocumentEntry::ptr>& new_items, const std::vector<std::string>& keys_to_remove, const std::string& writer_name)
 {
 	IUPayloadUpdate* pup = new ipaaca::IUPayloadUpdate();
 	Informer<ipaaca::IUPayloadUpdate>::DataPtr pdata(pup);
@@ -671,8 +672,7 @@ IPAACA_EXPORT ListenerPtr InputBuffer::_create_category_listener_if_needed(const
 	return listener;
 }
 IPAACA_EXPORT void InputBuffer::_trigger_resend_request(EventPtr event) {
-        if (!triggerResend)
-		return;
+	if (!triggerResend) return;
 	std::string type = event->getType();
 	std::string uid = "";
 	std::string writerName = "";
@@ -689,7 +689,7 @@ IPAACA_EXPORT void InputBuffer::_trigger_resend_request(EventPtr event) {
 		uid = update->uid();
 		writerName = update->writer_name();
 	} else {
-		std::cout << "trigger ??? else" << std::endl;
+		std::cout << "_trigger_resend_request: unhandled event type " << type << std::endl;
 	}
 
 	if (!writerName.empty()) {
@@ -702,7 +702,7 @@ IPAACA_EXPORT void InputBuffer::_trigger_resend_request(EventPtr event) {
 			if (*result == 0) {
 				throw IUResendRequestFailedError();
 			} else {
-				std::cout << "revision " << *result << std::endl;
+				//std::cout << "revision " << *result << std::endl;
 			}
 		}
 	}

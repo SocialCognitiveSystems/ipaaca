@@ -147,10 +147,13 @@
 #include <boost/lexical_cast.hpp>
 #endif
 
+
 #include <ipaaca/ipaaca.pb.h>
 
 #include <set>
 #include <list>
+#include <algorithm>
+#include <utility>
 
 namespace ipaaca {
 

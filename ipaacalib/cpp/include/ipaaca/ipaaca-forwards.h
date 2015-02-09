@@ -41,6 +41,9 @@
 /*
  *  forward declarations
  */
+class PayloadDocumentEntry;
+class PayloadDocumentStore;
+
 class PayloadEntryProxy;
 class Payload;
 class IUInterface;

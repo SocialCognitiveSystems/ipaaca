@@ -188,7 +188,8 @@ IPAACA_EXPORT void IU::_modify_links(bool is_delta, const LinkMap& new_links, co
 }
 
 
-IPAACA_EXPORT void IU::_publish_resend(IU::ptr iu, const std::string& hidden_scope_name)
+/*
+ * IPAACA_EXPORT void IU::_publish_resend(IU::ptr iu, const std::string& hidden_scope_name)
 {
 	//_revision_lock.lock();
 	//if (_committed) {
@@ -202,7 +203,7 @@ IPAACA_EXPORT void IU::_publish_resend(IU::ptr iu, const std::string& hidden_sco
 	//}
 	//_revision_lock.unlock();
 }
-
+*/
 
 
 
