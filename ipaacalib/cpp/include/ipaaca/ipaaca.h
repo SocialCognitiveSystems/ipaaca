@@ -99,6 +99,7 @@
 #endif
 
 // new json-based payload API, used in several classes
+#define RAPIDJSON_HAS_STDSTRING 1
 #include "rapidjson/document.h"
 #include "rapidjson/prettywriter.h"
 #include "rapidjson/filestream.h"
@@ -161,15 +162,6 @@ namespace ipaaca {
 #include <ipaaca/ipaaca-forwards.h>
 
 #include <ipaaca/ipaaca-locking.h>
-#include <ipaaca/ipaaca-buffers.h>
-#include <ipaaca/ipaaca-payload.h>
-#include <ipaaca/ipaaca-ius.h>
-
-/// Full API (including RSB transport) is only exposed during
-///  ipaaca compilation, user programs should use abstract API.
-#ifdef IPAACA_EXPOSE_FULL_RSB_API
-#include <ipaaca/ipaaca-internal.h>
-#endif
 
 
 IPAACA_MEMBER_VAR_EXPORT Lock& logger_lock();
@@ -180,6 +172,17 @@ IPAACA_MEMBER_VAR_EXPORT Lock& logger_lock();
 // use normal gettimeofday() on POSIX
 #define LOG_IPAACA_CONSOLE(msg) { ipaaca::Locker logging_locker(ipaaca::logger_lock()); timeval logging_tim; gettimeofday(&logging_tim, NULL); double logging_t1=logging_tim.tv_sec+(logging_tim.tv_usec/1000000.0); std::cout << "[LOG] " << std::setprecision(15) << logging_t1 << " : " << msg << std::endl; }
 #endif
+
+#include <ipaaca/ipaaca-payload.h>
+#include <ipaaca/ipaaca-buffers.h>
+#include <ipaaca/ipaaca-ius.h>
+
+/// Full API (including RSB transport) is only exposed during
+///  ipaaca compilation, user programs should use abstract API.
+#ifdef IPAACA_EXPOSE_FULL_RSB_API
+#include <ipaaca/ipaaca-internal.h>
+#endif
+
 
 
 } // of namespace ipaaca

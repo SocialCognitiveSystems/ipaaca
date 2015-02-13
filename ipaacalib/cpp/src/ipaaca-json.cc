@@ -37,7 +37,30 @@
 using namespace rapidjson;
 using namespace std;
 
-int main(int, char*[]) {
+int main(int argc, char** argv) {
+
+	if (argc<2) {
+		std::cout << "Please provide json content as the first argument." << std::endl;
+		return 0;
+	}
+	std::string json_source(argv[1]);
+	ipaaca::PayloadDocumentEntry::ptr entry = ipaaca::PayloadDocumentEntry::from_json_string_representation(json_source);
+	
+	ipaaca::FakeIU::ptr iu = ipaaca::FakeIU::create();
+	iu->add_fake_payload_item("a", entry);
+
+	auto a = iu->payload()["a"];
+	//auto a0 = a[0];
+	std::cout << "entry as string:       " << (std::string) a << std::endl;
+	std::cout << "entry as long:         " << (long) a << std::endl;
+	std::cout << "entry as double:       " << (double) a << std::endl;
+	std::cout << "entry as bool:         " << ((bool) a?"true":"false") << std::endl;
+	std::cout << "entry as list<string>: ";
+	try {
+	} catch {
+		std::cout << "(Error)" << std::endl;
+	}
+	return 0;
 
 	////////////////////////////////////////////////////////////////////////////
 	// 1. Parse a JSON text string to a document.

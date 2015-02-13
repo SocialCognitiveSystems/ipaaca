@@ -42,24 +42,6 @@ using namespace rsb::filter;
 using namespace rsb::converter;
 using namespace rsb::patterns;
 
-IPAACA_EXPORT std::ostream& operator<<(std::ostream& os, const SmartLinkMap& obj)//{{{
-{
-	os << "{";
-	bool first = true;
-	for (LinkMap::const_iterator it=obj._links.begin(); it!=obj._links.end(); ++it) {
-		if (first) { first=false; } else { os << ", "; }
-		os << "'" << it->first << "': [";
-		bool firstinner = true;
-		for (LinkSet::const_iterator it2=it->second.begin(); it2!=it->second.end(); ++it2) {
-			if (firstinner) { firstinner=false; } else { os << ", "; }
-			os << "'" << *it2 << "'";
-		}
-		os << "]";
-	}
-	os << "}";
-	return os;
-}
-//}}}
 IPAACA_EXPORT std::ostream& operator<<(std::ostream& os, const IUPayloadUpdate& obj)//{{{
 {
 	os << "PayloadUpdate(uid=" << obj.uid << ", revision=" << obj.revision;
@@ -111,49 +93,6 @@ IPAACA_EXPORT std::ostream& operator<<(std::ostream& os, const IULinkUpdate& obj
 	}
 	os << "})";
 	return os;
-}
-//}}}
-
-// SmartLinkMap//{{{
-
-IPAACA_EXPORT LinkSet SmartLinkMap::empty_link_set;
-IPAACA_EXPORT void SmartLinkMap::_add_and_remove_links(const LinkMap& add, const LinkMap& remove)
-{
-	// remove specified links
-	for (LinkMap::const_iterator it = remove.begin(); it != remove.end(); ++it ) {
-		// if link type exists
-		if (_links.count(it->first) > 0) {
-			// remove one by one
-			for (LinkSet::const_iterator it2=it->second.begin(); it2!=it->second.end(); ++it2) {
-				_links[it->first].erase(*it2);
-			}
-			// wipe the type key if no more links are left
-			if (_links[it->first].size() == 0) {
-				_links.erase(it->first);
-			}
-		}
-	}
-	// add specified links
-	for (LinkMap::const_iterator it = add.begin(); it != add.end(); ++it ) {
-		for (LinkSet::const_iterator it2=it->second.begin(); it2!=it->second.end(); ++it2) {
-			_links[it->first].insert(*it2);
-		}
-	}
-}
-IPAACA_EXPORT void SmartLinkMap::_replace_links(const LinkMap& links)
-{
-	//_links.clear();
-	_links=links;
-}
-IPAACA_EXPORT const LinkSet& SmartLinkMap::get_links(const std::string& key)
-{
-	LinkMap::const_iterator it = _links.find(key);
-	if (it==_links.end()) return empty_link_set;
-	return it->second;
-}
-IPAACA_EXPORT const LinkMap& SmartLinkMap::get_all_links()
-{
-	return _links;
 }
 //}}}
 

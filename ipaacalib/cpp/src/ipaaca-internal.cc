@@ -223,7 +223,7 @@ IPAACA_EXPORT AnnotatedData IUConverter::deserialize(const std::string& wireSche
 					// fully parse json text
 					entry = PayloadDocumentEntry::from_json_string_representation( it.value() )
 				} else {
-					// implying legacy "str" -> just copy value to raw string in document
+					// assuming legacy "str" -> just copy value to raw string in document
 					entry = std::make_shared<PayloadDocumentEntry>();
 					entry->document.SetString(it.value(), entry->document.GetAllocator());
 				}
@@ -261,7 +261,7 @@ IPAACA_EXPORT AnnotatedData IUConverter::deserialize(const std::string& wireSche
 					// fully parse json text
 					entry = PayloadDocumentEntry::from_json_string_representation( it.value() )
 				} else {
-					// implying legacy "str" -> just copy value to raw string in document
+					// assuming legacy "str" -> just copy value to raw string in document
 					entry = std::make_shared<PayloadDocumentEntry>();
 					entry->document.SetString(it.value(), entry->document.GetAllocator());
 				}
@@ -372,7 +372,7 @@ IPAACA_EXPORT AnnotatedData MessageConverter::deserialize(const std::string& wir
 					// fully parse json text
 					entry = PayloadDocumentEntry::from_json_string_representation( it.value() )
 				} else {
-					// implying legacy "str" -> just copy value to raw string in document
+					// assuming legacy "str" -> just copy value to raw string in document
 					entry = std::make_shared<PayloadDocumentEntry>();
 					entry->document.SetString(it.value(), entry->document.GetAllocator());
 				}
@@ -409,7 +409,7 @@ IPAACA_EXPORT AnnotatedData MessageConverter::deserialize(const std::string& wir
 					// fully parse json text
 					entry = PayloadDocumentEntry::from_json_string_representation( it.value() )
 				} else {
-					// implying legacy "str" -> just copy value to raw string in document
+					// assuming legacy "str" -> just copy value to raw string in document
 					entry = std::make_shared<PayloadDocumentEntry>();
 					entry->document.SetString(it.value(), entry->document.GetAllocator());
 				}
@@ -481,7 +481,7 @@ AnnotatedData IUPayloadUpdateConverter::deserialize(const std::string& wireSchem
 			// fully parse json text
 			entry = PayloadDocumentEntry::from_json_string_representation( it.value() )
 		} else {
-			// implying legacy "str" -> just copy value to raw string in document
+			// assuming legacy "str" -> just copy value to raw string in document
 			entry = std::make_shared<PayloadDocumentEntry>();
 			entry->document.SetString(it.value(), entry->document.GetAllocator());
 		}

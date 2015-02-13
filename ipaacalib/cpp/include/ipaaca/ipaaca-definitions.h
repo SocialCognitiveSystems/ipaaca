@@ -218,6 +218,14 @@ IPAACA_HEADER_EXPORT class JsonParsingError: public Exception//{{{
 			_description = "JsonParsingError";
 		}
 };//}}}
+IPAACA_HEADER_EXPORT class PayloadEntryProxyInvalidatedError: public Exception//{{{
+{
+	public:
+		IPAACA_HEADER_EXPORT inline ~PayloadEntryProxyInvalidatedError() throw() { }
+		IPAACA_HEADER_EXPORT inline PayloadEntryProxyInvalidatedError() { //boost::shared_ptr<IU> iu) {
+			_description = "PayloadEntryProxyInvalidatedError";
+		}
+};//}}}
 
 /// Static library initialization
 IPAACA_HEADER_EXPORT class Initializer

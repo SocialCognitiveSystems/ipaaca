@@ -223,4 +223,32 @@ IPAACA_HEADER_EXPORT class RemoteMessage: public IUInterface {//{{{
 	typedef boost::shared_ptr<RemoteMessage> ptr;
 };//}}}
 
+IPAACA_HEADER_EXPORT class FakeIU: public IUInterface {//{{{
+	friend class Buffer;
+	friend class InputBuffer;
+	friend class OutputBuffer;
+	friend class IUConverter;
+	friend class MessageConverter;
+	protected:
+		IPAACA_MEMBER_VAR_EXPORT Payload _payload;
+		IPAACA_HEADER_EXPORT FakeIU();
+	public:
+		IPAACA_HEADER_EXPORT static boost::shared_ptr<FakeIU> create();
+		IPAACA_HEADER_EXPORT ~FakeIU();
+		IPAACA_HEADER_EXPORT Payload& payload();
+		IPAACA_HEADER_EXPORT const Payload& const_payload() const;
+		IPAACA_HEADER_EXPORT void commit();
+		IPAACA_HEADER_EXPORT void add_fake_payload_item(const std::string& key, PayloadDocumentEntry::ptr entry);
+	protected:
+		IPAACA_HEADER_EXPORT void _modify_links(bool is_delta, const LinkMap& new_links, const LinkMap& links_to_remove, const std::string& writer_name = "");
+		IPAACA_HEADER_EXPORT void _modify_payload(bool is_delta, const std::map<std::string, PayloadDocumentEntry::ptr>& new_items, const std::vector<std::string>& keys_to_remove, const std::string& writer_name = "");
+	protected:
+		IPAACA_HEADER_EXPORT void _apply_update(IUPayloadUpdate::ptr update);
+		IPAACA_HEADER_EXPORT void _apply_link_update(IULinkUpdate::ptr update);
+		IPAACA_HEADER_EXPORT void _apply_commission();
+		IPAACA_HEADER_EXPORT void _apply_retraction();
+	public:
+	typedef boost::shared_ptr<FakeIU> ptr;
+};//}}}
+
 #endif

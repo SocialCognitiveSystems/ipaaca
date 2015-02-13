@@ -42,7 +42,7 @@
  *  forward declarations
  */
 class PayloadDocumentEntry;
-class PayloadDocumentStore;
+//class PayloadDocumentStore;
 
 class PayloadEntryProxy;
 class Payload;

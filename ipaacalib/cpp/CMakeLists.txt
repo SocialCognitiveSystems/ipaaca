@@ -94,7 +94,7 @@ else()
 	# Setup section for Linux or OS X (using 'rsb' soa project)
 	#
 	#
-	find_package(Boost COMPONENTS system filesystem thread regex REQUIRED)
+	find_package(Boost COMPONENTS system filesystem thread regex signals REQUIRED)
 	link_directories(${Boost_LIBRARY_DIRS})
 	include_directories(${Boost_INCLUDE_DIRS})
 	#set(BOOSTLIBS boost_regex-mt boost_date_time-mt boost_program_options-mt boost_thread-mt boost_filesystem-mt boost_signals-mt boost_system-mt)
@@ -105,9 +105,9 @@ else()
 
 	# change for each new rsb version
 	if (DEFINED APPLE)
-		set(RSBLIBS rsc0.10 rsb.0.10)
+		set(RSBLIBS rsc0.11 rsb0.11)
 	else(DEFINED APPLE)
-		set(RSBLIBS ${PROJECT_SOURCE_DIR}/../../deps/lib/librsc0.10.so ${PROJECT_SOURCE_DIR}/../../deps/lib/librsb.so.0.10 )
+		set(RSBLIBS ${PROJECT_SOURCE_DIR}/../../deps/lib/librsc0.11.so ${PROJECT_SOURCE_DIR}/../../deps/lib/librsb0.11.so )
 		set(LIBS ${LIBS} uuid)
 	endif(DEFINED APPLE)
 	# enhance the default search paths (headers, libs ...)
@@ -124,15 +124,18 @@ endif(WIN32)
 
 set(LIBS ${LIBS} ${PROTOBUF_LIBRARY} ${Boost_LIBRARIES} ${RSBLIBS})
 
+# Hide the rsb-induced boost-signals warning (FOR NOW)
+set(IPAACA_CXX_DEFINES "${IPAACA_CXX_DEFINES} -DBOOST_SIGNALS_NO_DEPRECATION_WARNING")
+
 # Compiler defines copied from the old build system
-set(CXX_DEFINES "-D_BSD_SOURCE -DUSE_AV -DMGC_USE_DOUBLE -DLEDA_PREFIX -D__NO_CAST_TO_LOCAL_TYPE__ -DDBGLVL=0")
+set(IPAACA_CXX_DEFINES "${IPAACA_CXX_DEFINES} -D_BSD_SOURCE -DUSE_AV -DMGC_USE_DOUBLE -DLEDA_PREFIX -D__NO_CAST_TO_LOCAL_TYPE__ -DDBGLVL=0")
 
 # Combine the extra compiler flags
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CXX_OLD_CODE_CONVENIENCE_FLAGS} ${CXX_DEFINES}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CXX_OLD_CODE_CONVENIENCE_FLAGS} ${IPAACA_CXX_DEFINES}")
 
 # add for for each new rsb version
-include_directories( ${PROJECT_SOURCE_DIR}/../../deps/include/rsc0.10 )
-include_directories( ${PROJECT_SOURCE_DIR}/../../deps/include/rsb0.10 )
+include_directories( ${PROJECT_SOURCE_DIR}/../../deps/include/rsc0.11 )
+include_directories( ${PROJECT_SOURCE_DIR}/../../deps/include/rsb0.11 )
 
 # add include dir for auto-generated headers placed in build/
 include_directories( ${PROJECT_SOURCE_DIR}/build )
@@ -149,7 +152,9 @@ set (SOURCE
 	src/ipaaca.cc
 	src/ipaaca-buffers.cc
 	src/ipaaca-internal.cc
+	src/ipaaca-iuinterface.cc
 	src/ipaaca-ius.cc
+	src/ipaaca-links.cc
 	src/ipaaca-locking.cc
 	src/ipaaca-payload.cc
 	src/ipaaca-cmdline-parser.cc
@@ -159,7 +164,13 @@ set (SOURCE
 	)
 
 set (JSON_TEST_SOURCE
-	src/ipaaca-json.cc
+	src/ipaaca-fake.cc
+	src/ipaaca-iuinterface.cc
+	src/ipaaca-json.cc    # main
+	src/ipaaca-locking.cc
+	src/ipaaca-links.cc
+	src/ipaaca-payload.cc
+	src/ipaaca-string-utils.cc
 	)
 
 
