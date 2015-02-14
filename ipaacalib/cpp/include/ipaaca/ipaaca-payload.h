@@ -105,6 +105,31 @@ IPAACA_HEADER_EXPORT class PayloadEntryProxy//{{{
 		IPAACA_HEADER_EXPORT operator long();
 		IPAACA_HEADER_EXPORT operator double();
 		IPAACA_HEADER_EXPORT operator bool();
+		IPAACA_HEADER_EXPORT template<typename Inner> operator std::vector<Inner>() {
+			if ((!json_value) || (!json_value->IsArray())) throw PayloadAddressingError();
+			std::vector<Inner> result;
+			for (auto it = json_value->Begin(); it != json_value->End(); ++it) {
+				result.push_back( json_value_cast<Inner>(*it) );
+			}
+			return result;
+		}
+		IPAACA_HEADER_EXPORT template<typename Inner> operator std::list<Inner>() {
+			if ((!json_value) || (!json_value->IsArray())) throw PayloadAddressingError();
+			std::list<Inner> result;
+			for (auto it = json_value->Begin(); it != json_value->End(); ++it) {
+				result.push_back( json_value_cast<Inner>(*it) );
+			}
+			return result;
+		}
+		IPAACA_HEADER_EXPORT template<typename Inner> operator std::map<std::string, Inner>() {
+			if ((!json_value) || (!json_value->IsObject())) throw PayloadAddressingError();
+			std::map<std::string, Inner> result;
+			for (auto it = json_value->MemberBegin(); it != json_value->MemberEnd(); ++it) {
+				result[std::string(it->name.GetString())] = json_value_cast<Inner>(it->value);
+			}
+			return result;
+		}
+		// FIXME why are these needed again?
 		IPAACA_HEADER_EXPORT std::string to_str();
 		//long to_int() { return operator long(); ;
 		IPAACA_HEADER_EXPORT long to_long();

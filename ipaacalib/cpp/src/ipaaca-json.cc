@@ -55,11 +55,80 @@ int main(int argc, char** argv) {
 	std::cout << "entry as long:         " << (long) a << std::endl;
 	std::cout << "entry as double:       " << (double) a << std::endl;
 	std::cout << "entry as bool:         " << ((bool) a?"true":"false") << std::endl;
-	std::cout << "entry as list<string>: ";
+	// std::vector
+	std::cout << "entry as vector<string>: ";
 	try {
-	} catch {
-		std::cout << "(Error)" << std::endl;
+		std::vector<std::string> v = a;
+		std::for_each(v.begin(), v.end(), [](std::string& s) {
+				std::cout << s << " ";
+		});
+		std::cout << std::endl;
+	} catch (...) {
+		std::cout << "(n/a)" << std::endl;
 	}
+	std::cout << "entry as vector<long>:   ";
+	try {
+		std::vector<long> v = a;
+		std::for_each(v.begin(), v.end(), [](long& s) {
+				std::cout << s << " ";
+		});
+		std::cout << std::endl;
+	} catch (...) {
+		std::cout << "(n/a)" << std::endl;
+	}
+	std::cout << "entry as vector<bool>:   ";
+	try {
+		std::vector<bool> v = a;
+		std::for_each(v.begin(), v.end(), [](bool s) {
+				std::cout << (s?"true":"false") << " ";
+		});
+		std::cout << std::endl;
+	} catch (...) {
+		std::cout << "(n/a)" << std::endl;
+	}
+	// std::map
+	std::cout << "entry as map<string, string>: ";
+	try {
+		std::map<std::string, std::string> m = a;
+		for (auto it = m.begin(); it != m.end(); ++it) {
+			std::cout << it->first << ":" << it->second << "  ";
+		}
+		std::cout << std::endl;
+	} catch (...) {
+		std::cout << "(n/a)" << std::endl;
+	}
+	std::cout << "entry as map<string, long>: ";
+	try {
+		std::map<std::string, long> m = a;
+		for (auto it = m.begin(); it != m.end(); ++it) {
+			std::cout << it->first << ":" << it->second << "  ";
+		}
+		std::cout << std::endl;
+	} catch (...) {
+		std::cout << "(n/a)" << std::endl;
+	}
+	std::cout << "entry as map<string, double>: ";
+	try {
+		std::map<std::string, double> m = a;
+		for (auto it = m.begin(); it != m.end(); ++it) {
+			std::cout << it->first << ":" << it->second << "  ";
+		}
+		std::cout << std::endl;
+	} catch (...) {
+		std::cout << "(n/a)" << std::endl;
+	}
+	std::cout << "entry as map<string, bool>: ";
+	try {
+		std::map<std::string, bool> m = a;
+		for (auto it = m.begin(); it != m.end(); ++it) {
+			std::cout << it->first << ":" << (it->second?"true":"false") << "  ";
+		}
+		std::cout << std::endl;
+	} catch (...) {
+		std::cout << "(n/a)" << std::endl;
+	}
+	
+	// Done
 	return 0;
 
 	////////////////////////////////////////////////////////////////////////////
