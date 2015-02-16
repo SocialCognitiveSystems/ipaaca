@@ -55,6 +55,7 @@ IPAACA_HEADER_EXPORT template<> void pack_into_json_value(rapidjson::Value&, rap
 IPAACA_HEADER_EXPORT template<> void pack_into_json_value(rapidjson::Value&, rapidjson::Document::AllocatorType&, double);
 IPAACA_HEADER_EXPORT template<> void pack_into_json_value(rapidjson::Value&, rapidjson::Document::AllocatorType&, bool);
 IPAACA_HEADER_EXPORT template<> void pack_into_json_value(rapidjson::Value&, rapidjson::Document::AllocatorType&, const std::string&);
+IPAACA_HEADER_EXPORT template<> void pack_into_json_value(rapidjson::Value&, rapidjson::Document::AllocatorType&, const char*);
 
 IPAACA_HEADER_EXPORT template<typename T> void pack_into_json_value(rapidjson::Value& valueobject, rapidjson::Document::AllocatorType& allocator, const std::vector<T>& ts)
 {
@@ -102,104 +103,12 @@ IPAACA_HEADER_EXPORT class PayloadDocumentEntry//{{{
 		IPAACA_HEADER_EXPORT inline ~PayloadDocumentEntry() { IPAACA_INFO("") }
 		//IPAACA_HEADER_EXPORT PayloadDocumentEntry(const std::string& source): modified(false), json_source(source), {};
 		IPAACA_HEADER_EXPORT std::string to_json_string_representation();
-		static std::shared_ptr<PayloadDocumentEntry> from_json_string_representation(const std::string& input);
-		static std::shared_ptr<PayloadDocumentEntry> create_null();
-		std::shared_ptr<PayloadDocumentEntry> clone();
+		IPAACA_HEADER_EXPORT static std::shared_ptr<PayloadDocumentEntry> from_json_string_representation(const std::string& input);
+		IPAACA_HEADER_EXPORT static std::shared_ptr<PayloadDocumentEntry> create_null();
+		IPAACA_HEADER_EXPORT std::shared_ptr<PayloadDocumentEntry> clone();
+		IPAACA_HEADER_EXPORT rapidjson::Value& get_or_create_nested_value_from_proxy_path(PayloadEntryProxy* pep);
 	typedef std::shared_ptr<PayloadDocumentEntry> ptr;
 };
-//}}}
-IPAACA_HEADER_EXPORT class PayloadEntryProxy//{{{
-{
-	protected:
-		//IPAACA_MEMBER_VAR_EXPORT rapidjson::Document* _json_parent_node;
-		//IPAACA_MEMBER_VAR_EXPORT rapidjson::Document* _json_node;
-		IPAACA_MEMBER_VAR_EXPORT Payload* _payload;
-		IPAACA_MEMBER_VAR_EXPORT std::string _key;
-		//
-		// new json stuff / hierarchical navigation
-		//
-		PayloadEntryProxy* parent; // parent (up to document root -> then null)
-		PayloadDocumentEntry::ptr document_entry; // contains lock and json Doc
-		bool existent; // whether Value exists already (or blindly navigated)
-		bool addressed_as_array; // whether long or string navigation used
-		long addressed_index;
-		std::string addressed_key;
-		/// currently navigated value in json tree (or a new Null value)
-		rapidjson::Value* json_value;
-	protected:
-		IPAACA_HEADER_EXPORT void connect_to_existing_parents();
-	public:
-		// constructor to create a new top-most parent proxy (from a payload key)
-		IPAACA_HEADER_EXPORT PayloadEntryProxy(Payload* payload, const std::string& key);
-		// constructors for navigation through objects
-		IPAACA_HEADER_EXPORT PayloadEntryProxy(PayloadEntryProxy* parent, const std::string& addressed_key);
-		IPAACA_HEADER_EXPORT PayloadEntryProxy(PayloadEntryProxy* parent, size_t addressed_index);
-	public:
-		IPAACA_HEADER_EXPORT PayloadEntryProxy operator[](size_t index); // array-style navigation
-		IPAACA_HEADER_EXPORT PayloadEntryProxy operator[](const std::string& key);
-		//                   
-		IPAACA_HEADER_EXPORT PayloadEntryProxy& operator=(const std::string& value);
-		IPAACA_HEADER_EXPORT PayloadEntryProxy& operator=(const char* value);
-		IPAACA_HEADER_EXPORT PayloadEntryProxy& operator=(double value);
-		IPAACA_HEADER_EXPORT PayloadEntryProxy& operator=(bool value);
-		
-		IPAACA_HEADER_EXPORT operator std::string();
-		IPAACA_HEADER_EXPORT operator long();
-		IPAACA_HEADER_EXPORT operator double();
-		IPAACA_HEADER_EXPORT operator bool();
-		IPAACA_HEADER_EXPORT template<typename Inner> operator std::vector<Inner>() {
-			if ((!json_value) || (!json_value->IsArray())) throw PayloadAddressingError();
-			std::vector<Inner> result;
-			for (auto it = json_value->Begin(); it != json_value->End(); ++it) {
-				result.push_back( json_value_cast<Inner>(*it) );
-			}
-			return result;
-		}
-		IPAACA_HEADER_EXPORT template<typename Inner> operator std::list<Inner>() {
-			if ((!json_value) || (!json_value->IsArray())) throw PayloadAddressingError();
-			std::list<Inner> result;
-			for (auto it = json_value->Begin(); it != json_value->End(); ++it) {
-				result.push_back( json_value_cast<Inner>(*it) );
-			}
-			return result;
-		}
-		IPAACA_HEADER_EXPORT template<typename Inner> operator std::map<std::string, Inner>() {
-			if ((!json_value) || (!json_value->IsObject())) throw PayloadAddressingError();
-			std::map<std::string, Inner> result;
-			for (auto it = json_value->MemberBegin(); it != json_value->MemberEnd(); ++it) {
-				result[std::string(it->name.GetString())] = json_value_cast<Inner>(it->value);
-			}
-			return result;
-		}
-		// FIXME why are these needed again?
-		IPAACA_HEADER_EXPORT std::string to_str();
-		//long to_int() { return operator long(); ;
-		IPAACA_HEADER_EXPORT long to_long();
-		IPAACA_HEADER_EXPORT double to_float();
-		IPAACA_HEADER_EXPORT bool to_bool();
-		// getters
-		IPAACA_HEADER_EXPORT template<typename T> T get() { return json_value_cast<T>(json_value); } // specializations below
-		// setters
-		IPAACA_HEADER_EXPORT template<typename T> PayloadEntryProxy& set(T t);
-		/*{
-			pack_into_json_value<T>(t);
-			connect_to_existing_parents();
-			_payload->set(key, document_entry->document);
-		}*/
-};
-// Available interpretations of payload entries (or children thereof) below.
-//  Usage of standard complex data structures (vector etc.) currently entails
-//  casting all entries to a uniform type (a-priori choice: std::string).
-/*
-IPAACA_HEADER_EXPORT template<> long PayloadEntryProxy::get();
-IPAACA_HEADER_EXPORT template<> double PayloadEntryProxy::get();
-IPAACA_HEADER_EXPORT template<> bool PayloadEntryProxy::get();
-IPAACA_HEADER_EXPORT template<> std::string PayloadEntryProxy::get();
-IPAACA_HEADER_EXPORT template<> std::vector<std::string> PayloadEntryProxy::get();
-IPAACA_HEADER_EXPORT template<> std::list<std::string> PayloadEntryProxy::get();
-IPAACA_HEADER_EXPORT template<> std::map<std::string, std::string> PayloadEntryProxy::get();
-*/
-
 //}}}
 
 /*
@@ -299,5 +208,111 @@ IPAACA_HEADER_EXPORT class Payload//{{{
 		IPAACA_HEADER_EXPORT std::string get(const std::string& k); // DEPRECATED
 	typedef boost::shared_ptr<Payload> ptr;
 };//}}}
+
+IPAACA_HEADER_EXPORT class PayloadEntryProxy//{{{
+{
+	protected:
+	public:
+		//IPAACA_MEMBER_VAR_EXPORT rapidjson::Document* _json_parent_node;
+		//IPAACA_MEMBER_VAR_EXPORT rapidjson::Document* _json_node;
+		IPAACA_MEMBER_VAR_EXPORT Payload* _payload;
+		IPAACA_MEMBER_VAR_EXPORT std::string _key;
+		//
+		// new json stuff / hierarchical navigation
+		//
+		IPAACA_MEMBER_VAR_EXPORT PayloadEntryProxy* parent; // parent (up to document root -> then null)
+		IPAACA_MEMBER_VAR_EXPORT PayloadDocumentEntry::ptr document_entry; // contains lock and json Doc
+		IPAACA_MEMBER_VAR_EXPORT bool existent; // whether Value exists already (or blindly navigated)
+		IPAACA_MEMBER_VAR_EXPORT bool addressed_as_array; // whether long or string navigation used
+		IPAACA_MEMBER_VAR_EXPORT long addressed_index;
+		IPAACA_MEMBER_VAR_EXPORT std::string addressed_key;
+		/// currently navigated value in json tree (or a new Null value)
+		IPAACA_MEMBER_VAR_EXPORT rapidjson::Value* json_value;
+/*	protected:
+		IPAACA_HEADER_EXPORT void connect_to_existing_parents();
+*/
+	public:
+		// constructor to create a new top-most parent proxy (from a payload key)
+		IPAACA_HEADER_EXPORT PayloadEntryProxy(Payload* payload, const std::string& key);
+		// constructors for navigation through objects
+		IPAACA_HEADER_EXPORT PayloadEntryProxy(PayloadEntryProxy* parent, const std::string& addressed_key);
+		IPAACA_HEADER_EXPORT PayloadEntryProxy(PayloadEntryProxy* parent, size_t addressed_index);
+	public:
+		IPAACA_HEADER_EXPORT PayloadEntryProxy operator[](size_t index); // array-style navigation
+		IPAACA_HEADER_EXPORT PayloadEntryProxy operator[](const std::string& key);
+		IPAACA_HEADER_EXPORT PayloadEntryProxy operator[](const char* key);
+		//                   
+		IPAACA_HEADER_EXPORT template<typename T> PayloadEntryProxy& operator=(T t)
+		{
+			PayloadDocumentEntry::ptr new_entry = document_entry->clone(); // copy-on-write, no lock required
+			rapidjson::Value& newval = new_entry->get_or_create_nested_value_from_proxy_path(this);
+			pack_into_json_value(newval, new_entry->document.GetAllocator(), t);
+			_payload->set(_key, new_entry);
+			return *this;
+		}
+		
+		//IPAACA_HEADER_EXPORT PayloadEntryProxy& operator=(const std::string& value);
+		//IPAACA_HEADER_EXPORT PayloadEntryProxy& operator=(const char* value);
+		//IPAACA_HEADER_EXPORT PayloadEntryProxy& operator=(double value);
+		//IPAACA_HEADER_EXPORT PayloadEntryProxy& operator=(bool value);
+		
+		IPAACA_HEADER_EXPORT operator std::string();
+		IPAACA_HEADER_EXPORT operator long();
+		IPAACA_HEADER_EXPORT operator double();
+		IPAACA_HEADER_EXPORT operator bool();
+		IPAACA_HEADER_EXPORT template<typename Inner> operator std::vector<Inner>() {
+			if ((!json_value) || (!json_value->IsArray())) throw PayloadAddressingError();
+			std::vector<Inner> result;
+			for (auto it = json_value->Begin(); it != json_value->End(); ++it) {
+				result.push_back( json_value_cast<Inner>(*it) );
+			}
+			return result;
+		}
+		IPAACA_HEADER_EXPORT template<typename Inner> operator std::list<Inner>() {
+			if ((!json_value) || (!json_value->IsArray())) throw PayloadAddressingError();
+			std::list<Inner> result;
+			for (auto it = json_value->Begin(); it != json_value->End(); ++it) {
+				result.push_back( json_value_cast<Inner>(*it) );
+			}
+			return result;
+		}
+		IPAACA_HEADER_EXPORT template<typename Inner> operator std::map<std::string, Inner>() {
+			if ((!json_value) || (!json_value->IsObject())) throw PayloadAddressingError();
+			std::map<std::string, Inner> result;
+			for (auto it = json_value->MemberBegin(); it != json_value->MemberEnd(); ++it) {
+				result[std::string(it->name.GetString())] = json_value_cast<Inner>(it->value);
+			}
+			return result;
+		}
+		// FIXME why are these needed again?
+		IPAACA_HEADER_EXPORT std::string to_str();
+		//long to_int() { return operator long(); ;
+		IPAACA_HEADER_EXPORT long to_long();
+		IPAACA_HEADER_EXPORT double to_float();
+		IPAACA_HEADER_EXPORT bool to_bool();
+		// getters
+		IPAACA_HEADER_EXPORT template<typename T> T get() { return json_value_cast<T>(json_value); } // specializations below
+		// setters
+		IPAACA_HEADER_EXPORT template<typename T> PayloadEntryProxy& set(T t);
+		/*{
+			pack_into_json_value<T>(t);
+			connect_to_existing_parents();
+			_payload->set(key, document_entry->document);
+		}*/
+};
+// Available interpretations of payload entries (or children thereof) below.
+//  Usage of standard complex data structures (vector etc.) currently entails
+//  casting all entries to a uniform type (a-priori choice: std::string).
+/*
+IPAACA_HEADER_EXPORT template<> long PayloadEntryProxy::get();
+IPAACA_HEADER_EXPORT template<> double PayloadEntryProxy::get();
+IPAACA_HEADER_EXPORT template<> bool PayloadEntryProxy::get();
+IPAACA_HEADER_EXPORT template<> std::string PayloadEntryProxy::get();
+IPAACA_HEADER_EXPORT template<> std::vector<std::string> PayloadEntryProxy::get();
+IPAACA_HEADER_EXPORT template<> std::list<std::string> PayloadEntryProxy::get();
+IPAACA_HEADER_EXPORT template<> std::map<std::string, std::string> PayloadEntryProxy::get();
+*/
+
+//}}}
 
 #endif

@@ -35,11 +35,15 @@
 
 namespace ipaaca {
 
-IPAACA_EXPORT inline FakeIU::FakeIU() { IPAACA_INFO("") }
+IPAACA_EXPORT inline FakeIU::FakeIU() {
+	IPAACA_INFO("")
+}
 IPAACA_EXPORT boost::shared_ptr<FakeIU> FakeIU::create()
 {
 	IPAACA_INFO("");
-	return boost::shared_ptr<FakeIU>(new FakeIU());
+	auto iu = boost::shared_ptr<FakeIU>(new FakeIU());
+	iu->_payload.initialize(iu);
+	return iu;
 }
 IPAACA_EXPORT void FakeIU::add_fake_payload_item(const std::string& key, PayloadDocumentEntry::ptr entry)
 {

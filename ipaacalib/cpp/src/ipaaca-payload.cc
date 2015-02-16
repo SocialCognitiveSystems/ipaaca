@@ -142,6 +142,10 @@ IPAACA_EXPORT template<> void pack_into_json_value(rapidjson::Value& valueobject
 {
 	valueobject.SetString(newvalue.c_str(), allocator);
 }
+IPAACA_EXPORT template<> void pack_into_json_value(rapidjson::Value& valueobject, rapidjson::Document::AllocatorType& allocator, const char* newvalue)
+{
+	valueobject.SetString(newvalue, allocator);
+}
 /*
 IPAACA_EXPORT template<> void pack_into_json_value(rapidjson::Value& valueobject, rapidjson::Document::AllocatorType& allocator, const std::vector<std::string>& newvalue)
 {
@@ -185,9 +189,81 @@ IPAACA_EXPORT inline PayloadDocumentEntry::ptr PayloadDocumentEntry::create_null
 	entry->json_source = "null"; // rapidjson::Document value is also null implicitly
 	return entry;
 }
-IPAACA_EXPORT inline PayloadDocumentEntry::ptr PayloadDocumentEntry::clone()
+IPAACA_EXPORT PayloadDocumentEntry::ptr PayloadDocumentEntry::clone()
 {
+	IPAACA_INFO("")
 	return PayloadDocumentEntry::from_json_string_representation(this->json_source);
+}
+IPAACA_EXPORT rapidjson::Value& PayloadDocumentEntry::get_or_create_nested_value_from_proxy_path(PayloadEntryProxy* pep)
+{
+	if (!(pep->parent)) {
+		IPAACA_INFO("Reached top-most parent")
+		return document;
+	}
+	IPAACA_INFO("(Check parent)")
+	rapidjson::Value& parent_value = get_or_create_nested_value_from_proxy_path(pep->parent);
+	IPAACA_INFO("Resolving address path")
+	if (pep->addressed_as_array) {
+		IPAACA_INFO("Addressed as array with index " << pep->addressed_index)
+		if (! parent_value.IsArray()) {
+			throw PayloadAddressingError();
+		} else {
+			long idx = pep->addressed_index;
+			long s = parent_value.Size();
+			if (idx<s) {
+				return parent_value[idx];
+			} else {
+				throw PayloadAddressingError();
+			}
+		}
+		// for append / push_back? :
+		/*if (parent_value.IsNull()) {
+			wasnull = true;
+			parent_value.SetArray();
+		}
+		if (wasnull || parent_value.IsArray()) {
+			long idx = pep->addressed_index;
+			long s = parent_value.Size();
+			if (idx<s) {
+				// existing element modified
+				parent_value[idx] = *json_value;
+			} else {
+				// implicitly initialize missing elements to null values
+				if (idx>s) {
+					long missing_elements = pep->addressed_index - p;
+					for (int i=0; i<missing_elements; ++i) {
+						parent_value.PushBack(, allocator)
+					}
+				}
+			}
+			if (s == 
+		} else {
+			throw PayloadAddressingError();
+		}*/
+	} else {
+		IPAACA_INFO("Addressed as dict with key " << pep->addressed_key)
+		// addressed as object (dict)
+		//rapidjson::Value& parent_value = *(pep->parent->json_value);
+		if (! parent_value.IsObject()) {
+			throw PayloadAddressingError();
+		} else {
+			rapidjson::Document::AllocatorType& allocator = document.GetAllocator();
+			//Value key;
+			//key.SetString(pep->addressed_key, allocator);
+			//parent_value.AddMember(key, *json_value, allocator);
+			Value key;
+			key.SetString(pep->addressed_key, allocator);
+			// FIXME LAST this complains
+			auto it = parent_value.FindMember(key);
+			if (it != parent_value.MemberEnd()) {
+				return parent_value[pep->addressed_key.c_str()];
+			} else {
+				rapidjson::Value val;
+				parent_value.AddMember(key, val, allocator);
+				return parent_value[key];
+			}
+		}
+	}
 }
 
 //}}}
@@ -195,6 +271,7 @@ IPAACA_EXPORT inline PayloadDocumentEntry::ptr PayloadDocumentEntry::clone()
 // PayloadEntryProxy//{{{
 
  // only if not top-level
+#if 0
 IPAACA_EXPORT void PayloadEntryProxy::connect_to_existing_parents()
 {
 	rapidjson::Document::AllocatorType& allocator = document_entry->document.GetAllocator();
@@ -251,55 +328,81 @@ IPAACA_EXPORT void PayloadEntryProxy::connect_to_existing_parents()
 		pep = pep->parent;
 	}
 }
-
+#endif
 
 
 IPAACA_EXPORT PayloadEntryProxy::PayloadEntryProxy(Payload* payload, const std::string& key)
 : _payload(payload), _key(key), parent(nullptr)
 {
+	IPAACA_INFO("PEP construction on parent document ...")
 	document_entry = _payload->get_entry(key);
 	json_value = &(document_entry->document);
+	IPAACA_INFO("... parent done.")
 }
 IPAACA_EXPORT PayloadEntryProxy::PayloadEntryProxy(PayloadEntryProxy* parent_, const std::string& addr_key_)
 : parent(parent_), addressed_key(addr_key_), addressed_as_array(false)
 {
+	IPAACA_INFO("PEP construction as dict child, addressed by " << addr_key_ << " ...")
 	_payload = parent->_payload;
 	_key = parent->_key;
 	document_entry = parent->document_entry;
 	auto it = parent->json_value->FindMember(addr_key_.c_str());
-	if (it != json_value->MemberEnd()) {
+	if (it != parent->json_value->MemberEnd()) {
 		json_value = &(parent->json_value->operator[](addr_key_.c_str()));
 		existent = true;
 	} else {
 		json_value = nullptr; // avoid heap construction here
 		existent = false;
 	}
+	IPAACA_INFO("... dict child done.")
 }
 IPAACA_EXPORT PayloadEntryProxy::PayloadEntryProxy(PayloadEntryProxy* parent_, size_t addr_idx_)
 : parent(parent_), addressed_index(addr_idx_), addressed_as_array(true)
 {
+	IPAACA_INFO("PEP construction as array child, addressed by " << addr_idx_ << " ...")
 	_payload = parent->_payload;
 	_key = parent->_key;
 	document_entry = parent->document_entry;
 	json_value = &(parent->json_value->operator[](addr_idx_));
 	existent = true;
+	IPAACA_INFO("... array child done.")
 }
 
+IPAACA_EXPORT PayloadEntryProxy PayloadEntryProxy::operator[](const char* addr_key_)
+{
+	return operator[](std::string(addr_key_));
+}
 IPAACA_EXPORT PayloadEntryProxy PayloadEntryProxy::operator[](const std::string& addr_key_)
 {
-	if (!json_value) throw PayloadAddressingError();
-	if (! json_value->IsObject()) throw PayloadAddressingError();
+	if (!json_value) {
+		IPAACA_INFO("Invalid json_value!")
+		throw PayloadAddressingError();
+	}
+	if (! json_value->IsObject()) {
+		IPAACA_INFO("Expected Object for operator[](string)!")
+		throw PayloadAddressingError();
+	}
 	return PayloadEntryProxy(this, addr_key_);
 }
 IPAACA_EXPORT PayloadEntryProxy PayloadEntryProxy::operator[](size_t addr_idx_)
 {
-	if (!json_value) throw PayloadAddressingError();
-	if (! json_value->IsArray()) throw PayloadAddressingError();
+	if (!json_value) {
+		IPAACA_INFO("Invalid json_value!")
+		throw PayloadAddressingError();
+	}
+	if (! json_value->IsArray()) {
+		IPAACA_INFO("Expected Array for operator[](size_t)!")
+		throw PayloadAddressingError();
+	}
 	long s = json_value->Size();
-	if (addr_idx_>=s) throw PayloadAddressingError();
+	if (addr_idx_>=s) {
+		IPAACA_INFO("Array out of bounds!")
+		throw PayloadAddressingError();
+	}
 	return PayloadEntryProxy(this, addr_idx_);
 }
 
+/*
 IPAACA_EXPORT PayloadEntryProxy& PayloadEntryProxy::operator=(const std::string& value)
 {
 	//std::cout << "operator=(string)" << std::endl;
@@ -328,6 +431,7 @@ IPAACA_EXPORT PayloadEntryProxy& PayloadEntryProxy::operator=(bool value)
 	//_payload->set(_key, boost::lexical_cast<std::string>(value));
 	return *this;
 }
+*/
 
 IPAACA_EXPORT PayloadEntryProxy::operator std::string()
 {
@@ -443,11 +547,12 @@ IPAACA_EXPORT PayloadEntryProxy Payload::operator[](const std::string& key)
 	//boost::shared_ptr<PayloadEntryProxy> p(new PayloadEntryProxy(this, key));
 	return PayloadEntryProxy(this, key);
 }
+
 IPAACA_EXPORT Payload::operator std::map<std::string, std::string>()
 {
 	std::map<std::string, std::string> result;
 	std::for_each(_document_store.begin(), _document_store.end(), [&result](std::pair<std::string, PayloadDocumentEntry::ptr> pair) {
-			result[pair.first] =  pair.second->document.GetString();
+			result[pair.first] =  json_value_cast<std::string>(pair.second->document);
 			});
 	return result;
 }
