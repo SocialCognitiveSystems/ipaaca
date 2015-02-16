@@ -239,7 +239,13 @@ IPAACA_HEADER_EXPORT class PayloadEntryProxy//{{{
 		IPAACA_HEADER_EXPORT PayloadEntryProxy(PayloadEntryProxy* parent, size_t addressed_index);
 	public:
 		IPAACA_HEADER_EXPORT PayloadEntryProxy operator[](size_t index); // array-style navigation
-		IPAACA_HEADER_EXPORT PayloadEntryProxy operator[](const std::string& key);
+		IPAACA_HEADER_EXPORT PayloadEntryProxy operator[](int index); // int is UNFORTUNATELY required to catch
+																	  // [0] (addressing using literal zero)
+																	  // because ambiguity with const char*
+																	  // arises if only [](size_t) is provided.
+																	  // size_t is obviously superior ...
+																	  // TODO: remove if better solution known
+		IPAACA_HEADER_EXPORT PayloadEntryProxy operator[](const std::string& key); // dict-style navigation
 		IPAACA_HEADER_EXPORT PayloadEntryProxy operator[](const char* key);
 		//                   
 		IPAACA_HEADER_EXPORT template<typename T> PayloadEntryProxy& operator=(T t)

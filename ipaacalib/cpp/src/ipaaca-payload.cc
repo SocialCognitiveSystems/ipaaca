@@ -405,6 +405,14 @@ IPAACA_EXPORT PayloadEntryProxy PayloadEntryProxy::operator[](size_t addr_idx_)
 	}
 	return PayloadEntryProxy(this, addr_idx_);
 }
+IPAACA_EXPORT PayloadEntryProxy PayloadEntryProxy::operator[](int addr_idx_)
+{
+	if (addr_idx_ < 0) {
+		IPAACA_INFO("Negative index!")
+		throw PayloadAddressingError();
+	}
+	return operator[]((size_t) addr_idx_);
+}
 
 /*
 IPAACA_EXPORT PayloadEntryProxy& PayloadEntryProxy::operator=(const std::string& value)

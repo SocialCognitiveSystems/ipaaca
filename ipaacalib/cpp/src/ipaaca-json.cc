@@ -136,8 +136,8 @@ int main(int argc, char** argv) {
 	//std::map<std::string, double> vs = { {"A", 10}, {"B", 20}, {"C", 30}, {"D", 40} };
 	//ipaaca::pack_into_json_value(entry->document, entry->document.GetAllocator(), vs);
 	std::cout << "Setting a value deep in the object:" << std::endl;
-	//iu->payload()["a"][(int)0] = "set by pep::op=";
-	iu->payload()["a"]["A"] = "set by pep::op=";
+	iu->payload()["a"][0] = "set by pep::op=";
+	//iu->payload()["a"]["A"] = "set by pep::op=";
 	
 	std::cout << "Final payload (printed as strings):" << std::endl;
 	std::map<std::string, std::string> pl_flat = iu->payload();
