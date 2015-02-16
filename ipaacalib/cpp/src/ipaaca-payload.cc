@@ -56,7 +56,7 @@ IPAACA_EXPORT std::ostream& operator<<(std::ostream& os, const Payload& obj)//{{
 //}}}
 
 // json_value_cast//{{{
-IPAACA_HEADER_EXPORT template<> std::string json_value_cast(const rapidjson::Value& v)
+IPAACA_EXPORT template<> std::string json_value_cast(const rapidjson::Value& v)
 {
 	if (v.IsString()) return v.GetString();
 	if (v.IsNull()) return "";
@@ -65,7 +65,7 @@ IPAACA_HEADER_EXPORT template<> std::string json_value_cast(const rapidjson::Val
 	v.Accept(writer);
 	return buffer.GetString();
 }
-IPAACA_HEADER_EXPORT template<> long json_value_cast(const rapidjson::Value& v)
+IPAACA_EXPORT template<> long json_value_cast(const rapidjson::Value& v)
 {
 	if (v.IsString()) return atol(std::string(v.GetString()).c_str());
 	if (v.IsInt()) return v.GetInt();
@@ -81,7 +81,7 @@ IPAACA_HEADER_EXPORT template<> long json_value_cast(const rapidjson::Value& v)
 	v.Accept(writer);
 	return atol(std::string(buffer.GetString()).c_str());
 }
-IPAACA_HEADER_EXPORT template<> double json_value_cast(const rapidjson::Value& v)
+IPAACA_EXPORT template<> double json_value_cast(const rapidjson::Value& v)
 {
 	if (v.IsString()) return atof(std::string(v.GetString()).c_str());
 	if (v.IsDouble()) return v.GetDouble();
@@ -97,7 +97,7 @@ IPAACA_HEADER_EXPORT template<> double json_value_cast(const rapidjson::Value& v
 	v.Accept(writer);
 	return atof(std::string(buffer.GetString()).c_str());
 }
-IPAACA_HEADER_EXPORT template<> bool json_value_cast(const rapidjson::Value& v)
+IPAACA_EXPORT template<> bool json_value_cast(const rapidjson::Value& v)
 {
 	if (v.IsString()) {
 		std::string s = v.GetString();
@@ -126,15 +126,51 @@ IPAACA_HEADER_EXPORT template<> bool json_value_cast(const rapidjson::Value& v)
 			*/
 //}}}
 
+IPAACA_EXPORT template<> void pack_into_json_value(rapidjson::Value& valueobject, rapidjson::Document::AllocatorType& allocator, long newvalue)
+{
+	valueobject.SetInt(newvalue);
+}
+IPAACA_EXPORT template<> void pack_into_json_value(rapidjson::Value& valueobject, rapidjson::Document::AllocatorType& allocator, double newvalue)
+{
+	valueobject.SetDouble(newvalue);
+}
+IPAACA_EXPORT template<> void pack_into_json_value(rapidjson::Value& valueobject, rapidjson::Document::AllocatorType& allocator, bool newvalue)
+{
+	valueobject.SetBool(newvalue);
+}
+IPAACA_EXPORT template<> void pack_into_json_value(rapidjson::Value& valueobject, rapidjson::Document::AllocatorType& allocator, const std::string& newvalue)
+{
+	valueobject.SetString(newvalue.c_str(), allocator);
+}
+/*
+IPAACA_EXPORT template<> void pack_into_json_value(rapidjson::Value& valueobject, rapidjson::Document::AllocatorType& allocator, const std::vector<std::string>& newvalue)
+{
+	valueobject.SetArray();
+	for (auto& str: newvalue) {
+		rapidjson::Value sv;
+		sv.SetString(str, allocator);
+		valueobject.PushBack(sv, allocator);
+	}
+}
+IPAACA_EXPORT template<> void pack_into_json_value(rapidjson::Value& valueobject, rapidjson::Document::AllocatorType& allocator, const std::list<std::string>& newvalue)
+{
+	IPAACA_IMPLEMENT_ME
+}
+IPAACA_EXPORT template<> void pack_into_json_value(rapidjson::Value& valueobject, rapidjson::Document::AllocatorType& allocator, const std::map<std::string, std::string>& newvalue)
+{
+	IPAACA_IMPLEMENT_ME
+}
+*/
+
 // PayloadDocumentEntry//{{{
-IPAACA_HEADER_EXPORT inline std::string PayloadDocumentEntry::to_json_string_representation()
+IPAACA_EXPORT inline std::string PayloadDocumentEntry::to_json_string_representation()
 {
 	rapidjson::StringBuffer buffer;
 	rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
 	document.Accept(writer);
 	return buffer.GetString();
 }
-IPAACA_HEADER_EXPORT PayloadDocumentEntry::ptr PayloadDocumentEntry::from_json_string_representation(const std::string& json_str)
+IPAACA_EXPORT PayloadDocumentEntry::ptr PayloadDocumentEntry::from_json_string_representation(const std::string& json_str)
 {
 	PayloadDocumentEntry::ptr entry = std::make_shared<ipaaca::PayloadDocumentEntry>();
 	if (entry->document.Parse(json_str.c_str()).HasParseError()) {
@@ -143,12 +179,17 @@ IPAACA_HEADER_EXPORT PayloadDocumentEntry::ptr PayloadDocumentEntry::from_json_s
 	entry->json_source = json_str;
 	return entry;
 }
-IPAACA_HEADER_EXPORT inline PayloadDocumentEntry::ptr PayloadDocumentEntry::create_null()
+IPAACA_EXPORT inline PayloadDocumentEntry::ptr PayloadDocumentEntry::create_null()
 {
 	PayloadDocumentEntry::ptr entry = std::make_shared<ipaaca::PayloadDocumentEntry>();
-	entry->json_source = "null";
+	entry->json_source = "null"; // rapidjson::Document value is also null implicitly
 	return entry;
 }
+IPAACA_EXPORT inline PayloadDocumentEntry::ptr PayloadDocumentEntry::clone()
+{
+	return PayloadDocumentEntry::from_json_string_representation(this->json_source);
+}
+
 //}}}
 
 // PayloadEntryProxy//{{{
@@ -340,7 +381,7 @@ std::string value_diagnosis(rapidjson::Value* val)
 //
 
 /*
-IPAACA_HEADER_EXPORT template<> std::string PayloadEntryProxy::get<std::string>()
+IPAACA_EXPORT template<> std::string PayloadEntryProxy::get<std::string>()
 {
 	if (!json_value) return "";
 	//IPAACA_INFO( value_diagnosis(json_value) )
@@ -353,33 +394,33 @@ IPAACA_HEADER_EXPORT template<> std::string PayloadEntryProxy::get<std::string>(
 	
 	//return _payload->get(_key);
 }
-IPAACA_HEADER_EXPORT template<> long PayloadEntryProxy::get<long>()
+IPAACA_EXPORT template<> long PayloadEntryProxy::get<long>()
 {
 	return atof(operator std::string().c_str());
 }
-IPAACA_HEADER_EXPORT template<> double PayloadEntryProxy::get<double>()
+IPAACA_EXPORT template<> double PayloadEntryProxy::get<double>()
 {
 	return atol(operator std::string().c_str());
 }
-IPAACA_HEADER_EXPORT template<> bool PayloadEntryProxy::get<bool>()
+IPAACA_EXPORT template<> bool PayloadEntryProxy::get<bool>()
 {
 	std::string s = operator std::string();
 	return ((s=="1")||(s=="true")||(s=="True"));
 }
 // complex types
-IPAACA_HEADER_EXPORT template<> std::list<std::string> PayloadEntryProxy::get<std::list<std::string> >()
+IPAACA_EXPORT template<> std::list<std::string> PayloadEntryProxy::get<std::list<std::string> >()
 {
 	std::list<std::string> l;
 	l.push_back(PayloadEntryProxy::get<std::string>());
 	return l;
 }
-IPAACA_HEADER_EXPORT template<> std::vector<std::string> PayloadEntryProxy::get<std::vector<std::string> >()
+IPAACA_EXPORT template<> std::vector<std::string> PayloadEntryProxy::get<std::vector<std::string> >()
 {
 	std::vector<std::string> v;
 	v.push_back(PayloadEntryProxy::get<std::string>());
 	return v;
 }
-IPAACA_HEADER_EXPORT template<> std::map<std::string, std::string> PayloadEntryProxy::get<std::map<std::string, std::string> >()
+IPAACA_EXPORT template<> std::map<std::string, std::string> PayloadEntryProxy::get<std::map<std::string, std::string> >()
 {
 	std::map<std::string, std::string> m;
 	m["__automatic__"] = PayloadEntryProxy::get<std::string>();

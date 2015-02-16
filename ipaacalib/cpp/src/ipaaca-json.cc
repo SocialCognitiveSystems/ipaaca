@@ -128,6 +128,19 @@ int main(int argc, char** argv) {
 		std::cout << "(n/a)" << std::endl;
 	}
 	
+	//iu->payload()["b"] = "newEntry";
+	
+	//std::vector<long> vs = { 10, 20, 30, 40 };
+	std::map<std::string, double> vs = { {"A", 10}, {"B", 20}, {"C", 30}, {"D", 40} };
+	ipaaca::pack_into_json_value(entry->document, entry->document.GetAllocator(), vs);
+	{
+		StringBuffer buffer;
+		Writer<StringBuffer> writer(buffer);
+		entry->document.Accept(writer);
+		std::string docstring = buffer.GetString();
+		std::cout << "Final document:  " << docstring << std::endl;
+	}
+	
 	// Done
 	return 0;
 
