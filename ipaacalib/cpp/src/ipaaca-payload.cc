@@ -251,16 +251,20 @@ IPAACA_EXPORT rapidjson::Value& PayloadDocumentEntry::get_or_create_nested_value
 			//Value key;
 			//key.SetString(pep->addressed_key, allocator);
 			//parent_value.AddMember(key, *json_value, allocator);
-			Value key;
+			rapidjson::Value key;
 			key.SetString(pep->addressed_key, allocator);
-			// FIXME LAST this complains
 			auto it = parent_value.FindMember(key);
 			if (it != parent_value.MemberEnd()) {
-				return parent_value[pep->addressed_key.c_str()];
+				IPAACA_INFO("Returning existing child Value")
+				return parent_value[key];
 			} else {
+				IPAACA_INFO("Creating new child Value")
 				rapidjson::Value val;
 				parent_value.AddMember(key, val, allocator);
-				return parent_value[key];
+				IPAACA_INFO("Returning new child Value")
+				rapidjson::Value rkey;
+				rkey.SetString(pep->addressed_key, allocator);
+				return parent_value[rkey];
 			}
 		}
 	}
