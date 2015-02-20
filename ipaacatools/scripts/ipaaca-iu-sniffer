@@ -34,12 +34,11 @@
 from __future__ import division, print_function
 
 import logging
+import os
+import platform
 import re
 import sys
 import time
-import argparse
-import os
-import platform
 
 import ipaaca
 
@@ -65,8 +64,8 @@ def pretty_printed_dict(d):
 		v = str(v)
 		v2 = v if len(v) <= arguments.max_size else v[:arguments.max_size] + '<excess length omitted>'
 		v2.replace('\\','\\\\').replace('\n', highlight_if_color('\\n'))
-		s += "\t '%s': '%s'," % (highlight_if_color(unicode(k),'1'), unicode(v2))
-	s+='\n}'
+		s += "\t '%s': '%s',\n" % (highlight_if_color(unicode(k),'1'), unicode(v2))
+	s+='}'
 	return s
 
 def pretty_printed_iu_event(iu, event_type, local):
@@ -141,9 +140,6 @@ if __name__ == '__main__':
 			resend_active=True)
 		buffers[channel].register_handler(my_update_handler)
 
-	print('')
-	print('Ipaaca IU Sniffer - run with --help to see options')
-	
 	channellist = 's ' if len(arguments.channels) > 1 else ' '
 	channellist += ', '.join(arguments.channels)
 	

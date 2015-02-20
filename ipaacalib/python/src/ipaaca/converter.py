@@ -37,14 +37,18 @@ import collections
 import rsb.converter
 
 import ipaaca_pb2
+import ipaaca.defaults
+import ipaaca.exception
 import ipaaca.iu
-from ipaaca.misc import logger
+import ipaaca.misc
+
+LOGGER = ipaaca.misc.get_library_logger()
 
 try:
 	import simplejson as json
 except ImportError:
 	import json
-	logger.warn('INFO: Using module "json" instead of "simplejson". Install "simplejson" for better performance.')
+	LOGGER.warn('INFO: Using module "json" instead of "simplejson". Install "simplejson" for better performance.')
 
 
 __all__ = [
@@ -74,20 +78,25 @@ class IntConverter(rsb.converter.Converter):
 		return pbo.value
 
 
-def pack_payload_entry(entry, key, value):
+def pack_payload_entry(entry, key, value, _type=ipaaca.iu.IUPayloadType.JSON):
 	entry.key = key
-	entry.value = json.dumps(value)
-	entry.type = 'json'
+	if _type == ipaaca.iu.IUPayloadType.JSON: 
+		entry.value = json.dumps(value)
+	elif _type == ipaaca.iu.IUPayloadType.STR or _type == 'MAP':
+		entry.value = str(value)
+	else:
+		raise ipaaca.exception.IpaacaException('Asked to send payload entry with unsupported type "' +  _type + '".')
+	entry.type = _type
 
 
 def unpack_payload_entry(entry):
-	# We assume that the only transfer types are 'str' or 'json'. Both are transparently handled by json.loads
-	if entry.type == 'json':
+	# We assume that the only transfer types are 'STR' or 'JSON'. Both are transparently handled by json.loads
+	if entry.type == ipaaca.iu.IUPayloadType.JSON:
 		return json.loads(entry.value)
-	elif entry.type == 'str':
+	elif entry.type == ipaaca.iu.IUPayloadType.STR or entry.type == 'str':
 		return entry.value
 	else:
-		logger.warn('Received payload entry with unsupported type "' + entry.type + '".')
+		LOGGER.warn('Received payload entry with unsupported type "' + entry.type + '".')
 		return entry.value
 
 
@@ -113,7 +122,7 @@ class IUConverter(rsb.converter.Converter):
 		pbo.read_only = iu._read_only
 		for k, v in iu._payload.iteritems():
 			entry = pbo.payload.add()
-			pack_payload_entry(entry, k, v)
+			pack_payload_entry(entry, k, v, iu.payload_type)
 		for type_ in iu._links.keys():
 			linkset = pbo.links.add()
 			linkset.type = type_
@@ -136,7 +145,7 @@ class IUConverter(rsb.converter.Converter):
 			read_only = pbo.read_only,
 			owner_name = pbo.owner_name,
 			category = pbo.category,
-			payload_type = pbo.payload_type,
+			payload_type = 'str' if pbo.payload_type is 'MAP' else pbo.payload_type,
 			committed = pbo.committed,
 			payload=_payload,
 			links=_links)
@@ -200,7 +209,7 @@ class IULinkUpdateConverter(rsb.converter.Converter):
 		if type == IULinkUpdate:
 			pbo = ipaaca_pb2.IULinkUpdate()
 			pbo.ParseFromString( str(byte_stream) )
-			logger.debug('received an IULinkUpdate for revision '+str(pbo.revision))
+			LOGGER.debug('received an IULinkUpdate for revision '+str(pbo.revision))
 			iu_link_up = IULinkUpdate( uid=pbo.uid, revision=pbo.revision, writer_name=pbo.writer_name, is_delta=pbo.is_delta)
 			for entry in pbo.new_links:
 				iu_link_up.new_links[str(entry.type)] = set(entry.targets)
@@ -213,10 +222,11 @@ class IULinkUpdateConverter(rsb.converter.Converter):
 
 class IUPayloadUpdate(object):
 
-	def __init__(self, uid, revision, is_delta, writer_name="undef", new_items=None, keys_to_remove=None):
+	def __init__(self, uid, revision, is_delta, payload_type, writer_name="undef", new_items=None, keys_to_remove=None):
 		super(IUPayloadUpdate, self).__init__()
 		self.uid = uid
 		self.revision = revision
+		self.payload_type = payload_type
 		self.writer_name = writer_name
 		self.is_delta = is_delta
 		self.new_items = {} if new_items is None else new_items
@@ -226,6 +236,7 @@ class IUPayloadUpdate(object):
 		s =  'PayloadUpdate(' + 'uid=' + self.uid + ', '
 		s += 'revision='+str(self.revision)+', '
 		s += 'writer_name='+str(self.writer_name)+', '
+		s += 'payload_type='+str(self.payload_type)+', '
 		s += 'is_delta='+str(self.is_delta)+', '
 		s += 'new_items = '+str(self.new_items)+', '
 		s += 'keys_to_remove = '+str(self.keys_to_remove)+')'
@@ -241,9 +252,9 @@ class IUPayloadUpdateConverter(rsb.converter.Converter):
 		pbo.uid = iu_payload_update.uid
 		pbo.writer_name = iu_payload_update.writer_name
 		pbo.revision = iu_payload_update.revision
-		for k,v in iu_payload_update.new_items.items():
+		for k, v in iu_payload_update.new_items.items():
 			entry = pbo.new_items.add()
-			pack_payload_entry(entry, k, v)
+			pack_payload_entry(entry, k, v, iu_payload_update.payload_type)
 		pbo.keys_to_remove.extend(iu_payload_update.keys_to_remove)
 		pbo.is_delta = iu_payload_update.is_delta
 		return bytearray(pbo.SerializeToString()), self.wireSchema
@@ -253,8 +264,8 @@ class IUPayloadUpdateConverter(rsb.converter.Converter):
 		if type == IUPayloadUpdate:
 			pbo = ipaaca_pb2.IUPayloadUpdate()
 			pbo.ParseFromString( str(byte_stream) )
-			logger.debug('received an IUPayloadUpdate for revision '+str(pbo.revision))
-			iu_up = IUPayloadUpdate( uid=pbo.uid, revision=pbo.revision, writer_name=pbo.writer_name, is_delta=pbo.is_delta)
+			LOGGER.debug('received an IUPayloadUpdate for revision '+str(pbo.revision))
+			iu_up = IUPayloadUpdate( uid=pbo.uid, revision=pbo.revision, payload_type=None, writer_name=pbo.writer_name, is_delta=pbo.is_delta)
 			for entry in pbo.new_items:
 				iu_up.new_items[entry.key] = unpack_payload_entry(entry)
 			iu_up.keys_to_remove = pbo.keys_to_remove[:]

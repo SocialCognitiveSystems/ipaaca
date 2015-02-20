@@ -95,8 +95,7 @@ public class Payload implements Map<String, String>
     }
     
     public String pseudoConvertFromJSON(String value, String type) {
-    	if (type.equals("json")) {
-    		System.out.println("Received JSON IU");
+    	if (type.equals("JSON")) {
     		if (value.startsWith("\"")) {
     			return value.replaceAll("\\\"", "");
     		} else if (value.startsWith("{") || value.startsWith("[") || value.matches("true") || value.matches("false") || value.matches("-?[0-9]*[.,]?[0-9][0-9]*.*")) { 

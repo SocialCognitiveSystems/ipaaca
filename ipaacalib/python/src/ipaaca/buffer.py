@@ -44,7 +44,6 @@ import ipaaca.exception
 import ipaaca.converter
 import ipaaca.iu
 
-from ipaaca.misc import logger
 
 
 __all__ = [
@@ -52,6 +51,7 @@ __all__ = [
 	'OutputBuffer',
 ]
 
+LOGGER = ipaaca.misc.get_library_logger()
 
 class IUStore(dict):
 	"""A dictionary storing IUs."""
@@ -155,6 +155,8 @@ class Buffer(object):
 		for_categories -- a list of category names or None if handler should
 			be called for all categories
 		"""
+		if handler_function in [h._handler_function for h in self._iu_event_handlers]:
+			LOGGER.warn("The handler function '" + handler_function.__name__ + '" has been registered before.')
 		handler = IUEventHandler(handler_function=handler_function, for_event_types=for_event_types, for_categories=for_categories)
 		self._iu_event_handlers.append(handler)
 		return handler
@@ -196,9 +198,7 @@ class InputBuffer(Buffer):
 		# add own uuid as identifier for hidden category.
 		self._add_category_listener(str(self._uuid))
 		if category_interests is not None:
-			for cat in category_interests:
-				self._add_category_listener(cat)
-
+			self.add_category_interests(category_interests)
 
 	def _get_remote_server(self, iu):
 		'''Return (or create, store and return) a remote server.'''
@@ -216,13 +216,20 @@ class InputBuffer(Buffer):
 		return remote_server
 
 	def _add_category_listener(self, iu_category):
-		'''Return (or create, store and return) a category listener on a specific channel.'''
+		'''Create and store a listener on a specific category.'''
 		if iu_category not in self._listener_store:
 			cat_listener = rsb.createListener(rsb.Scope("/ipaaca/channel/"+str(self._channel)+"/category/"+str(iu_category)), config=self._participant_config)
 			cat_listener.addHandler(self._handle_iu_events)
 			self._listener_store[iu_category] = cat_listener
 			self._category_interests.append(iu_category)
-			logger.info("Added listener in scope "+"/ipaaca/channel/"+str(self._channel)+"/category/"+iu_category)
+			LOGGER.info("Added listener in scope /ipaaca/channel/" + str(self._channel) + "/category/" + iu_category)
+
+	def _remove_category_listener(self, iu_category):
+		'''Remove the listener for a specific category.'''
+		if iu_category in self._listener_store and iu_category in self._category_interests:
+			del self._listener_store[iu_category]
+			self._category_interests.remove(iu_category)
+			LOGGER.info("Removed listener in scope /ipaaca/channel/" + str(self._channel) + "/category/ " + iu_category)
 
 	def _handle_iu_events(self, event):
 		'''Dispatch incoming IU events.
@@ -259,7 +266,7 @@ class InputBuffer(Buffer):
 					# send resend request to remote server
 					self._request_remote_resend(event.data)
 				else:
-					logger.warning("Received an update for an IU which we did not receive before.")
+					LOGGER.warning("Received an update for an IU which we did not receive before.")
 				return
 			# an update to an existing IU
 			if type_ is ipaaca_pb2.IURetraction:
@@ -294,7 +301,7 @@ class InputBuffer(Buffer):
 					iu._apply_link_update(event.data)
 					self.call_iu_event_handlers(event.data.uid, local=False, event_type=ipaaca.iu.IUEventType.LINKSUPDATED, category=iu.category)
 				else:
-					logger.warning('Warning: _handle_iu_events failed to handle an object of type '+str(type_))
+					LOGGER.warning('Warning: _handle_iu_events failed to handle an object of type '+str(type_))
 
 	def add_category_interests(self, category_interests):
 		if hasattr(category_interests, '__iter__'):
@@ -302,6 +309,13 @@ class InputBuffer(Buffer):
 				self._add_category_listener(interest)
 		else:
 			self._add_category_listener(category_interests)
+
+	def remove_category_interests(self, category_interests):
+		if hasattr(category_interests, '__iter__'):
+			for interest in category_interests:
+				self._remove_category_listener(interest)
+		else:
+			self._remove_category_listener(category_interests)
 
 	def _request_remote_resend(self, iu):
 		remote_server = self._get_remote_server(iu)
@@ -363,13 +377,13 @@ class OutputBuffer(Buffer):
 	def _remote_update_links(self, update):
 		'''Apply a remotely requested update to one of the stored IU's links.'''
 		if update.uid not in self._iu_store:
-			logger.warning("Remote InBuffer tried to spuriously write non-existent IU "+str(update.uid))
+			LOGGER.warning("Remote InBuffer tried to spuriously write non-existent IU "+str(update.uid))
 			return 0
 		iu = self._iu_store[update.uid]
 		with iu.revision_lock:
 			if (update.revision != 0) and (update.revision != iu.revision):
 				# (0 means "do not pay attention to the revision number" -> "force update")
-				logger.warning("Remote write operation failed because request was out of date; IU "+str(update.uid))
+				LOGGER.warning("Remote write operation failed because request was out of date; IU "+str(update.uid))
 				return 0
 			if update.is_delta:
 				iu.modify_links(add=update.new_links, remove=update.links_to_remove, writer_name=update.writer_name)
@@ -381,16 +395,16 @@ class OutputBuffer(Buffer):
 	def _remote_update_payload(self, update):
 		'''Apply a remotely requested update to one of the stored IU's payload.'''
 		if update.uid not in self._iu_store:
-			logger.warning("Remote InBuffer tried to spuriously write non-existent IU "+str(update.uid))
+			LOGGER.warning("Remote InBuffer tried to spuriously write non-existent IU "+str(update.uid))
 			return 0
 		iu = self._iu_store[update.uid]
 		with iu.revision_lock:
 			if (update.revision != 0) and (update.revision != iu.revision):
 				# (0 means "do not pay attention to the revision number" -> "force update")
-				logger.warning(u"Remote update_payload operation failed because request was out of date; IU "+str(update.uid))
-				logger.warning(u"  Writer was: "+update.writer_name)
-				logger.warning(u"  Requested update was: (New keys:) "+','.join(update.new_items.keys())+'  (Removed keys:) '+','.join(update.keys_to_remove))
-				logger.warning(u"  Referred-to revision was "+str(update.revision)+' while local revision is '+str(iu.revision))
+				LOGGER.warning(u"Remote update_payload operation failed because request was out of date; IU "+str(update.uid))
+				LOGGER.warning(u"  Writer was: "+update.writer_name)
+				LOGGER.warning(u"  Requested update was: (New keys:) "+','.join(update.new_items.keys())+'  (Removed keys:) '+','.join(update.keys_to_remove))
+				LOGGER.warning(u"  Referred-to revision was "+str(update.revision)+' while local revision is '+str(iu.revision))
 				return 0
 			if update.is_delta:
 				#print('Writing delta update by '+str(update.writer_name))
@@ -409,7 +423,7 @@ class OutputBuffer(Buffer):
 	def _remote_request_resend(self, iu_resend_request_pack):
 		''' Resend a requested IU over the specific hidden category.'''
 		if iu_resend_request_pack.uid not in self._iu_store:
-			logger.warning("Remote side requested resending of non-existent IU "+str(iu_resend_request_pack.uid))
+			LOGGER.warning("Remote side requested resending of non-existent IU "+str(iu_resend_request_pack.uid))
 			return 0
 		iu = self._iu_store[iu_resend_request_pack.uid]
 		with iu.revision_lock:
@@ -423,13 +437,13 @@ class OutputBuffer(Buffer):
 	def _remote_commit(self, iu_commission):
 		'''Apply a remotely requested commit to one of the stored IUs.'''
 		if iu_commission.uid not in self._iu_store:
-			logger.warning("Remote InBuffer tried to spuriously write non-existent IU "+str(iu_commission.uid))
+			LOGGER.warning("Remote InBuffer tried to spuriously write non-existent IU "+str(iu_commission.uid))
 			return 0
 		iu = self._iu_store[iu_commission.uid]
 		with iu.revision_lock:
 			if (iu_commission.revision != 0) and (iu_commission.revision != iu.revision):
 				# (0 means "do not pay attention to the revision number" -> "force update")
-				logger.warning("Remote write operation failed because request was out of date; IU "+str(iu_commission.uid))
+				LOGGER.warning("Remote write operation failed because request was out of date; IU "+str(iu_commission.uid))
 				return 0
 			if iu.committed:
 				return 0
@@ -441,14 +455,14 @@ class OutputBuffer(Buffer):
 	def _get_informer(self, iu_category):
 		'''Return (or create, store and return) an informer object for IUs of the specified category.'''
 		if iu_category in self._informer_store:
-			logger.info("Returning informer on scope "+"/ipaaca/channel/"+str(self._channel)+"/category/"+str(iu_category))
+			LOGGER.info("Returning informer on scope "+"/ipaaca/channel/"+str(self._channel)+"/category/"+str(iu_category))
 			return self._informer_store[iu_category]
 		informer_iu = rsb.createInformer(
 				rsb.Scope("/ipaaca/channel/"+str(self._channel)+"/category/"+str(iu_category)),
 				config=self._participant_config,
 				dataType=object)
 		self._informer_store[iu_category] = informer_iu #new_tuple
-		logger.info("Returning NEW informer on scope "+"/ipaaca/channel/"+str(self._channel)+"/category/"+str(iu_category))
+		LOGGER.info("Returning NEW informer on scope "+"/ipaaca/channel/"+str(self._channel)+"/category/"+str(iu_category))
 		return informer_iu #return new_tuple
 
 	def add(self, iu):
@@ -553,7 +567,11 @@ class OutputBuffer(Buffer):
 			new_items = {}
 		if keys_to_remove is None:
 			keys_to_remove = []
-		payload_update = ipaaca.converter.IUPayloadUpdate(iu._uid, is_delta=is_delta, revision=revision)
+		payload_update = ipaaca.converter.IUPayloadUpdate(
+			uid=iu._uid,
+			revision=revision,
+			is_delta=is_delta,
+			payload_type=iu.payload_type)
 		payload_update.new_items = new_items 
 		if is_delta:
 			payload_update.keys_to_remove = keys_to_remove

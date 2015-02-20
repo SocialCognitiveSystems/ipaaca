@@ -35,17 +35,17 @@ from __future__ import division, print_function
 import rsb
 import rsb.converter
 
-from ipaaca.misc import logger, IpaacaArgumentParser
-
 import ipaaca_pb2
 import ipaaca.converter
 from ipaaca.buffer import InputBuffer, OutputBuffer
 from ipaaca.exception import *
 from ipaaca.iu import IU, Message, IUAccessMode, IUEventType 
+from ipaaca.misc import enable_logging, IpaacaArgumentParser
 from ipaaca.payload import Payload
 
 
 def initialize_ipaaca_rsb():
+	''''Register own RSB Converters and initialise RSB from default config file.'''
 	rsb.converter.registerGlobalConverter(
 		ipaaca.converter.IntConverter(
 			wireSchema="int32",
@@ -85,8 +85,5 @@ def initialize_ipaaca_rsb():
 
 	rsb.__defaultParticipantConfig = rsb.ParticipantConfig.fromDefaultSources()
 
-
-## --- Module initialisation -------------------------------------------------
-
-# register our own RSB Converters
+# Initialise module
 initialize_ipaaca_rsb()

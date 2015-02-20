@@ -230,7 +230,7 @@ public class LocalIU extends AbstractIU
             if (isPublished())
             {
                 // send update to remote holders
-                PayloadItem newItem = PayloadItem.newBuilder().setKey(key).setValue(value).setType("str") // TODO: fix this, default in .proto?
+                PayloadItem newItem = PayloadItem.newBuilder().setKey(key).setValue(value).setType("STR")
                         .build();
                 IUPayloadUpdate update = IUPayloadUpdate.newBuilder().setUid(getUid()).setRevision(getRevision()).setIsDelta(true)
                         .setWriterName(writer == null ? getOwnerName() : writer).addNewItems(newItem).build();
@@ -256,7 +256,7 @@ public class LocalIU extends AbstractIU
                         .setWriterName(writer == null ? getOwnerName() : writer);
             	for (Map.Entry<? extends String, ? extends String> item : newItems.entrySet())
             	{
-            		PayloadItem newItem = PayloadItem.newBuilder().setKey(item.getKey()).setValue(item.getValue()).setType("str") // TODO: fix this, default in .proto?
+            		PayloadItem newItem = PayloadItem.newBuilder().setKey(item.getKey()).setValue(item.getValue()).setType("STR")
                             .build();
             		builder.addNewItems(newItem);
             	    
