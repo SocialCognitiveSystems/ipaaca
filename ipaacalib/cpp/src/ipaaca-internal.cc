@@ -171,7 +171,7 @@ IPAACA_EXPORT std::string IUConverter::serialize(const AnnotatedData& data, std:
 	for (auto& kv: obj->_payload._document_store) {
 		protobuf::PayloadItem* item = pbo->add_payload();
 		item->set_key(kv.first);
-		item->set_value( kv.second.document.to_json_string_representation() );
+		item->set_value( kv.second->to_json_string_representation() );
 		item->set_type("json");
 	}
 	for (LinkMap::const_iterator it=obj->_links._links.begin(); it!=obj->_links._links.end(); ++it) {
@@ -221,7 +221,7 @@ IPAACA_EXPORT AnnotatedData IUConverter::deserialize(const std::string& wireSche
 				PayloadDocumentEntry::ptr entry;
 				if (it.type() == "json") {
 					// fully parse json text
-					entry = PayloadDocumentEntry::from_json_string_representation( it.value() )
+					entry = PayloadDocumentEntry::from_json_string_representation( it.value() );
 				} else {
 					// assuming legacy "str" -> just copy value to raw string in document
 					entry = std::make_shared<PayloadDocumentEntry>();
@@ -259,7 +259,7 @@ IPAACA_EXPORT AnnotatedData IUConverter::deserialize(const std::string& wireSche
 				PayloadDocumentEntry::ptr entry;
 				if (it.type() == "json") {
 					// fully parse json text
-					entry = PayloadDocumentEntry::from_json_string_representation( it.value() )
+					entry = PayloadDocumentEntry::from_json_string_representation( it.value() );
 				} else {
 					// assuming legacy "str" -> just copy value to raw string in document
 					entry = std::make_shared<PayloadDocumentEntry>();
@@ -323,7 +323,7 @@ IPAACA_EXPORT std::string MessageConverter::serialize(const AnnotatedData& data,
 	for (auto& kv: obj->_payload._document_store) {
 		protobuf::PayloadItem* item = pbo->add_payload();
 		item->set_key(kv.first);
-		item->set_value( kv.second.document.to_json_string_representation() );
+		item->set_value( kv.second->to_json_string_representation() );
 		item->set_type("json");
 	}
 	for (LinkMap::const_iterator it=obj->_links._links.begin(); it!=obj->_links._links.end(); ++it) {
@@ -370,7 +370,7 @@ IPAACA_EXPORT AnnotatedData MessageConverter::deserialize(const std::string& wir
 				PayloadDocumentEntry::ptr entry;
 				if (it.type() == "json") {
 					// fully parse json text
-					entry = PayloadDocumentEntry::from_json_string_representation( it.value() )
+					entry = PayloadDocumentEntry::from_json_string_representation( it.value() );
 				} else {
 					// assuming legacy "str" -> just copy value to raw string in document
 					entry = std::make_shared<PayloadDocumentEntry>();
@@ -407,7 +407,7 @@ IPAACA_EXPORT AnnotatedData MessageConverter::deserialize(const std::string& wir
 				PayloadDocumentEntry::ptr entry;
 				if (it.type() == "json") {
 					// fully parse json text
-					entry = PayloadDocumentEntry::from_json_string_representation( it.value() )
+					entry = PayloadDocumentEntry::from_json_string_representation( it.value() );
 				} else {
 					// assuming legacy "str" -> just copy value to raw string in document
 					entry = std::make_shared<PayloadDocumentEntry>();
@@ -453,7 +453,7 @@ IPAACA_EXPORT std::string IUPayloadUpdateConverter::serialize(const AnnotatedDat
 	for (auto& kv: obj->new_items) {
 		protobuf::PayloadItem* item = pbo->add_new_items();
 		item->set_key(kv.first);
-		item->set_value( kv.second.document.to_json_string_representation() );
+		item->set_value( kv.second->to_json_string_representation() );
 		item->set_type("json");
 	}
 	for (auto& key: obj->keys_to_remove) {
@@ -479,7 +479,8 @@ AnnotatedData IUPayloadUpdateConverter::deserialize(const std::string& wireSchem
 		PayloadDocumentEntry::ptr entry;
 		if (it.type() == "json") {
 			// fully parse json text
-			entry = PayloadDocumentEntry::from_json_string_representation( it.value() )
+			entry = PayloadDocumentEntry::from_json_string_representation( it.value() );
+			IPAACA_INFO("New/updated payload entry: " << it.key() << " -> " << it.value() )
 		} else {
 			// assuming legacy "str" -> just copy value to raw string in document
 			entry = std::make_shared<PayloadDocumentEntry>();

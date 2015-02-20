@@ -42,9 +42,31 @@ using namespace rsb::filter;
 using namespace rsb::converter;
 using namespace rsb::patterns;
 
+// temporary helper to show rapidjson internal type
+std::string value_diagnosis(rapidjson::Value* val)
+{
+	if (!val) return "nullptr";
+	if (val->IsNull()) return "null";
+	if (val->IsString()) return "string";
+	if (val->IsNumber()) return "number";
+	if (val->IsBool()) return "bool";
+	if (val->IsArray()) return "array";
+	if (val->IsObject()) return "object";
+	return "other";
+
+}
+
+
 IPAACA_EXPORT std::ostream& operator<<(std::ostream& os, const rapidjson::Value& val)//{{{
 {
 	os << json_value_cast<std::string>(val);
+	return os;
+}
+//}}}
+IPAACA_EXPORT std::ostream& operator<<(std::ostream& os, const PayloadEntryProxy& proxy)//{{{
+{
+	if (proxy.json_value) os << *(proxy.json_value);
+	else os << "null";
 	return os;
 }
 //}}}
@@ -139,23 +161,23 @@ IPAACA_EXPORT template<> bool json_value_cast(const rapidjson::Value& v)
 			*/
 //}}}
 
-IPAACA_EXPORT template<> void pack_into_json_value(rapidjson::Value& valueobject, rapidjson::Document::AllocatorType& allocator, long newvalue)
+IPAACA_EXPORT void pack_into_json_value(rapidjson::Value& valueobject, rapidjson::Document::AllocatorType& allocator, long newvalue)
 {
 	valueobject.SetInt(newvalue);
 }
-IPAACA_EXPORT template<> void pack_into_json_value(rapidjson::Value& valueobject, rapidjson::Document::AllocatorType& allocator, double newvalue)
+IPAACA_EXPORT void pack_into_json_value(rapidjson::Value& valueobject, rapidjson::Document::AllocatorType& allocator, double newvalue)
 {
 	valueobject.SetDouble(newvalue);
 }
-IPAACA_EXPORT template<> void pack_into_json_value(rapidjson::Value& valueobject, rapidjson::Document::AllocatorType& allocator, bool newvalue)
+IPAACA_EXPORT void pack_into_json_value(rapidjson::Value& valueobject, rapidjson::Document::AllocatorType& allocator, bool newvalue)
 {
 	valueobject.SetBool(newvalue);
 }
-IPAACA_EXPORT template<> void pack_into_json_value(rapidjson::Value& valueobject, rapidjson::Document::AllocatorType& allocator, const std::string& newvalue)
+IPAACA_EXPORT void pack_into_json_value(rapidjson::Value& valueobject, rapidjson::Document::AllocatorType& allocator, const std::string& newvalue)
 {
 	valueobject.SetString(newvalue.c_str(), allocator);
 }
-IPAACA_EXPORT template<> void pack_into_json_value(rapidjson::Value& valueobject, rapidjson::Document::AllocatorType& allocator, const char* newvalue)
+IPAACA_EXPORT void pack_into_json_value(rapidjson::Value& valueobject, rapidjson::Document::AllocatorType& allocator, const char* newvalue)
 {
 	valueobject.SetString(newvalue, allocator);
 }
@@ -180,7 +202,7 @@ IPAACA_EXPORT template<> void pack_into_json_value(rapidjson::Value& valueobject
 */
 
 // PayloadDocumentEntry//{{{
-IPAACA_EXPORT inline std::string PayloadDocumentEntry::to_json_string_representation()
+IPAACA_EXPORT std::string PayloadDocumentEntry::to_json_string_representation()
 {
 	rapidjson::StringBuffer buffer;
 	rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
@@ -196,7 +218,15 @@ IPAACA_EXPORT PayloadDocumentEntry::ptr PayloadDocumentEntry::from_json_string_r
 	entry->json_source = json_str;
 	return entry;
 }
-IPAACA_EXPORT inline PayloadDocumentEntry::ptr PayloadDocumentEntry::create_null()
+
+/// update json_source after a write operation (on newly cloned entries)
+IPAACA_EXPORT void PayloadDocumentEntry::update_json_source()
+{
+	json_source = to_json_string_representation();
+}
+
+
+IPAACA_EXPORT PayloadDocumentEntry::ptr PayloadDocumentEntry::create_null()
 {
 	PayloadDocumentEntry::ptr entry = std::make_shared<ipaaca::PayloadDocumentEntry>();
 	entry->json_source = "null"; // rapidjson::Document value is also null implicitly
@@ -204,17 +234,24 @@ IPAACA_EXPORT inline PayloadDocumentEntry::ptr PayloadDocumentEntry::create_null
 }
 IPAACA_EXPORT PayloadDocumentEntry::ptr PayloadDocumentEntry::clone()
 {
-	IPAACA_INFO("")
-	return PayloadDocumentEntry::from_json_string_representation(this->json_source);
+	IPAACA_INFO("Cloning from: " << this->json_source)
+	auto entry = PayloadDocumentEntry::from_json_string_representation(this->json_source);
+	IPAACA_INFO("Cloned entry contents: " << entry)
+	return entry;
 }
 IPAACA_EXPORT rapidjson::Value& PayloadDocumentEntry::get_or_create_nested_value_from_proxy_path(PayloadEntryProxy* pep)
 {
 	if (!(pep->parent)) {
 		IPAACA_INFO("Reached top-most parent")
+		IPAACA_INFO("doc contents: " << document )
+		IPAACA_INFO("doc diag: " << value_diagnosis(&document))
 		return document;
 	}
-	IPAACA_INFO("(Check parent)")
+	IPAACA_INFO("(Check parent ...)")
 	rapidjson::Value& parent_value = get_or_create_nested_value_from_proxy_path(pep->parent);
+	IPAACA_INFO("(... back from parent)")
+	IPAACA_INFO("par contents: " << parent_value )
+	IPAACA_INFO("par diag: " << value_diagnosis(&parent_value))
 	IPAACA_INFO("Resolving address path")
 	if (pep->addressed_as_array) {
 		IPAACA_INFO("Addressed as array with index " << pep->addressed_index)
@@ -258,6 +295,10 @@ IPAACA_EXPORT rapidjson::Value& PayloadDocumentEntry::get_or_create_nested_value
 		// addressed as object (dict)
 		//rapidjson::Value& parent_value = *(pep->parent->json_value);
 		if (! parent_value.IsObject()) {
+			IPAACA_INFO("parent is not of type Object")
+			IPAACA_INFO("parent contents: " << *(pep->parent) )
+			IPAACA_INFO("parent_value contents: " << parent_value )
+			IPAACA_INFO("parent_value diag: " << value_diagnosis(&parent_value))
 			throw PayloadAddressingError();
 		} else {
 			rapidjson::Document::AllocatorType& allocator = document.GetAllocator();
@@ -351,15 +392,15 @@ IPAACA_EXPORT void PayloadEntryProxy::connect_to_existing_parents()
 IPAACA_EXPORT PayloadEntryProxy::PayloadEntryProxy(Payload* payload, const std::string& key)
 : _payload(payload), _key(key), parent(nullptr)
 {
-	IPAACA_INFO("PEP construction on parent document ...")
+	//IPAACA_INFO("PEP construction on parent document ...")
 	document_entry = _payload->get_entry(key);
 	json_value = &(document_entry->document);
-	IPAACA_INFO("... parent done.")
+	//IPAACA_INFO("... parent done.")
 }
 IPAACA_EXPORT PayloadEntryProxy::PayloadEntryProxy(PayloadEntryProxy* parent_, const std::string& addr_key_)
 : parent(parent_), addressed_key(addr_key_), addressed_as_array(false)
 {
-	IPAACA_INFO("PEP construction as dict child, addressed by " << addr_key_ << " ...")
+	//IPAACA_INFO("PEP construction as dict child, addressed by " << addr_key_ << " ...")
 	_payload = parent->_payload;
 	_key = parent->_key;
 	document_entry = parent->document_entry;
@@ -376,7 +417,7 @@ IPAACA_EXPORT PayloadEntryProxy::PayloadEntryProxy(PayloadEntryProxy* parent_, c
 IPAACA_EXPORT PayloadEntryProxy::PayloadEntryProxy(PayloadEntryProxy* parent_, size_t addr_idx_)
 : parent(parent_), addressed_index(addr_idx_), addressed_as_array(true)
 {
-	IPAACA_INFO("PEP construction as array child, addressed by " << addr_idx_ << " ...")
+	//IPAACA_INFO("PEP construction as array child, addressed by " << addr_idx_ << " ...")
 	_payload = parent->_payload;
 	_key = parent->_key;
 	document_entry = parent->document_entry;
@@ -492,19 +533,6 @@ IPAACA_EXPORT bool PayloadEntryProxy::to_bool()
 }
 
 
-std::string value_diagnosis(rapidjson::Value* val)
-{
-	if (!val) return "nullptr";
-	if (val->IsNull()) return "null";
-	if (val->IsString()) return "string";
-	if (val->IsNumber()) return "number";
-	if (val->IsBool()) return "bool";
-	if (val->IsArray()) return "array";
-	if (val->IsObject()) return "object";
-	return "other";
-
-}
-
 //
 // new stuff for protocol v2
 //
@@ -583,13 +611,16 @@ IPAACA_EXPORT Payload::operator std::map<std::string, std::string>()
 }
 
 IPAACA_EXPORT void Payload::_internal_set(const std::string& k, PayloadDocumentEntry::ptr v, const std::string& writer_name) {
+	IPAACA_INFO("")
 	std::map<std::string, PayloadDocumentEntry::ptr> _new;
 	std::vector<std::string> _remove;
 	_new[k] = v;
 	_iu.lock()->_modify_payload(true, _new, _remove, writer_name );
+	IPAACA_INFO(" Setting local payload item \"" << k << "\" to " << v)
 	_document_store[k] = v;
 }
 IPAACA_EXPORT void Payload::_internal_remove(const std::string& k, const std::string& writer_name) {
+	IPAACA_INFO("")
 	std::map<std::string, PayloadDocumentEntry::ptr> _new;
 	std::vector<std::string> _remove;
 	_remove.push_back(k);
@@ -598,24 +629,29 @@ IPAACA_EXPORT void Payload::_internal_remove(const std::string& k, const std::st
 }
 IPAACA_EXPORT void Payload::_internal_replace_all(const std::map<std::string, PayloadDocumentEntry::ptr>& new_contents, const std::string& writer_name)
 {
+	IPAACA_INFO("")
 	std::vector<std::string> _remove;
 	_iu.lock()->_modify_payload(false, new_contents, _remove, writer_name );
 	_document_store = new_contents;
 }
 IPAACA_EXPORT void Payload::_internal_merge(const std::map<std::string, PayloadDocumentEntry::ptr>& contents_to_merge, const std::string& writer_name)
 {
+	IPAACA_INFO("")
 	std::vector<std::string> _remove;
 	_iu.lock()->_modify_payload(true, contents_to_merge, _remove, writer_name );
-	_document_store.insert(contents_to_merge.begin(), contents_to_merge.end());
+	for (auto& kv: contents_to_merge) {
+		_document_store[kv.first] = kv.second;
+	}
+	//_document_store.insert(contents_to_merge.begin(), contents_to_merge.end());
 	//for (std::map<std::string, std::string>::iterator it = contents_to_merge.begin(); it!=contents_to_merge.end(); i++) {
 	//	_store[it->first] = it->second;
 	//}
 }
-IPAACA_EXPORT inline PayloadDocumentEntry::ptr Payload::get_entry(const std::string& k) {
+IPAACA_EXPORT PayloadDocumentEntry::ptr Payload::get_entry(const std::string& k) {
 	if (_document_store.count(k)>0) return _document_store[k];
 	else return PayloadDocumentEntry::create_null();  // contains Document with 'null' value
 }
-IPAACA_EXPORT inline std::string Payload::get(const std::string& k) { // DEPRECATED
+IPAACA_EXPORT std::string Payload::get(const std::string& k) { // DEPRECATED
 	if (_document_store.count(k)>0) return _document_store[k]->document.GetString();
 	return "";
 }
@@ -629,6 +665,7 @@ IPAACA_EXPORT void Payload::_remotely_enforced_delitem(const std::string& k)
 }
 IPAACA_EXPORT void Payload::_remotely_enforced_setitem(const std::string& k, PayloadDocumentEntry::ptr entry)
 {
+	IPAACA_INFO("Setting payload entry for \"" << k <<"\" to " << entry)
 	_document_store[k] = entry;
 }
 

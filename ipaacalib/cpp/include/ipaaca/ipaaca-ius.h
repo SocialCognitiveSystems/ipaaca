@@ -73,8 +73,8 @@ IPAACA_HEADER_EXPORT class IUInterface {//{{{
 		IPAACA_HEADER_EXPORT void _set_owner_name(const std::string& owner_name);
 	protected:
 		// internal functions that do not emit update events
-		IPAACA_HEADER_EXPORT inline void _add_and_remove_links(const LinkMap& add, const LinkMap& remove) { _links._add_and_remove_links(add, remove); }
-		IPAACA_HEADER_EXPORT inline void _replace_links(const LinkMap& links) { _links._replace_links(links); }
+		IPAACA_HEADER_EXPORT void _add_and_remove_links(const LinkMap& add, const LinkMap& remove) { _links._add_and_remove_links(add, remove); }
+		IPAACA_HEADER_EXPORT void _replace_links(const LinkMap& links) { _links._replace_links(links); }
 	public:
 		IPAACA_HEADER_EXPORT inline bool is_published() { return (_buffer != 0); }
 		IPAACA_HEADER_EXPORT inline const std::string& uid() const { return _uid; }

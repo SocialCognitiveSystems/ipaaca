@@ -41,7 +41,7 @@
 
 #ifdef IPAACA_EXPOSE_FULL_RSB_API
 
-IPAACA_HEADER_EXPORT inline std::string json_to_string(PayloadDocumentEntry::ptr entry);
+// ??? ///IPAACA_HEADER_EXPORT inline std::string json_to_string(PayloadDocumentEntry::ptr entry);
 
 IPAACA_HEADER_EXPORT class CallbackIUPayloadUpdate: public rsb::patterns::Server::Callback<IUPayloadUpdate, int> {//{{{
 	protected:

@@ -151,12 +151,50 @@ int fakeiu_main(int argc, char** argv)
 	return 0;
 }
 
+
+
 int iu_main(int argc, char** argv)
 {
-	ipaaca::IU::ptr iu = ipaaca::IU::create("testcategory");
+	ipaaca::InputBuffer::ptr ib = ipaaca::InputBuffer::create("jsonTestReceiver", "jsonTest");
+	ib->register_handler([](ipaaca::IUInterface::ptr iu, ipaaca::IUEventType event_type, bool local) {
+		if (event_type==IU_ADDED) {
+			std::cout << "Received a new IU, payload: " << iu->payload() << std::endl;
+			std::cout << "Will write something." << std::endl;
+			// iu->commit();
+			iu->payload()["list"][0] = "Overridden from C++";
+		}
+	});
+	std::cout << "--- Waiting for IUs for 10s " << std::endl;
+	sleep(10);
+	return 0;
+
+	ipaaca::OutputBuffer::ptr ob = ipaaca::OutputBuffer::create("jsonTestSender");
+	ob->register_handler([](ipaaca::IUInterface::ptr iu, ipaaca::IUEventType event_type, bool local) {
+		std::cout << "Received remote update, new payload: " << iu->payload() << std::endl;
+	});
+	std::cout << "--- Create IU with category jsonTest" << std::endl;
+	ipaaca::IU::ptr iu = ipaaca::IU::create("jsonTest");
 	std::map<std::string, long> newmap = { {"fifty", 50}, {"ninety-nine", 99} };
+	std::cout << "--- Set map" << std::endl;
 	iu->payload()["map"] = newmap;
-	iu->payload()["map"]["str_array"] = std::vector<std::string>{"str1", "str2"};
+	std::cout << "--- Publishing IU with this payload:" << std::endl;
+	std::cout << iu->payload() << std::endl;
+	ob->add(iu);
+	std::cout << "--- Waiting for changes for 5s before next write" << std::endl;
+	sleep(5);
+	std::cout << "--- Contents of map after 5s" << std::endl;
+	std::cout << iu->payload()["map"] << std::endl;
+	//
+	std::cout << "--- Creating a list" << std::endl;
+	std::vector<long> newlist = { 1, 0 };
+	iu->payload()["list"] = newlist;
+	std::cout << "--- Waiting for changes for 5s " << std::endl;
+	sleep(5);
+	std::cout << "--- Final map " << std::endl;
+	std::cout << iu->payload()["map"] << std::endl;
+	std::cout << "--- Final list " << std::endl;
+	std::cout << iu->payload()["list"] << std::endl;
+	std::cout << "--- Terminating " << std::endl;
 	return 0;
 }
 

@@ -97,6 +97,7 @@ IPAACA_EXPORT void IU::_modify_links(bool is_delta, const LinkMap& new_links, co
 
 IPAACA_EXPORT void IU::_modify_payload(bool is_delta, const std::map<std::string, PayloadDocumentEntry::ptr>& new_items, const std::vector<std::string>& keys_to_remove, const std::string& writer_name)
 {
+	IPAACA_INFO("")
 	_revision_lock.lock();
 	if (_committed) {
 		_revision_lock.unlock();

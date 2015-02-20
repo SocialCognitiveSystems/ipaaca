@@ -170,6 +170,7 @@ IPAACA_EXPORT CallbackIUResendRequest::CallbackIUResendRequest(Buffer* buffer): 
 
 IPAACA_EXPORT boost::shared_ptr<int> CallbackIUPayloadUpdate::call(const std::string& methodName, boost::shared_ptr<IUPayloadUpdate> update)
 {
+	IPAACA_INFO("")
 	//std::cout << "-- Received a modify_payload with " << update->new_items.size() << " keys to merge." << std::endl;
 	IUInterface::ptr iui = _buffer->get(update->uid);
 	if (! iui) {
@@ -180,6 +181,7 @@ IPAACA_EXPORT boost::shared_ptr<int> CallbackIUPayloadUpdate::call(const std::st
 	iu->_revision_lock.lock();
 	if ((update->revision != 0) && (update->revision != iu->_revision)) {
 		IPAACA_INFO("Remote write operation failed because request was out of date; IU " << update->uid)
+		IPAACA_INFO(" Referred-to revision was " << update->revision << " while local one is " << iu->_revision)
 		iu->_revision_lock.unlock();
 		return boost::shared_ptr<int>(new int(0));
 	}
@@ -287,8 +289,8 @@ IPAACA_EXPORT OutputBuffer::OutputBuffer(const std::string& basename, const std:
 IPAACA_EXPORT void OutputBuffer::_initialize_server()
 {
 	//IPAACA_INFO("Entering ...")
-	//IPAACA_INFO("Calling createLocalServer(\"" << _unique_name << "\")")
-	_server = getFactory().createLocalServer( Scope( _unique_name ) );
+	//_server = getFactory().createLocalServer( Scope( _unique_name ) );
+	_server = getFactory().createServer( Scope( _unique_name ) );
 	//IPAACA_INFO("Registering methods")
 	_server->registerMethod("updatePayload", Server::CallbackPtr(new CallbackIUPayloadUpdate(this)));
 	_server->registerMethod("updateLinks", Server::CallbackPtr(new CallbackIULinkUpdate(this)));
