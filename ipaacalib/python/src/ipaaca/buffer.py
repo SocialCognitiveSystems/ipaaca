@@ -164,8 +164,14 @@ class Buffer(object):
 	def call_iu_event_handlers(self, uid, local, event_type, category):
 		"""Call registered IU event handler functions registered for this event_type and category."""
 		for h in self._iu_event_handlers:
-			h.call(self, uid, local=local, event_type=event_type, category=category)
-
+			try:
+				h.call(self, uid, local=local, event_type=event_type, category=category)
+			except Exception as e:
+				if local:
+					LOGGER.error('Local IU handler raised an exception upon remote write.' + unicode(e))
+				else:
+					raise e
+	
 	def _get_owning_component_name(self):
 		"""Return the name of this Buffer's owning component"""
 		return self._owning_component_name
