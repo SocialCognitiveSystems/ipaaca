@@ -110,11 +110,11 @@ class IUInterface(object):
 		s += "owner_name=" + ("<None>" if self.owner_name is None else self.owner_name) + " "
 		s += "payload={ "
 		for k,v in self.payload.items():
-			s += k+":'"+v+"', "
+			s += k+":'"+unicode(v)+"', "
 		s += "} "
 		s += "links={ "
 		for t,ids in self.get_all_links().items():
-			s += t+":'"+str(ids)+"', "
+			s += t+":'"+unicode(ids)+"', "
 		s += "} "
 		s += "}"
 		return s

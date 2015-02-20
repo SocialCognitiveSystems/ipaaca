@@ -371,7 +371,7 @@ class OutputBuffer(Buffer):
 		'''
 		super(OutputBuffer, self).__init__(owning_component_name, channel, participant_config)
 		self._unique_name = '/ipaaca/component/' + str(owning_component_name) + 'ID' + self._uuid + '/OB'
-		self._server = rsb.createServer(rsb.Scope(self._unique_name))
+		self._server = rsb.createLocalServer(rsb.Scope(self._unique_name))
 		self._server.addMethod('updateLinks', self._remote_update_links, ipaaca.converter.IULinkUpdate, int)
 		self._server.addMethod('updatePayload', self._remote_update_payload, ipaaca.converter.IUPayloadUpdate, int)
 		self._server.addMethod('commit', self._remote_commit, ipaaca_pb2.IUCommission, int)
