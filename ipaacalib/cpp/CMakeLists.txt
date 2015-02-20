@@ -185,25 +185,25 @@ set (JSON_TEST_SOURCE
 
 
 
-## compile all files to "ipaaca" shared library
-#add_library(ipaaca SHARED ${SOURCE})
-## and link all the required external libs (found above using find_package etc.)
-#target_link_libraries(ipaaca ${LIBS})
+# compile all files to "ipaaca" shared library
+add_library(ipaaca SHARED ${SOURCE})
+# and link all the required external libs (found above using find_package etc.)
+target_link_libraries(ipaaca ${LIBS})
 
-add_executable (ipaaca-test-json ${JSON_TEST_SOURCE})
-target_link_libraries (ipaaca-test-json ${LIBS})
+#add_executable (ipaaca-test-json ${JSON_TEST_SOURCE})
+#target_link_libraries (ipaaca-test-json ${LIBS})
 
 set(DEFAULT_BIN_SUBDIR bin)
 set(DEFAULT_LIB_SUBDIR lib)
 set(DEFAULT_DATA_SUBDIR share/data)
 set(DEFAULT_INCLUDE_SUBDIR include)
-#set(CMAKE_INSTALL_PREFIX "")
-#install (
-#	TARGETS ipaaca
-#	RUNTIME DESTINATION bin
-#	LIBRARY DESTINATION lib
-#	ARCHIVE DESTINATION lib
-#	)
+set(CMAKE_INSTALL_PREFIX "")
+install (
+	TARGETS ipaaca
+	RUNTIME DESTINATION bin
+	LIBRARY DESTINATION lib
+	ARCHIVE DESTINATION lib
+	)
 install(
 	DIRECTORY include
 	DESTINATION .
@@ -214,10 +214,11 @@ install(
 	DESTINATION include/ipaaca/
 	)
 
-install (
-	TARGETS ipaaca-test-json
-	RUNTIME DESTINATION bin
-	LIBRARY DESTINATION lib
-	ARCHIVE DESTINATION lib
-	)
+#install (
+#	TARGETS ipaaca-test-json
+#	RUNTIME DESTINATION bin
+#	LIBRARY DESTINATION lib
+#	ARCHIVE DESTINATION lib
+#	)
+
 

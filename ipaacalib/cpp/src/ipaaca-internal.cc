@@ -172,7 +172,7 @@ IPAACA_EXPORT std::string IUConverter::serialize(const AnnotatedData& data, std:
 		protobuf::PayloadItem* item = pbo->add_payload();
 		item->set_key(kv.first);
 		item->set_value( kv.second->to_json_string_representation() );
-		item->set_type("json");
+		item->set_type("JSON");
 	}
 	for (LinkMap::const_iterator it=obj->_links._links.begin(); it!=obj->_links._links.end(); ++it) {
 		protobuf::LinkSet* links = pbo->add_links();
@@ -219,7 +219,7 @@ IPAACA_EXPORT AnnotatedData IUConverter::deserialize(const std::string& wireSche
 			for (int i=0; i<pbo->payload_size(); i++) {
 				const protobuf::PayloadItem& it = pbo->payload(i);
 				PayloadDocumentEntry::ptr entry;
-				if (it.type() == "json") {
+				if (it.type() == "JSON") {
 					// fully parse json text
 					entry = PayloadDocumentEntry::from_json_string_representation( it.value() );
 				} else {
@@ -257,7 +257,7 @@ IPAACA_EXPORT AnnotatedData IUConverter::deserialize(const std::string& wireSche
 			for (int i=0; i<pbo->payload_size(); i++) {
 				const protobuf::PayloadItem& it = pbo->payload(i);
 				PayloadDocumentEntry::ptr entry;
-				if (it.type() == "json") {
+				if (it.type() == "JSON") {
 					// fully parse json text
 					entry = PayloadDocumentEntry::from_json_string_representation( it.value() );
 				} else {
@@ -324,7 +324,7 @@ IPAACA_EXPORT std::string MessageConverter::serialize(const AnnotatedData& data,
 		protobuf::PayloadItem* item = pbo->add_payload();
 		item->set_key(kv.first);
 		item->set_value( kv.second->to_json_string_representation() );
-		item->set_type("json");
+		item->set_type("JSON");
 	}
 	for (LinkMap::const_iterator it=obj->_links._links.begin(); it!=obj->_links._links.end(); ++it) {
 		protobuf::LinkSet* links = pbo->add_links();
@@ -368,7 +368,7 @@ IPAACA_EXPORT AnnotatedData MessageConverter::deserialize(const std::string& wir
 			for (int i=0; i<pbo->payload_size(); i++) {
 				const protobuf::PayloadItem& it = pbo->payload(i);
 				PayloadDocumentEntry::ptr entry;
-				if (it.type() == "json") {
+				if (it.type() == "JSON") {
 					// fully parse json text
 					entry = PayloadDocumentEntry::from_json_string_representation( it.value() );
 				} else {
@@ -405,7 +405,7 @@ IPAACA_EXPORT AnnotatedData MessageConverter::deserialize(const std::string& wir
 			for (int i=0; i<pbo->payload_size(); i++) {
 				const protobuf::PayloadItem& it = pbo->payload(i);
 				PayloadDocumentEntry::ptr entry;
-				if (it.type() == "json") {
+				if (it.type() == "JSON") {
 					// fully parse json text
 					entry = PayloadDocumentEntry::from_json_string_representation( it.value() );
 				} else {
@@ -454,7 +454,7 @@ IPAACA_EXPORT std::string IUPayloadUpdateConverter::serialize(const AnnotatedDat
 		protobuf::PayloadItem* item = pbo->add_new_items();
 		item->set_key(kv.first);
 		item->set_value( kv.second->to_json_string_representation() );
-		item->set_type("json");
+		item->set_type("JSON");
 	}
 	for (auto& key: obj->keys_to_remove) {
 		pbo->add_keys_to_remove(key);
@@ -477,7 +477,7 @@ AnnotatedData IUPayloadUpdateConverter::deserialize(const std::string& wireSchem
 	for (int i=0; i<pbo->new_items_size(); i++) {
 		const protobuf::PayloadItem& it = pbo->new_items(i);
 		PayloadDocumentEntry::ptr entry;
-		if (it.type() == "json") {
+		if (it.type() == "JSON") {
 			// fully parse json text
 			entry = PayloadDocumentEntry::from_json_string_representation( it.value() );
 			IPAACA_INFO("New/updated payload entry: " << it.key() << " -> " << it.value() )

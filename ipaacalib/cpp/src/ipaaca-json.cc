@@ -160,14 +160,14 @@ int iu_main(int argc, char** argv)
 		if (event_type==IU_ADDED) {
 			std::cout << "Received a new IU, payload: " << iu->payload() << std::endl;
 			std::cout << "Will write something." << std::endl;
-			// iu->commit();
+			//iu->commit();
 			iu->payload()["list"][0] = "Overridden from C++";
 		}
 	});
 	std::cout << "--- Waiting for IUs for 10s " << std::endl;
 	sleep(10);
 	return 0;
-
+	
 	ipaaca::OutputBuffer::ptr ob = ipaaca::OutputBuffer::create("jsonTestSender");
 	ob->register_handler([](ipaaca::IUInterface::ptr iu, ipaaca::IUEventType event_type, bool local) {
 		std::cout << "Received remote update, new payload: " << iu->payload() << std::endl;
@@ -186,8 +186,7 @@ int iu_main(int argc, char** argv)
 	std::cout << iu->payload()["map"] << std::endl;
 	//
 	std::cout << "--- Creating a list" << std::endl;
-	std::vector<long> newlist = { 1, 0 };
-	iu->payload()["list"] = newlist;
+	iu->payload()["list"] = std::vector<long>{1, 0} ;
 	std::cout << "--- Waiting for changes for 5s " << std::endl;
 	sleep(5);
 	std::cout << "--- Final map " << std::endl;
