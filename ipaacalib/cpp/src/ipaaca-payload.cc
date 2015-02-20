@@ -42,6 +42,19 @@ using namespace rsb::filter;
 using namespace rsb::converter;
 using namespace rsb::patterns;
 
+IPAACA_EXPORT std::ostream& operator<<(std::ostream& os, const rapidjson::Value& val)//{{{
+{
+	os << json_value_cast<std::string>(val);
+	return os;
+}
+//}}}
+IPAACA_EXPORT std::ostream& operator<<(std::ostream& os, PayloadDocumentEntry::ptr entry)//{{{
+{
+	os << json_value_cast<std::string>(entry->document);
+	return os;
+}
+//}}}
+
 IPAACA_EXPORT std::ostream& operator<<(std::ostream& os, const Payload& obj)//{{{
 {
 	os << "{";

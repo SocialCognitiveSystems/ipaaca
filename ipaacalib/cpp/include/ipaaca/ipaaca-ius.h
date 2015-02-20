@@ -128,15 +128,15 @@ IPAACA_HEADER_EXPORT class IU: public IUInterface {//{{{
 			//IPAACA_IMPLEMENT_ME
 		}
 		IPAACA_HEADER_EXPORT static boost::shared_ptr<IU> create(const std::string& category, IUAccessMode access_mode=IU_ACCESS_PUSH, bool read_only=false, const std::string& payload_type="MAP" );
-		IPAACA_HEADER_EXPORT inline Payload& payload() { return _payload; }
-		IPAACA_HEADER_EXPORT inline const Payload& const_payload() const { return _payload; }
-		IPAACA_HEADER_EXPORT void commit();
+		IPAACA_HEADER_EXPORT inline Payload& payload() _IPAACA_OVERRIDE_ { return _payload; }
+		IPAACA_HEADER_EXPORT inline const Payload& const_payload() const _IPAACA_OVERRIDE_ { return _payload; }
+		IPAACA_HEADER_EXPORT void commit() _IPAACA_OVERRIDE_;
 	protected:
-		IPAACA_HEADER_EXPORT virtual void _modify_links(bool is_delta, const LinkMap& new_links, const LinkMap& links_to_remove, const std::string& writer_name = "");
+		IPAACA_HEADER_EXPORT virtual void _modify_links(bool is_delta, const LinkMap& new_links, const LinkMap& links_to_remove, const std::string& writer_name = "") _IPAACA_OVERRIDE_;
 
 		//IPAACA_HEADER_EXPORT virtual void _publish_resend(boost::shared_ptr<IU> iu, const std::string& hidden_scope_name);
 
-		IPAACA_HEADER_EXPORT virtual void _modify_payload(bool is_delta, const std::map<std::string, std::string>& new_items, const std::vector<std::string>& keys_to_remove, const std::string& writer_name = "");
+		IPAACA_HEADER_EXPORT virtual void _modify_payload(bool is_delta, const std::map<std::string, PayloadDocumentEntry::ptr>& new_items, const std::vector<std::string>& keys_to_remove, const std::string& writer_name = "") _IPAACA_OVERRIDE_;
 	protected:
 		IPAACA_HEADER_EXPORT virtual void _internal_commit(const std::string& writer_name = "");
 	public:
@@ -158,8 +158,8 @@ IPAACA_HEADER_EXPORT class Message: public IU {//{{{
 		}
 		IPAACA_HEADER_EXPORT static boost::shared_ptr<Message> create(const std::string& category, IUAccessMode access_mode=IU_ACCESS_MESSAGE, bool read_only=true, const std::string& payload_type="MAP" );
 	protected:
-		IPAACA_HEADER_EXPORT void _modify_links(bool is_delta, const LinkMap& new_links, const LinkMap& links_to_remove, const std::string& writer_name = "");
-		IPAACA_HEADER_EXPORT void _modify_payload(bool is_delta, const std::map<std::string, std::string>& new_items, const std::vector<std::string>& keys_to_remove, const std::string& writer_name = "");
+		IPAACA_HEADER_EXPORT void _modify_links(bool is_delta, const LinkMap& new_links, const LinkMap& links_to_remove, const std::string& writer_name = "") _IPAACA_OVERRIDE_;
+		IPAACA_HEADER_EXPORT void _modify_payload(bool is_delta, const std::map<std::string, PayloadDocumentEntry::ptr>& new_items, const std::vector<std::string>& keys_to_remove, const std::string& writer_name = "") _IPAACA_OVERRIDE_;
 	protected:
 		IPAACA_HEADER_EXPORT void _internal_commit(const std::string& writer_name = "");
 	public:
@@ -181,12 +181,12 @@ IPAACA_HEADER_EXPORT class RemotePushIU: public IUInterface {//{{{
 		IPAACA_HEADER_EXPORT inline ~RemotePushIU() {
 			//IPAACA_IMPLEMENT_ME
 		}
-		IPAACA_HEADER_EXPORT inline Payload& payload() { return _payload; }
-		IPAACA_HEADER_EXPORT inline const Payload& const_payload() const { return _payload; }
-		IPAACA_HEADER_EXPORT void commit();
+		IPAACA_HEADER_EXPORT inline Payload& payload() _IPAACA_OVERRIDE_ { return _payload; }
+		IPAACA_HEADER_EXPORT inline const Payload& const_payload() const _IPAACA_OVERRIDE_ { return _payload; }
+		IPAACA_HEADER_EXPORT void commit() _IPAACA_OVERRIDE_;
 	protected:
-		IPAACA_HEADER_EXPORT void _modify_links(bool is_delta, const LinkMap& new_links, const LinkMap& links_to_remove, const std::string& writer_name = "");
-		IPAACA_HEADER_EXPORT void _modify_payload(bool is_delta, const std::map<std::string, std::string>& new_items, const std::vector<std::string>& keys_to_remove, const std::string& writer_name = "");
+		IPAACA_HEADER_EXPORT void _modify_links(bool is_delta, const LinkMap& new_links, const LinkMap& links_to_remove, const std::string& writer_name = "") _IPAACA_OVERRIDE_;
+		IPAACA_HEADER_EXPORT void _modify_payload(bool is_delta, const std::map<std::string, PayloadDocumentEntry::ptr>& new_items, const std::vector<std::string>& keys_to_remove, const std::string& writer_name = "") _IPAACA_OVERRIDE_;
 	protected:
 		IPAACA_HEADER_EXPORT void _apply_update(IUPayloadUpdate::ptr update);
 		IPAACA_HEADER_EXPORT void _apply_link_update(IULinkUpdate::ptr update);
@@ -209,12 +209,12 @@ IPAACA_HEADER_EXPORT class RemoteMessage: public IUInterface {//{{{
 		IPAACA_HEADER_EXPORT inline ~RemoteMessage() {
 			//IPAACA_IMPLEMENT_ME
 		}
-		IPAACA_HEADER_EXPORT inline Payload& payload() { return _payload; }
-		IPAACA_HEADER_EXPORT inline const Payload& const_payload() const { return _payload; }
-		IPAACA_HEADER_EXPORT void commit();
+		IPAACA_HEADER_EXPORT inline Payload& payload() _IPAACA_OVERRIDE_ { return _payload; }
+		IPAACA_HEADER_EXPORT inline const Payload& const_payload() const _IPAACA_OVERRIDE_ { return _payload; }
+		IPAACA_HEADER_EXPORT void commit() _IPAACA_OVERRIDE_;
 	protected:
-		IPAACA_HEADER_EXPORT void _modify_links(bool is_delta, const LinkMap& new_links, const LinkMap& links_to_remove, const std::string& writer_name = "");
-		IPAACA_HEADER_EXPORT void _modify_payload(bool is_delta, const std::map<std::string, std::string>& new_items, const std::vector<std::string>& keys_to_remove, const std::string& writer_name = "");
+		IPAACA_HEADER_EXPORT void _modify_links(bool is_delta, const LinkMap& new_links, const LinkMap& links_to_remove, const std::string& writer_name = "") _IPAACA_OVERRIDE_;
+		IPAACA_HEADER_EXPORT void _modify_payload(bool is_delta, const std::map<std::string, PayloadDocumentEntry::ptr>& new_items, const std::vector<std::string>& keys_to_remove, const std::string& writer_name = "") _IPAACA_OVERRIDE_;
 	protected:
 		IPAACA_HEADER_EXPORT void _apply_update(IUPayloadUpdate::ptr update);
 		IPAACA_HEADER_EXPORT void _apply_link_update(IULinkUpdate::ptr update);
@@ -235,13 +235,13 @@ IPAACA_HEADER_EXPORT class FakeIU: public IUInterface {//{{{
 	public:
 		IPAACA_HEADER_EXPORT static boost::shared_ptr<FakeIU> create();
 		IPAACA_HEADER_EXPORT ~FakeIU();
-		IPAACA_HEADER_EXPORT Payload& payload();
-		IPAACA_HEADER_EXPORT const Payload& const_payload() const;
-		IPAACA_HEADER_EXPORT void commit();
+		IPAACA_HEADER_EXPORT Payload& payload() _IPAACA_OVERRIDE_;
+		IPAACA_HEADER_EXPORT const Payload& const_payload() const _IPAACA_OVERRIDE_;
+		IPAACA_HEADER_EXPORT void commit() _IPAACA_OVERRIDE_;
 		IPAACA_HEADER_EXPORT void add_fake_payload_item(const std::string& key, PayloadDocumentEntry::ptr entry);
 	protected:
-		IPAACA_HEADER_EXPORT void _modify_links(bool is_delta, const LinkMap& new_links, const LinkMap& links_to_remove, const std::string& writer_name = "");
-		IPAACA_HEADER_EXPORT void _modify_payload(bool is_delta, const std::map<std::string, PayloadDocumentEntry::ptr>& new_items, const std::vector<std::string>& keys_to_remove, const std::string& writer_name = "");
+		IPAACA_HEADER_EXPORT void _modify_links(bool is_delta, const LinkMap& new_links, const LinkMap& links_to_remove, const std::string& writer_name = "") _IPAACA_OVERRIDE_;
+		IPAACA_HEADER_EXPORT void _modify_payload(bool is_delta, const std::map<std::string, PayloadDocumentEntry::ptr>& new_items, const std::vector<std::string>& keys_to_remove, const std::string& writer_name = "") _IPAACA_OVERRIDE_;
 	protected:
 		IPAACA_HEADER_EXPORT void _apply_update(IUPayloadUpdate::ptr update);
 		IPAACA_HEADER_EXPORT void _apply_link_update(IULinkUpdate::ptr update);

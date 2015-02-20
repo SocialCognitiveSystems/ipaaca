@@ -108,6 +108,8 @@
 /// marking pure virtual functions for extra readability
 #define _IPAACA_ABSTRACT_
 
+#define _IPAACA_OVERRIDE_ override
+
 /// value to return when reading nonexistant payload keys
 #define IPAACA_PAYLOAD_DEFAULT_STRING_VALUE ""
 

@@ -56,7 +56,8 @@ IPAACA_HEADER_EXPORT template<> void pack_into_json_value(rapidjson::Value&, rap
 IPAACA_HEADER_EXPORT template<> void pack_into_json_value(rapidjson::Value&, rapidjson::Document::AllocatorType&, bool);
 IPAACA_HEADER_EXPORT template<> void pack_into_json_value(rapidjson::Value&, rapidjson::Document::AllocatorType&, const std::string&);
 IPAACA_HEADER_EXPORT template<> void pack_into_json_value(rapidjson::Value&, rapidjson::Document::AllocatorType&, const char*);
-
+// helpers to set Value& from several standard containers containing the above standard types
+/// set Value& from vector<T>
 IPAACA_HEADER_EXPORT template<typename T> void pack_into_json_value(rapidjson::Value& valueobject, rapidjson::Document::AllocatorType& allocator, const std::vector<T>& ts)
 {
 	valueobject.SetArray();
@@ -66,6 +67,7 @@ IPAACA_HEADER_EXPORT template<typename T> void pack_into_json_value(rapidjson::V
 		valueobject.PushBack(newv, allocator);
 	}
 }
+/// set Value& from list<T>
 IPAACA_HEADER_EXPORT template<typename T> void pack_into_json_value(rapidjson::Value& valueobject, rapidjson::Document::AllocatorType& allocator, const std::list<T>& ts)
 {
 	valueobject.SetArray();
@@ -75,6 +77,7 @@ IPAACA_HEADER_EXPORT template<typename T> void pack_into_json_value(rapidjson::V
 		valueobject.PushBack(newv, allocator);
 	}
 }
+/// set Value& from map<string, T>
 IPAACA_HEADER_EXPORT template<typename T> void pack_into_json_value(rapidjson::Value& valueobject, rapidjson::Document::AllocatorType& allocator, const std::map<std::string, T>& ts)
 {
 	valueobject.SetObject();
@@ -94,6 +97,7 @@ IPAACA_HEADER_EXPORT template<> void pack_into_json_value(rapidjson::Value&, rap
 // FIXME TODO locking / invalidating proxy on first write of a payload entry
 IPAACA_HEADER_EXPORT class PayloadDocumentEntry//{{{
 {
+	friend std::ostream& operator<<(std::ostream& os, std::shared_ptr<PayloadDocumentEntry> entry);
 	public:
 		IPAACA_MEMBER_VAR_EXPORT ipaaca::Lock lock;
 		IPAACA_MEMBER_VAR_EXPORT bool modified;

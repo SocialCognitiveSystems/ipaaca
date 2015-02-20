@@ -164,6 +164,7 @@ set (SOURCE
 	)
 
 set (JSON_TEST_SOURCE
+	src/ipaaca-buffers.cc
 	src/ipaaca-fake.cc
 	src/ipaaca-iuinterface.cc
 	src/ipaaca-json.cc    # main
@@ -171,6 +172,8 @@ set (JSON_TEST_SOURCE
 	src/ipaaca-links.cc
 	src/ipaaca-payload.cc
 	src/ipaaca-string-utils.cc
+	# more stuff going beyond the fake test case
+	src/ipaaca-ius.cc
 	)
 
 

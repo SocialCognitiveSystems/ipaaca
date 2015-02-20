@@ -95,7 +95,7 @@ IPAACA_EXPORT void IU::_modify_links(bool is_delta, const LinkMap& new_links, co
 
 
 
-IPAACA_EXPORT void IU::_modify_payload(bool is_delta, const std::map<std::string, std::string>& new_items, const std::vector<std::string>& keys_to_remove, const std::string& writer_name)
+IPAACA_EXPORT void IU::_modify_payload(bool is_delta, const std::map<std::string, PayloadDocumentEntry::ptr>& new_items, const std::vector<std::string>& keys_to_remove, const std::string& writer_name)
 {
 	_revision_lock.lock();
 	if (_committed) {
@@ -149,7 +149,7 @@ void Message::_modify_links(bool is_delta, const LinkMap& new_links, const LinkM
 		IPAACA_INFO("Info: modifying a Message after sending has no global effects")
 	}
 }
-void Message::_modify_payload(bool is_delta, const std::map<std::string, std::string>& new_items, const std::vector<std::string>& keys_to_remove, const std::string& writer_name)
+void Message::_modify_payload(bool is_delta, const std::map<std::string, PayloadDocumentEntry::ptr>& new_items, const std::vector<std::string>& keys_to_remove, const std::string& writer_name)
 {
 	if (is_published()) {
 		IPAACA_INFO("Info: modifying a Message after sending has no global effects")
@@ -200,7 +200,7 @@ IPAACA_EXPORT void RemotePushIU::_modify_links(bool is_delta, const LinkMap& new
 		_revision = *result;
 	}
 }
-IPAACA_EXPORT void RemotePushIU::_modify_payload(bool is_delta, const std::map<std::string, std::string>& new_items, const std::vector<std::string>& keys_to_remove, const std::string& writer_name)
+IPAACA_EXPORT void RemotePushIU::_modify_payload(bool is_delta, const std::map<std::string, PayloadDocumentEntry::ptr>& new_items, const std::vector<std::string>& keys_to_remove, const std::string& writer_name)
 {
 	//std::cout << "-- Sending a modify_payload with " << new_items.size() << " keys to merge." << std::endl;
 	if (_committed) {
@@ -263,12 +263,12 @@ IPAACA_EXPORT void RemotePushIU::_apply_update(IUPayloadUpdate::ptr update)
 		for (std::vector<std::string>::const_iterator it=update->keys_to_remove.begin(); it!=update->keys_to_remove.end(); ++it) {
 			_payload._remotely_enforced_delitem(*it);
 		}
-		for (std::map<std::string, std::string>::const_iterator it=update->new_items.begin(); it!=update->new_items.end(); ++it) {
+		for (std::map<std::string, PayloadDocumentEntry::ptr>::const_iterator it=update->new_items.begin(); it!=update->new_items.end(); ++it) {
 			_payload._remotely_enforced_setitem(it->first, it->second);
 		}
 	} else {
 		_payload._remotely_enforced_wipe();
-		for (std::map<std::string, std::string>::const_iterator it=update->new_items.begin(); it!=update->new_items.end(); ++it) {
+		for (std::map<std::string, PayloadDocumentEntry::ptr>::const_iterator it=update->new_items.begin(); it!=update->new_items.end(); ++it) {
 			_payload._remotely_enforced_setitem(it->first, it->second);
 		}
 	}
@@ -299,7 +299,7 @@ IPAACA_EXPORT void RemoteMessage::_modify_links(bool is_delta, const LinkMap& ne
 {
 	IPAACA_INFO("Info: modifying a RemoteMessage only has local effects")
 }
-IPAACA_EXPORT void RemoteMessage::_modify_payload(bool is_delta, const std::map<std::string, std::string>& new_items, const std::vector<std::string>& keys_to_remove, const std::string& writer_name)
+IPAACA_EXPORT void RemoteMessage::_modify_payload(bool is_delta, const std::map<std::string, PayloadDocumentEntry::ptr>& new_items, const std::vector<std::string>& keys_to_remove, const std::string& writer_name)
 {
 	IPAACA_INFO("Info: modifying a RemoteMessage only has local effects")
 }
@@ -326,12 +326,12 @@ IPAACA_EXPORT void RemoteMessage::_apply_update(IUPayloadUpdate::ptr update)
 		for (std::vector<std::string>::const_iterator it=update->keys_to_remove.begin(); it!=update->keys_to_remove.end(); ++it) {
 			_payload._remotely_enforced_delitem(*it);
 		}
-		for (std::map<std::string, std::string>::const_iterator it=update->new_items.begin(); it!=update->new_items.end(); ++it) {
+		for (std::map<std::string, PayloadDocumentEntry::ptr>::const_iterator it=update->new_items.begin(); it!=update->new_items.end(); ++it) {
 			_payload._remotely_enforced_setitem(it->first, it->second);
 		}
 	} else {
 		_payload._remotely_enforced_wipe();
-		for (std::map<std::string, std::string>::const_iterator it=update->new_items.begin(); it!=update->new_items.end(); ++it) {
+		for (std::map<std::string, PayloadDocumentEntry::ptr>::const_iterator it=update->new_items.begin(); it!=update->new_items.end(); ++it) {
 			_payload._remotely_enforced_setitem(it->first, it->second);
 		}
 	}

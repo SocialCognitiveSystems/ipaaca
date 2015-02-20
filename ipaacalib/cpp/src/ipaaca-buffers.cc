@@ -48,10 +48,10 @@ IPAACA_EXPORT std::ostream& operator<<(std::ostream& os, const IUPayloadUpdate& 
 	os << ", writer_name=" << obj.writer_name << ", is_delta=" << (obj.is_delta?"True":"False");
 	os << ", new_items = {";
 	bool first = true;
-	for (auto& : obj.new_items) {
+	for (auto& newit: obj.new_items) {
 		if (first) { first=false; } else { os << ", "; }
 		//os << "'" << it->first << "':'" << it->second << "'";
-		os << "'" << it->first << "': ???";  // FIXME JSONIZE
+		os << "'" << newit.first << "': " << newit.second;
 	}
 	os << "}, keys_to_remove = [";
 	first = true;
@@ -287,8 +287,8 @@ IPAACA_EXPORT OutputBuffer::OutputBuffer(const std::string& basename, const std:
 IPAACA_EXPORT void OutputBuffer::_initialize_server()
 {
 	//IPAACA_INFO("Entering ...")
-	//IPAACA_INFO("Calling createServer(\"" << _unique_name << "\")")
-	_server = getFactory().createServer( Scope( _unique_name ) );
+	//IPAACA_INFO("Calling createLocalServer(\"" << _unique_name << "\")")
+	_server = getFactory().createLocalServer( Scope( _unique_name ) );
 	//IPAACA_INFO("Registering methods")
 	_server->registerMethod("updatePayload", Server::CallbackPtr(new CallbackIUPayloadUpdate(this)));
 	_server->registerMethod("updateLinks", Server::CallbackPtr(new CallbackIULinkUpdate(this)));
