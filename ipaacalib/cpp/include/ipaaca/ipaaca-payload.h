@@ -34,6 +34,8 @@
 #ifndef __ipaaca_payload_h_INCLUDED__
 #define __ipaaca_payload_h_INCLUDED__
 
+#include <typeinfo>
+
 #ifndef __ipaaca_h_INCLUDED__
 #error "Please do not include this file directly, use ipaaca.h instead"
 #endif
@@ -298,15 +300,19 @@ IPAACA_HEADER_EXPORT class PayloadEntryProxy//{{{
 			return result;
 		}
 		// FIXME why are these needed again?
+		[[deprecated("Use operator std::string() instead (i.e. explicit or implicit cast)")]]
 		IPAACA_HEADER_EXPORT std::string to_str();
 		//long to_int() { return operator long(); ;
+		[[deprecated("Use operator long() instead (i.e. explicit or implicit cast)")]]
 		IPAACA_HEADER_EXPORT long to_long();
+		[[deprecated("Use operator double() instead (i.e. explicit or implicit cast)")]]
 		IPAACA_HEADER_EXPORT double to_float();
+		[[deprecated("Use operator bool() instead (i.e. explicit or implicit cast)")]]
 		IPAACA_HEADER_EXPORT bool to_bool();
-		// getters
-		IPAACA_HEADER_EXPORT template<typename T> T get() { return json_value_cast<T>(json_value); } // specializations below
+		// getters  (not needed since conversions are enough?)
+		//IPAACA_HEADER_EXPORT template<typename T> T get() { return json_value_cast<T>(json_value); }
 		// setters
-		IPAACA_HEADER_EXPORT template<typename T> PayloadEntryProxy& set(T t);
+		//IPAACA_HEADER_EXPORT template<typename T> PayloadEntryProxy& set(T t);
 		/*{
 			pack_into_json_value<T>(t);
 			connect_to_existing_parents();

@@ -289,8 +289,8 @@ IPAACA_EXPORT OutputBuffer::OutputBuffer(const std::string& basename, const std:
 IPAACA_EXPORT void OutputBuffer::_initialize_server()
 {
 	//IPAACA_INFO("Entering ...")
-	//_server = getFactory().createLocalServer( Scope( _unique_name ) );
-	_server = getFactory().createServer( Scope( _unique_name ) );
+	_server = getFactory().createLocalServer( Scope( _unique_name ) );
+	//_server = getFactory().createServer( Scope( _unique_name ) );
 	//IPAACA_INFO("Registering methods")
 	_server->registerMethod("updatePayload", Server::CallbackPtr(new CallbackIUPayloadUpdate(this)));
 	_server->registerMethod("updateLinks", Server::CallbackPtr(new CallbackIULinkUpdate(this)));

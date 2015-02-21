@@ -501,35 +501,43 @@ IPAACA_EXPORT PayloadEntryProxy& PayloadEntryProxy::operator=(bool value)
 
 IPAACA_EXPORT PayloadEntryProxy::operator std::string()
 {
-	return PayloadEntryProxy::get<std::string>();
+	return json_value_cast<std::string>(json_value);
+	//PayloadEntryProxy::get<std::string>();
 }
 IPAACA_EXPORT PayloadEntryProxy::operator long()
 {
-	return PayloadEntryProxy::get<long>();
+	return json_value_cast<long>(json_value);
+	//return PayloadEntryProxy::get<long>();
 }
 IPAACA_EXPORT PayloadEntryProxy::operator double()
 {
-	return PayloadEntryProxy::get<double>();
+	return json_value_cast<double>(json_value);
+	//return PayloadEntryProxy::get<double>();
 }
 IPAACA_EXPORT PayloadEntryProxy::operator bool()
 {
-	return PayloadEntryProxy::get<bool>();
+	return json_value_cast<bool>(json_value);
+	//return PayloadEntryProxy::get<bool>();
 }
 IPAACA_EXPORT std::string PayloadEntryProxy::to_str()
 {
-	return PayloadEntryProxy::get<std::string>(); 
+	return json_value_cast<std::string>(json_value);
+	//return PayloadEntryProxy::get<std::string>(); 
 }
 IPAACA_EXPORT long PayloadEntryProxy::to_long()
 {
-	return PayloadEntryProxy::get<long>();
+	return json_value_cast<long>(json_value);
+	//return PayloadEntryProxy::get<long>();
 }
 IPAACA_EXPORT double PayloadEntryProxy::to_float()
 {
-	return PayloadEntryProxy::get<double>();
+	return json_value_cast<double>(json_value);
+	//return PayloadEntryProxy::get<double>();
 }
 IPAACA_EXPORT bool PayloadEntryProxy::to_bool()
 {
-	return PayloadEntryProxy::get<bool>();
+	return json_value_cast<bool>(json_value);
+	//return PayloadEntryProxy::get<bool>();
 }
 
 
