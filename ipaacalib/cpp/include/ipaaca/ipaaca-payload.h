@@ -168,6 +168,7 @@ IPAACA_HEADER_EXPORT class PayloadDocumentStore//{{{
 };
 //}}}
 */
+
 IPAACA_HEADER_EXPORT class Payload//{{{
 {
 	friend std::ostream& operator<<(std::ostream& os, const Payload& obj);
@@ -180,6 +181,7 @@ IPAACA_HEADER_EXPORT class Payload//{{{
 	friend class MessageConverter;
 	friend class CallbackIUPayloadUpdate;
 	friend class PayloadEntryProxy;
+	friend class PayloadIterator;
 	friend class FakeIU;
 	protected:
 		IPAACA_MEMBER_VAR_EXPORT std::string _owner_name;
@@ -212,9 +214,39 @@ IPAACA_HEADER_EXPORT class Payload//{{{
 	protected:
 		IPAACA_HEADER_EXPORT PayloadDocumentEntry::ptr get_entry(const std::string& k); // json, changed str to proxy here, too
 	public:
+		[[deprecated("Use operator[] and operator std::string() instead")]]
 		IPAACA_HEADER_EXPORT std::string get(const std::string& k); // DEPRECATED
+	protected:
+		IPAACA_MEMBER_VAR_EXPORT unsigned long internal_revision;
+		IPAACA_MEMBER_VAR_EXPORT inline void mark_revision_change() { internal_revision++; }
+	public:
+		IPAACA_HEADER_EXPORT inline bool revision_changed(unsigned long reference_revision) { return internal_revision != reference_revision; }
+	public:
+		IPAACA_HEADER_EXPORT PayloadIterator begin();
+		IPAACA_HEADER_EXPORT PayloadIterator end();
 	typedef boost::shared_ptr<Payload> ptr;
 };//}}}
+
+IPAACA_HEADER_EXPORT class PayloadIterator//{{{
+{
+	friend class Payload;
+	friend std::ostream& operator<<(std::ostream& os, const PayloadIterator& iter);
+	protected:
+		IPAACA_MEMBER_VAR_EXPORT Payload* _payload;
+		IPAACA_MEMBER_VAR_EXPORT unsigned long reference_payload_revision;
+		IPAACA_MEMBER_VAR_EXPORT PayloadDocumentStore::iterator raw_iterator;
+		//IPAACA_MEMBER_VAR_EXPORT bool is_end;
+	protected:
+		IPAACA_HEADER_EXPORT PayloadIterator(Payload* payload, PayloadDocumentStore::iterator&& pl_iter ); //, bool is_end);
+	public:
+		IPAACA_HEADER_EXPORT PayloadIterator(const PayloadIterator& iter);
+		IPAACA_HEADER_EXPORT PayloadIterator& operator++();
+		IPAACA_HEADER_EXPORT std::pair<std::string, PayloadEntryProxy> operator*();
+		IPAACA_HEADER_EXPORT bool operator==(const PayloadIterator& ref);
+		IPAACA_HEADER_EXPORT bool operator!=(const PayloadIterator& ref);
+		// constructor to create a new top-most parent proxy (from a payload key)
+};
+//}}}
 
 IPAACA_HEADER_EXPORT class PayloadEntryProxy//{{{
 {

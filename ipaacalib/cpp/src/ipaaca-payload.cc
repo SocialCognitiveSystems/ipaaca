@@ -626,6 +626,7 @@ IPAACA_EXPORT void Payload::_internal_set(const std::string& k, PayloadDocumentE
 	_iu.lock()->_modify_payload(true, _new, _remove, writer_name );
 	IPAACA_INFO(" Setting local payload item \"" << k << "\" to " << v)
 	_document_store[k] = v;
+	mark_revision_change();
 }
 IPAACA_EXPORT void Payload::_internal_remove(const std::string& k, const std::string& writer_name) {
 	IPAACA_INFO("")
@@ -634,6 +635,7 @@ IPAACA_EXPORT void Payload::_internal_remove(const std::string& k, const std::st
 	_remove.push_back(k);
 	_iu.lock()->_modify_payload(true, _new, _remove, writer_name );
 	_document_store.erase(k);
+	mark_revision_change();
 }
 IPAACA_EXPORT void Payload::_internal_replace_all(const std::map<std::string, PayloadDocumentEntry::ptr>& new_contents, const std::string& writer_name)
 {
@@ -641,6 +643,7 @@ IPAACA_EXPORT void Payload::_internal_replace_all(const std::map<std::string, Pa
 	std::vector<std::string> _remove;
 	_iu.lock()->_modify_payload(false, new_contents, _remove, writer_name );
 	_document_store = new_contents;
+	mark_revision_change();
 }
 IPAACA_EXPORT void Payload::_internal_merge(const std::map<std::string, PayloadDocumentEntry::ptr>& contents_to_merge, const std::string& writer_name)
 {
@@ -650,6 +653,7 @@ IPAACA_EXPORT void Payload::_internal_merge(const std::map<std::string, PayloadD
 	for (auto& kv: contents_to_merge) {
 		_document_store[kv.first] = kv.second;
 	}
+	mark_revision_change();
 	//_document_store.insert(contents_to_merge.begin(), contents_to_merge.end());
 	//for (std::map<std::string, std::string>::iterator it = contents_to_merge.begin(); it!=contents_to_merge.end(); i++) {
 	//	_store[it->first] = it->second;
@@ -666,17 +670,62 @@ IPAACA_EXPORT std::string Payload::get(const std::string& k) { // DEPRECATED
 IPAACA_EXPORT void Payload::_remotely_enforced_wipe()
 {
 	_document_store.clear();
+	mark_revision_change();
 }
 IPAACA_EXPORT void Payload::_remotely_enforced_delitem(const std::string& k)
 {
 	_document_store.erase(k);
+	mark_revision_change();
 }
 IPAACA_EXPORT void Payload::_remotely_enforced_setitem(const std::string& k, PayloadDocumentEntry::ptr entry)
 {
-	IPAACA_INFO("Setting payload entry for \"" << k <<"\" to " << entry)
+	//IPAACA_INFO("Setting payload entry for \"" << k <<"\" to " << entry)
 	_document_store[k] = entry;
+	mark_revision_change();
+}
+IPAACA_EXPORT PayloadIterator Payload::begin()
+{
+	return PayloadIterator(this, _document_store.begin());
+}
+IPAACA_EXPORT PayloadIterator Payload::end()
+{
+	return PayloadIterator(this, _document_store.end());
 }
 
 //}}}
+
+IPAACA_EXPORT PayloadIterator::PayloadIterator(Payload* payload, PayloadDocumentStore::iterator&& ref_it)
+: _payload(payload), reference_payload_revision(payload->internal_revision), raw_iterator(std::move(ref_it))
+{
+}
+IPAACA_EXPORT PayloadIterator::PayloadIterator(const PayloadIterator& iter)
+: _payload(iter._payload), reference_payload_revision(iter.reference_payload_revision), raw_iterator(iter.raw_iterator)
+{
+}
+
+IPAACA_EXPORT PayloadIterator& PayloadIterator::operator++()
+{
+	if (_payload->revision_changed(reference_payload_revision)) throw PayloadIteratorInvalidError();
+	++raw_iterator;
+	return *this;
+}
+
+IPAACA_EXPORT std::pair<std::string, PayloadEntryProxy> PayloadIterator::operator*()
+{
+	if (_payload->revision_changed(reference_payload_revision)) throw PayloadIteratorInvalidError();
+	if (raw_iterator == _payload->_document_store.end()) throw PayloadIteratorInvalidError();
+	return std::pair<std::string, PayloadEntryProxy>(raw_iterator->first, PayloadEntryProxy(_payload, raw_iterator->first));
+}
+
+IPAACA_EXPORT bool PayloadIterator::operator==(const PayloadIterator& ref)
+{
+	if (_payload->revision_changed(reference_payload_revision)) throw PayloadIteratorInvalidError();
+	return (raw_iterator==ref.raw_iterator);
+}
+IPAACA_EXPORT bool PayloadIterator::operator!=(const PayloadIterator& ref)
+{
+	if (_payload->revision_changed(reference_payload_revision)) throw PayloadIteratorInvalidError();
+	return (raw_iterator!=ref.raw_iterator);
+}
 
 } // of namespace ipaaca

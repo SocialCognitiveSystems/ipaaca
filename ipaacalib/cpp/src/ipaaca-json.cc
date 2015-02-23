@@ -50,6 +50,8 @@ int fakeiu_main(int argc, char** argv)
 	
 	ipaaca::FakeIU::ptr iu = ipaaca::FakeIU::create();
 	iu->add_fake_payload_item("a", entry);
+	iu->payload()["b"] = "anotherValue";
+	iu->payload()["c"] = "yetAnotherValue";
 
 	auto a = iu->payload()["a"];
 	//auto a0 = a[0];
@@ -130,11 +132,20 @@ int fakeiu_main(int argc, char** argv)
 		std::cout << "(n/a)" << std::endl;
 	}
 	
-	std::cout << "Setting a value deep in the object:" << std::endl;
-	iu->payload()["a"][0] = "set by pep::op=";
+	std::cout << "Setting value [0] in the object:" << std::endl;
+	try {
+		iu->payload()["a"][0] = "set by pep::op=";
+	} catch (ipaaca::PayloadAddressingError& e) {
+		std::cout << "  Error - the provided object was not a suitable array" << std::endl;
+	}
 	//iu->payload()["a"]["A"] = "set by pep::op=";
 	
-	std::cout << "Final payload (printed as strings):" << std::endl;
+	std::cout << "Printing final payload using PayloadIterator:" << std::endl;
+	for (auto it = iu->payload().begin(); it != iu->payload().end(); ++it) {
+		std::cout << "  " << std::left << std::setw(15) << ((*it).first+": ") << (*it).second << std::endl;
+	}
+	
+	std::cout << "Final payload (cast to map, printed as strings):" << std::endl;
 	std::map<std::string, std::string> pl_flat = iu->payload();
 	for (auto& kv: pl_flat) {
 		std::cout << "  " << std::left << std::setw(15) << (kv.first+": ") << kv.second << std::endl;

@@ -171,8 +171,16 @@ IPAACA_EXPORT std::string IUConverter::serialize(const AnnotatedData& data, std:
 	for (auto& kv: obj->_payload._document_store) {
 		protobuf::PayloadItem* item = pbo->add_payload();
 		item->set_key(kv.first);
-		item->set_value( kv.second->to_json_string_representation() );
-		item->set_type("JSON");
+		//item->set_value( kv.second->to_json_string_representation() );
+		//item->set_type("JSON");
+		if (obj->_payload_type=="JSON") {
+			item->set_value( kv.second->to_json_string_representation() );
+			item->set_type("JSON");
+		} else if ((obj->_payload_type=="MAP") || (obj->_payload_type=="STR")) {
+			// legacy mode
+			item->set_value( json_value_cast<std::string>(kv.second->document));
+			item->set_type("STR");
+		}
 	}
 	for (LinkMap::const_iterator it=obj->_links._links.begin(); it!=obj->_links._links.end(); ++it) {
 		protobuf::LinkSet* links = pbo->add_links();
@@ -323,8 +331,16 @@ IPAACA_EXPORT std::string MessageConverter::serialize(const AnnotatedData& data,
 	for (auto& kv: obj->_payload._document_store) {
 		protobuf::PayloadItem* item = pbo->add_payload();
 		item->set_key(kv.first);
-		item->set_value( kv.second->to_json_string_representation() );
-		item->set_type("JSON");
+		//item->set_value( kv.second->to_json_string_representation() );
+		//item->set_type("JSON");
+		if (obj->_payload_type=="JSON") {
+			item->set_value( kv.second->to_json_string_representation() );
+			item->set_type("JSON");
+		} else if ((obj->_payload_type=="MAP") || (obj->_payload_type=="STR")) {
+			// legacy mode
+			item->set_value( json_value_cast<std::string>(kv.second->document));
+			item->set_type("STR");
+		}
 	}
 	for (LinkMap::const_iterator it=obj->_links._links.begin(); it!=obj->_links._links.end(); ++it) {
 		protobuf::LinkSet* links = pbo->add_links();
@@ -453,8 +469,14 @@ IPAACA_EXPORT std::string IUPayloadUpdateConverter::serialize(const AnnotatedDat
 	for (auto& kv: obj->new_items) {
 		protobuf::PayloadItem* item = pbo->add_new_items();
 		item->set_key(kv.first);
-		item->set_value( kv.second->to_json_string_representation() );
-		item->set_type("JSON");
+		if (obj->payload_type=="JSON") {
+			item->set_value( kv.second->to_json_string_representation() );
+			item->set_type("JSON");
+		} else if ((obj->payload_type=="MAP") || (obj->payload_type=="STR")) {
+			// legacy mode
+			item->set_value( json_value_cast<std::string>(kv.second->document));
+			item->set_type("STR");
+		}
 	}
 	for (auto& key: obj->keys_to_remove) {
 		pbo->add_keys_to_remove(key);

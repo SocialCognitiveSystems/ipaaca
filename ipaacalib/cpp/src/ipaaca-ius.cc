@@ -218,6 +218,7 @@ IPAACA_EXPORT void RemotePushIU::_modify_payload(bool is_delta, const std::map<s
 	update->writer_name = _buffer->unique_name();
 	update->new_items = new_items;
 	update->keys_to_remove = keys_to_remove;
+	update->payload_type = _payload_type;
 	boost::shared_ptr<int> result = server->call<int>("updatePayload", update, IPAACA_REMOTE_SERVER_TIMEOUT); // TODO
 	if (*result == 0) {
 		throw IUUpdateFailedError();

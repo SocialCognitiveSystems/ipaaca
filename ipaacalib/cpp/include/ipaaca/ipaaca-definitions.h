@@ -226,6 +226,14 @@ IPAACA_HEADER_EXPORT class PayloadEntryProxyInvalidatedError: public Exception//
 			_description = "PayloadEntryProxyInvalidatedError";
 		}
 };//}}}
+IPAACA_HEADER_EXPORT class PayloadIteratorInvalidError: public Exception//{{{
+{
+	public:
+		IPAACA_HEADER_EXPORT inline ~PayloadIteratorInvalidError() throw() { }
+		IPAACA_HEADER_EXPORT inline PayloadIteratorInvalidError() { //boost::shared_ptr<IU> iu) {
+			_description = "PayloadIteratorInvalidError";
+		}
+};//}}}
 
 /// Static library initialization
 IPAACA_HEADER_EXPORT class Initializer

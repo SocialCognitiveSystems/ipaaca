@@ -46,6 +46,7 @@ class PayloadDocumentEntry;
 
 class PayloadEntryProxy;
 class Payload;
+class PayloadIterator;
 class IUInterface;
 class IU;
 class Message;
