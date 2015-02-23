@@ -41,11 +41,15 @@ using namespace std;
 
 int fakeiu_main(int argc, char** argv)
 {
-	if (argc<2) {
-		std::cout << "Please provide json content as the first argument." << std::endl;
-		return 0;
-	}
-	std::string json_source(argv[1]);
+	//if (argc<2) {
+	//	std::cout << "Please provide json content as the first argument." << std::endl;
+	//	return 0;
+	//}
+	//
+	ipaaca::CommandLineParser::ptr parser = ipaaca::CommandLineParser::create();
+	ipaaca::CommandLineOptions::ptr options = parser->parse(argc, argv);
+
+	std::string json_source("[\"old\",2,3,4]");
 	ipaaca::PayloadDocumentEntry::ptr entry = ipaaca::PayloadDocumentEntry::from_json_string_representation(json_source);
 	
 	ipaaca::FakeIU::ptr iu = ipaaca::FakeIU::create();
@@ -134,11 +138,21 @@ int fakeiu_main(int argc, char** argv)
 	
 	std::cout << "Setting value [0] in the object:" << std::endl;
 	try {
-		iu->payload()["a"][0] = "set by pep::op=";
+		iu->payload()["a"][0] = "CHANGED_BY_USER";
 	} catch (ipaaca::PayloadAddressingError& e) {
 		std::cout << "  Error - the provided object was not a suitable array" << std::endl;
 	}
 	//iu->payload()["a"]["A"] = "set by pep::op=";
+	
+	
+	std::cout << "Appending two words to key 'b' the currently wrong way:" << std::endl;
+	auto proxy = iu->payload()["b"];
+	proxy = (std::string) proxy + " WORD1";
+	proxy = (std::string) proxy + " WORD2";
+	
+	std::cout << "Appending two words to key 'c' the compatible way:" << std::endl;
+	iu->payload()["c"] = (std::string) iu->payload()["c"] + " WORD1";
+	iu->payload()["c"] = (std::string) iu->payload()["c"] + " WORD2";
 	
 	std::cout << "Printing final payload using PayloadIterator:" << std::endl;
 	for (auto it = iu->payload().begin(); it != iu->payload().end(); ++it) {
@@ -172,7 +186,12 @@ int iu_main(int argc, char** argv)
 			std::cout << "Received a new IU, payload: " << iu->payload() << std::endl;
 			std::cout << "Will write something." << std::endl;
 			//iu->commit();
-			iu->payload()["list"][0] = "Overridden from C++";
+			try {
+				iu->payload()["list"][0] = "Overridden from C++";
+			} catch (ipaaca::PayloadAddressingError& e) {
+				iu->payload()["newKey"] = std::vector<long>{2,4,6,8};
+				std::cout << "  (item ['list'][0] could not be addressed, wrote new key)" << std::endl;
+			}
 		}
 	});
 	std::cout << "--- Waiting for IUs for 10s " << std::endl;
@@ -210,6 +229,6 @@ int iu_main(int argc, char** argv)
 
 int main(int argc, char** argv)
 {
-	//return fakeiu_main(argc, argv);
-	return iu_main(argc, argv);
+	return fakeiu_main(argc, argv);
+	//return iu_main(argc, argv);
 }

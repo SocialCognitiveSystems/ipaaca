@@ -75,6 +75,7 @@ void CommandLineOptions::dump() {
 //
 
 CommandLineParser::CommandLineParser()
+: library_options_handled(true)
 {
 	initialize_parser_defaults();
 }
@@ -85,6 +86,33 @@ void CommandLineParser::initialize_parser_defaults()
 	add_option("verbose",        'v', false, "");
 	add_option("character-name", 'c', true, "UnknownCharacter");
 	add_option("component-name", 'n', true, "UnknownComponent");
+	if (library_options_handled) {
+		add_option("ipaaca-payload-type", 0, true, "JSON");
+		add_option("ipaaca-default-channel", 0, true, "default");
+		add_option("ipaaca-enable-logging", 0, true, "WARNING");
+		add_option("rsb-enable-logging", 0, true, "ERROR");
+	}
+}
+
+bool CommandLineParser::consume_library_option(const std::string& name, bool expect, const char* optarg)
+{
+	IPAACA_DEBUG("Trying to consume " << name)
+	if (name=="ipaaca-payload-type") {
+		IPAACA_DEBUG("TODO: set default payload type to " << optarg)
+		IPAACA_IMPLEMENT_ME
+	} else if (name=="ipaaca-default-channel") {
+		IPAACA_DEBUG("TODO: set default channel to " << optarg)
+		IPAACA_IMPLEMENT_ME
+	} else if (name=="ipaaca-enable-logging") {
+		IPAACA_DEBUG("TODO: set ipaaca log level to " << optarg)
+		IPAACA_IMPLEMENT_ME
+	} else if (name=="rsb-enable-logging") {
+		IPAACA_DEBUG("TODO: set rsb log level to " << optarg)
+		IPAACA_IMPLEMENT_ME
+	} else {
+		return false;
+	}
+	return true;
 }
 
 void CommandLineParser::dump_options()
@@ -121,6 +149,7 @@ CommandLineOptions::ptr CommandLineParser::parse(int argc, char* const* argv)
 	LOG_IPAACA_CONSOLE("IMPLEMENT ME: command line parsing for Windows. (req'd: getopt)")
 	throw NotImplementedError();
 #else
+	IPAACA_DEBUG("")
 	int len = options.size();
 	struct option long_options[len+1];
 	int i=0;
@@ -155,19 +184,23 @@ CommandLineOptions::ptr CommandLineParser::parse(int argc, char* const* argv)
 		// Detect the end of the options. 
 		if (c == -1) break;
 		
+		bool do_set_option = false;
+		std::string longname;
+		std::string longoption;
+		bool expect;
 		switch (c)
 		{
 			case 0:
 				{
-				std::string longname = long_options[option_index].name;
+				longname = long_options[option_index].name;
 				if (longname == "help") {
 					std::cout << "Options:" << std::endl;
 					dump_options();
 					exit(0);
 				}
-				std::string longoption = long_options[option_index].name;
-				bool expect = options[longoption];
-				clo->set_option(longoption, expect, optarg);
+				longoption = long_options[option_index].name;
+				expect = options[longoption];
+				do_set_option = true;
 				}
 				break;
 
@@ -177,9 +210,17 @@ CommandLineOptions::ptr CommandLineParser::parse(int argc, char* const* argv)
 			default:
 				std::string s;
 				s += c;
-				std::string longoption = longopt[c];
-				bool expect = options[longoption];
+				longoption = longopt[c];
+				expect = options[longoption];
+				do_set_option = true;
+		}
+		if (do_set_option) {
+			if (library_options_handled) {
+				do_set_option = ! consume_library_option(longoption, expect, optarg );
+			}
+			if (do_set_option) {
 				clo->set_option(longoption, expect, optarg);
+			}
 		}
 	}
 	ensure_defaults_in( clo );

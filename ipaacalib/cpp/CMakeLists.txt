@@ -176,6 +176,7 @@ set (JSON_TEST_SOURCE
 	src/ipaaca-locking.cc
 	src/ipaaca-links.cc
 	src/ipaaca-payload.cc
+	src/ipaaca-cmdline-parser.cc
 	src/ipaaca-string-utils.cc
 	# more stuff going beyond the fake test case
 	src/ipaaca-ius.cc

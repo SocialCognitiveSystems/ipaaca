@@ -105,8 +105,8 @@ IPAACA_HEADER_EXPORT class PayloadDocumentEntry//{{{
 		IPAACA_MEMBER_VAR_EXPORT bool modified;
 		IPAACA_MEMBER_VAR_EXPORT std::string json_source;
 		IPAACA_MEMBER_VAR_EXPORT rapidjson::Document document;
-		IPAACA_HEADER_EXPORT inline PayloadDocumentEntry(): modified(false) { IPAACA_INFO("") }
-		IPAACA_HEADER_EXPORT inline ~PayloadDocumentEntry() { IPAACA_INFO("") }
+		IPAACA_HEADER_EXPORT inline PayloadDocumentEntry(): modified(false) { }
+		IPAACA_HEADER_EXPORT inline ~PayloadDocumentEntry() { }
 		//IPAACA_HEADER_EXPORT PayloadDocumentEntry(const std::string& source): modified(false), json_source(source), {};
 		IPAACA_HEADER_EXPORT std::string to_json_string_representation();
 		IPAACA_HEADER_EXPORT static std::shared_ptr<PayloadDocumentEntry> from_json_string_representation(const std::string& input);

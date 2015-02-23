@@ -75,11 +75,13 @@
 #endif
 
 #ifdef IPAACA_DEBUG_MESSAGES
+#define IPAACA_DEBUG(i) std::cout << __FILE__ << ":" << __LINE__ << ": " << __FUNCTION_NAME__ << "() -- " << i << std::endl;
 #define IPAACA_INFO(i) std::cout << __FILE__ << ":" << __LINE__ << ": " << __FUNCTION_NAME__ << "() -- " << i << std::endl;
 #define IPAACA_WARNING(i) std::cout << __FILE__ << ":" << __LINE__ << ": " << __FUNCTION_NAME__ << "() -- WARNING: " << i << std::endl;
 #define IPAACA_IMPLEMENT_ME std::cout << __FILE__ << ":" << __LINE__ << ": " << __FUNCTION_NAME__ << "() -- IMPLEMENT ME" << std::endl;
 #define IPAACA_TODO(i) std::cout << __FILE__ << ":" << __LINE__ << ": " << __FUNCTION_NAME__ << "() -- TODO: " << i << std::endl;
 #else
+#define IPAACA_DEBUG(i) ;
 #define IPAACA_INFO(i) ;
 #define IPAACA_WARNING(i) ;
 #define IPAACA_IMPLEMENT_ME ;

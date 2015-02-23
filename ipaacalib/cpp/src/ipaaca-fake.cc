@@ -49,16 +49,16 @@ IPAACA_EXPORT void FakeIU::add_fake_payload_item(const std::string& key, Payload
 {
 	_payload._remotely_enforced_setitem(key, entry);
 }
-IPAACA_EXPORT inline FakeIU::~FakeIU() { IPAACA_INFO("") }
+IPAACA_EXPORT inline FakeIU::~FakeIU() { }
 IPAACA_EXPORT inline Payload& FakeIU::payload() { return _payload; }
 IPAACA_EXPORT inline const Payload& FakeIU::const_payload() const { return _payload; }
-IPAACA_EXPORT inline void FakeIU::commit() { IPAACA_INFO("") }
-IPAACA_EXPORT inline void FakeIU::_modify_links(bool is_delta, const LinkMap& new_links, const LinkMap& links_to_remove, const std::string& writer_name) { IPAACA_INFO("") }
-IPAACA_EXPORT inline void FakeIU::_modify_payload(bool is_delta, const std::map<std::string, PayloadDocumentEntry::ptr>& new_items, const std::vector<std::string>& keys_to_remove, const std::string& writer_name) { IPAACA_INFO("")}
-IPAACA_EXPORT inline void FakeIU::_apply_update(IUPayloadUpdate::ptr update) { IPAACA_INFO("") }
-IPAACA_EXPORT inline void FakeIU::_apply_link_update(IULinkUpdate::ptr update) { IPAACA_INFO("") }
-IPAACA_EXPORT inline void FakeIU::_apply_commission() { IPAACA_INFO("") }
-IPAACA_EXPORT inline void FakeIU::_apply_retraction() { IPAACA_INFO("") }
+IPAACA_EXPORT inline void FakeIU::commit() { }
+IPAACA_EXPORT inline void FakeIU::_modify_links(bool is_delta, const LinkMap& new_links, const LinkMap& links_to_remove, const std::string& writer_name) { }
+IPAACA_EXPORT inline void FakeIU::_modify_payload(bool is_delta, const std::map<std::string, PayloadDocumentEntry::ptr>& new_items, const std::vector<std::string>& keys_to_remove, const std::string& writer_name) { }
+IPAACA_EXPORT inline void FakeIU::_apply_update(IUPayloadUpdate::ptr update) { }
+IPAACA_EXPORT inline void FakeIU::_apply_link_update(IULinkUpdate::ptr update) { }
+IPAACA_EXPORT inline void FakeIU::_apply_commission() { }
+IPAACA_EXPORT inline void FakeIU::_apply_retraction() { }
 
 } // of namespace ipaaca
 

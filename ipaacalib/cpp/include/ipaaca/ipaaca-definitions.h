@@ -251,7 +251,12 @@ IPAACA_HEADER_EXPORT class Initializer
 // additional misc classes ( Command line options )//{{{
 IPAACA_HEADER_EXPORT class CommandLineOptions {
 	public:
-		IPAACA_HEADER_EXPORT inline CommandLineOptions() { }
+		IPAACA_HEADER_EXPORT inline CommandLineOptions()
+		//: _unconsumed_argc(0), _unconsumed_argv(nullptr)
+		{ }
+		IPAACA_HEADER_EXPORT inline ~CommandLineOptions() {
+			//if (_unconsumed_argv) delete[] _unconsumed_argv;
+		}
 		IPAACA_MEMBER_VAR_EXPORT std::map<std::string, std::string> param_opts;
 		IPAACA_MEMBER_VAR_EXPORT std::map<std::string, bool> param_set;
 	public:
@@ -259,6 +264,13 @@ IPAACA_HEADER_EXPORT class CommandLineOptions {
 		IPAACA_HEADER_EXPORT std::string get_param(const std::string& o);
 		IPAACA_HEADER_EXPORT bool is_set(const std::string& o);
 		IPAACA_HEADER_EXPORT void dump();
+	public:
+		//IPAACA_HEADER_EXPORT inline int unconsumed_argc() { return _unconsumed_argc; }
+		//IPAACA_HEADER_EXPORT inline char** unconsumed_argv() { return _unconsumed_argv; }
+	protected:
+		//IPAACA_MEMBER_VAR_EXPORT int _unconsumed_argc;
+		//IPAACA_MEMBER_VAR_EXPORT char** _unconsumed_argv;
+	public:
 	typedef boost::shared_ptr<CommandLineOptions> ptr;
 };
 
@@ -271,6 +283,8 @@ class CommandLineParser {
 		IPAACA_MEMBER_VAR_EXPORT std::map<std::string, int> set_flag; // for paramless opts
 	protected:
 		IPAACA_HEADER_EXPORT CommandLineParser();
+		IPAACA_MEMBER_VAR_EXPORT bool library_options_handled;
+		IPAACA_HEADER_EXPORT bool consume_library_option(const std::string& name, bool expect, const char* optarg);
 	public:
 		IPAACA_HEADER_EXPORT inline ~CommandLineParser() { }
 		IPAACA_HEADER_EXPORT static inline boost::shared_ptr<CommandLineParser> create() {
