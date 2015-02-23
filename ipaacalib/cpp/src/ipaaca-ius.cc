@@ -47,7 +47,7 @@ IPAACA_EXPORT IU::ptr IU::create(const std::string& category, IUAccessMode acces
 }
 IPAACA_EXPORT IU::ptr IU::create(const std::string& category, const std::string& payload_type, bool read_only)
 {
-	IU::ptr iu = IU::ptr(new IU(category, IU_ACCESS_PUSH, read_only, payload_type)); /* params */ //));
+	IU::ptr iu = IU::ptr(new IU(category, IU_ACCESS_PUSH, read_only, (payload_type=="")?__ipaaca_static_option_default_payload_type:payload_type)); /* params */ //));
 	iu->_payload.initialize(iu);
 	return iu;
 }
@@ -57,7 +57,7 @@ IPAACA_EXPORT IU::IU(const std::string& category, IUAccessMode access_mode, bool
 	_revision = 1;
 	_uid = ipaaca::generate_uuid_string();
 	_category = category;
-	_payload_type = payload_type;
+	_payload_type = (payload_type=="")?__ipaaca_static_option_default_payload_type:payload_type;
 	// payload initialization deferred to IU::create(), above
 	_read_only = read_only;
 	_access_mode = access_mode;
@@ -138,11 +138,11 @@ IPAACA_EXPORT void IU::_internal_commit(const std::string& writer_name)
 // Message//{{{
 Message::ptr Message::create(const std::string& category, IUAccessMode access_mode, bool read_only, const std::string& payload_type)
 {
-	return Message::create(category, payload_type);
+	return Message::create(category, (payload_type=="")?__ipaaca_static_option_default_payload_type:payload_type);
 }
 Message::ptr Message::create(const std::string& category, const std::string& payload_type)
 {
-	Message::ptr iu = Message::ptr(new Message(category, IU_ACCESS_MESSAGE, true, payload_type)); /* params */ //));
+	Message::ptr iu = Message::ptr(new Message(category, IU_ACCESS_MESSAGE, true, (payload_type=="")?__ipaaca_static_option_default_payload_type:payload_type)); /* params */ //));
 	iu->_payload.initialize(iu);
 	return iu;
 }

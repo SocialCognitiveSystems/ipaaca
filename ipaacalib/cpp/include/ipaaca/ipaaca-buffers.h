@@ -77,10 +77,10 @@ IPAACA_HEADER_EXPORT class BufferConfiguration//{{{
 		IPAACA_MEMBER_VAR_EXPORT std::vector<std::string> _category_interests;
 		IPAACA_MEMBER_VAR_EXPORT std::string _channel;
 	public:
-		IPAACA_HEADER_EXPORT inline BufferConfiguration(const std::string basename) { _basename = basename; }
-		IPAACA_HEADER_EXPORT inline const std::string get_basename() const { return _basename; }
-		IPAACA_HEADER_EXPORT inline const std::vector<std::string> get_category_interests() const { return _category_interests; }
-		IPAACA_HEADER_EXPORT inline const std::string get_channel() const { return _channel; }
+		IPAACA_HEADER_EXPORT inline BufferConfiguration(const std::string& basename): _basename(basename), _channel(__ipaaca_static_option_default_channel) { }
+		IPAACA_HEADER_EXPORT inline const std::string& get_basename() const { return _basename; }
+		IPAACA_HEADER_EXPORT inline const std::vector<std::string>& get_category_interests() const { return _category_interests; }
+		IPAACA_HEADER_EXPORT inline const std::string& get_channel() const { return _channel; }
 	public:
 		// setters, initialization helpers
 		IPAACA_HEADER_EXPORT inline BufferConfiguration& set_basename(const std::string& basename) { _basename = basename; return *this; }
@@ -92,7 +92,7 @@ IPAACA_HEADER_EXPORT class BufferConfigurationBuilder: private BufferConfigurati
 {
 	public:
 		[[deprecated("Use setters in BufferConfiguration instead of the Builder")]]
-		IPAACA_HEADER_EXPORT inline BufferConfigurationBuilder(const std::string basename):BufferConfiguration(basename) {}
+		IPAACA_HEADER_EXPORT inline BufferConfigurationBuilder(const std::string& basename): BufferConfiguration(basename) {}
 		IPAACA_HEADER_EXPORT inline void set_basename(const std::string& basename)
 		{
 			_basename = basename;
@@ -157,7 +157,7 @@ IPAACA_HEADER_EXPORT class Buffer { //: public boost::enable_shared_from_this<Bu
 		IPAACA_HEADER_EXPORT void _allocate_unique_name(const std::string& basename, const std::string& function);
 		IPAACA_HEADER_EXPORT inline Buffer(const std::string& basename, const std::string& function) {
 			_allocate_unique_name(basename, function);
-			_channel = "default";
+			_channel = __ipaaca_static_option_default_channel;
 		}
 		IPAACA_HEADER_EXPORT void call_iu_event_handlers(boost::shared_ptr<IUInterface> iu, bool local, IUEventType event_type, const std::string& category);
 	public:
@@ -204,7 +204,7 @@ IPAACA_HEADER_EXPORT class OutputBuffer: public Buffer { //, public boost::enabl
 
 		IPAACA_HEADER_EXPORT void _retract_iu(boost::shared_ptr<IU> iu);
 	protected:
-		IPAACA_HEADER_EXPORT OutputBuffer(const std::string& basename, const std::string& channel="default");
+		IPAACA_HEADER_EXPORT OutputBuffer(const std::string& basename, const std::string& channel=""); // empty string auto-replaced with __ipaaca_static_option_default_channel
 		IPAACA_HEADER_EXPORT void _initialize_server();
 	public:
 		IPAACA_HEADER_EXPORT static boost::shared_ptr<OutputBuffer> create(const std::string& basename);

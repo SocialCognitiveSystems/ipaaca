@@ -51,7 +51,7 @@ IPAACA_HEADER_EXPORT class IUInterface {//{{{
 		IPAACA_MEMBER_VAR_EXPORT std::string _uid;
 		IPAACA_MEMBER_VAR_EXPORT revision_t _revision;
 		IPAACA_MEMBER_VAR_EXPORT std::string _category;
-		IPAACA_MEMBER_VAR_EXPORT std::string _payload_type; // default is "JSON" (legacy said "MAP")
+		IPAACA_MEMBER_VAR_EXPORT std::string _payload_type; // default is taken from __ipaaca_static_option_default_payload_type
 		IPAACA_MEMBER_VAR_EXPORT std::string _owner_name;
 		IPAACA_MEMBER_VAR_EXPORT bool _committed;
 		IPAACA_MEMBER_VAR_EXPORT bool _retracted;
@@ -122,14 +122,14 @@ IPAACA_HEADER_EXPORT class IU: public IUInterface {//{{{
 	   IPAACA_MEMBER_VAR_EXPORT  Lock _revision_lock;
 	protected:
 		IPAACA_HEADER_EXPORT inline void _increase_revision_number() { _revision++; }
-		IPAACA_HEADER_EXPORT IU(const std::string& category, IUAccessMode access_mode=IU_ACCESS_PUSH, bool read_only=false, const std::string& payload_type="JSON" );
+		IPAACA_HEADER_EXPORT IU(const std::string& category, IUAccessMode access_mode=IU_ACCESS_PUSH, bool read_only=false, const std::string& payload_type="" ); // __ipaaca_static_option_default_payload_type
 	public:
 		IPAACA_HEADER_EXPORT inline ~IU() {
 			//IPAACA_IMPLEMENT_ME
 		}
 		[[deprecated("Please use the new argument order: category, payload_type, read_only")]]
-		IPAACA_HEADER_EXPORT static boost::shared_ptr<IU> create(const std::string& category, IUAccessMode access_mode, bool read_only=false, const std::string& payload_type="JSON" );
-		IPAACA_HEADER_EXPORT static boost::shared_ptr<IU> create(const std::string& category, const std::string& payload_type="JSON", bool read_only=false);
+		IPAACA_HEADER_EXPORT static boost::shared_ptr<IU> create(const std::string& category, IUAccessMode access_mode, bool read_only=false, const std::string& payload_type="" );
+		IPAACA_HEADER_EXPORT static boost::shared_ptr<IU> create(const std::string& category, const std::string& payload_type="", bool read_only=false);
 		IPAACA_HEADER_EXPORT inline Payload& payload() _IPAACA_OVERRIDE_ { return _payload; }
 		IPAACA_HEADER_EXPORT inline const Payload& const_payload() const _IPAACA_OVERRIDE_ { return _payload; }
 		IPAACA_HEADER_EXPORT void commit() _IPAACA_OVERRIDE_;
@@ -153,14 +153,14 @@ IPAACA_HEADER_EXPORT class Message: public IU {//{{{
 	friend class CallbackIUCommission;
 	friend class CallbackIUResendRequest;
 	protected:
-		IPAACA_HEADER_EXPORT Message(const std::string& category, IUAccessMode access_mode=IU_ACCESS_MESSAGE, bool read_only=true, const std::string& payload_type="JSON" );
+		IPAACA_HEADER_EXPORT Message(const std::string& category, IUAccessMode access_mode=IU_ACCESS_MESSAGE, bool read_only=true, const std::string& payload_type="" );
 	public:
 		IPAACA_HEADER_EXPORT inline ~Message() {
 			//IPAACA_IMPLEMENT_ME
 		}
 		[[deprecated("Please use the new argument order: category, payload_type")]]
-		IPAACA_HEADER_EXPORT static boost::shared_ptr<Message> create(const std::string& category, IUAccessMode access_mode, bool read_only=true, const std::string& payload_type="JSON" );
-		IPAACA_HEADER_EXPORT static boost::shared_ptr<Message> create(const std::string& category, const std::string& payload_type="JSON");
+		IPAACA_HEADER_EXPORT static boost::shared_ptr<Message> create(const std::string& category, IUAccessMode access_mode, bool read_only=true, const std::string& payload_type="" );
+		IPAACA_HEADER_EXPORT static boost::shared_ptr<Message> create(const std::string& category, const std::string& payload_type="");
 	protected:
 		IPAACA_HEADER_EXPORT void _modify_links(bool is_delta, const LinkMap& new_links, const LinkMap& links_to_remove, const std::string& writer_name = "") _IPAACA_OVERRIDE_;
 		IPAACA_HEADER_EXPORT void _modify_payload(bool is_delta, const std::map<std::string, PayloadDocumentEntry::ptr>& new_items, const std::vector<std::string>& keys_to_remove, const std::string& writer_name = "") _IPAACA_OVERRIDE_;

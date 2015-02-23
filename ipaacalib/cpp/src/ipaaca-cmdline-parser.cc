@@ -98,11 +98,18 @@ bool CommandLineParser::consume_library_option(const std::string& name, bool exp
 {
 	IPAACA_DEBUG("Trying to consume " << name)
 	if (name=="ipaaca-payload-type") {
-		IPAACA_DEBUG("TODO: set default payload type to " << optarg)
-		IPAACA_IMPLEMENT_ME
+		std::string newtype = optarg;
+		if (newtype=="MAP") newtype="STR";
+		if ((newtype=="JSON") || (newtype=="STR")) {
+			IPAACA_DEBUG("Setting default payload type " << newtype)
+			__ipaaca_static_option_default_payload_type = newtype;
+		} else {
+			IPAACA_WARNING("Ignoring unknown default payload type " << newtype << " - should be one of JSON or STR")
+		}
 	} else if (name=="ipaaca-default-channel") {
-		IPAACA_DEBUG("TODO: set default channel to " << optarg)
-		IPAACA_IMPLEMENT_ME
+		std::string newch = optarg;
+		IPAACA_DEBUG("Setting default channel " << newch)
+		__ipaaca_static_option_default_channel = newch;
 	} else if (name=="ipaaca-enable-logging") {
 		IPAACA_DEBUG("TODO: set ipaaca log level to " << optarg)
 		IPAACA_IMPLEMENT_ME

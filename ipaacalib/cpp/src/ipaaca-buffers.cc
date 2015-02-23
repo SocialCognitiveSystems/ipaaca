@@ -282,7 +282,7 @@ IPAACA_EXPORT OutputBuffer::OutputBuffer(const std::string& basename, const std:
 {
 	//IPAACA_INFO("Entering ...")
 	_id_prefix = _basename + "-" + _uuid + "-IU-";
-	_channel = channel;
+	_channel = (channel=="") ? __ipaaca_static_option_default_channel: channel;
 	_initialize_server();
 	//IPAACA_INFO("... exiting.")
 }
@@ -456,7 +456,7 @@ IPAACA_EXPORT InputBuffer::InputBuffer(const BufferConfiguration& bufferconfigur
 IPAACA_EXPORT InputBuffer::InputBuffer(const std::string& basename, const std::set<std::string>& category_interests)
 :Buffer(basename, "IB")
 {
-	_channel = "default";
+	_channel = __ipaaca_static_option_default_channel;
 
 	for (std::set<std::string>::const_iterator it=category_interests.begin(); it!=category_interests.end(); ++it) {
 		_create_category_listener_if_needed(*it);
@@ -467,7 +467,7 @@ IPAACA_EXPORT InputBuffer::InputBuffer(const std::string& basename, const std::s
 IPAACA_EXPORT InputBuffer::InputBuffer(const std::string& basename, const std::vector<std::string>& category_interests)
 :Buffer(basename, "IB")
 {
-	_channel = "default";
+	_channel = __ipaaca_static_option_default_channel;
 
 	for (std::vector<std::string>::const_iterator it=category_interests.begin(); it!=category_interests.end(); ++it) {
 		_create_category_listener_if_needed(*it);
@@ -478,7 +478,7 @@ IPAACA_EXPORT InputBuffer::InputBuffer(const std::string& basename, const std::v
 IPAACA_EXPORT InputBuffer::InputBuffer(const std::string& basename, const std::string& category_interest1)
 :Buffer(basename, "IB")
 {
-	_channel = "default";
+	_channel = __ipaaca_static_option_default_channel;
 
 	_create_category_listener_if_needed(category_interest1);
 	_create_category_listener_if_needed(_uuid);
@@ -487,7 +487,7 @@ IPAACA_EXPORT InputBuffer::InputBuffer(const std::string& basename, const std::s
 IPAACA_EXPORT InputBuffer::InputBuffer(const std::string& basename, const std::string& category_interest1, const std::string& category_interest2)
 :Buffer(basename, "IB")
 {
-	_channel = "default";
+	_channel = __ipaaca_static_option_default_channel;
 
 	_create_category_listener_if_needed(category_interest1);
 	_create_category_listener_if_needed(category_interest2);
@@ -497,7 +497,7 @@ IPAACA_EXPORT InputBuffer::InputBuffer(const std::string& basename, const std::s
 IPAACA_EXPORT InputBuffer::InputBuffer(const std::string& basename, const std::string& category_interest1, const std::string& category_interest2, const std::string& category_interest3)
 :Buffer(basename, "IB")
 {
-	_channel = "default";
+	_channel = __ipaaca_static_option_default_channel;
 
 	_create_category_listener_if_needed(category_interest1);
 	_create_category_listener_if_needed(category_interest2);
@@ -508,7 +508,7 @@ IPAACA_EXPORT InputBuffer::InputBuffer(const std::string& basename, const std::s
 IPAACA_EXPORT InputBuffer::InputBuffer(const std::string& basename, const std::string& category_interest1, const std::string& category_interest2, const std::string& category_interest3, const std::string& category_interest4)
 :Buffer(basename, "IB")
 {
-	_channel = "default";
+	_channel = __ipaaca_static_option_default_channel;
 
 	_create_category_listener_if_needed(category_interest1);
 	_create_category_listener_if_needed(category_interest2);

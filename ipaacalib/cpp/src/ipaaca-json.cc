@@ -46,9 +46,6 @@ int fakeiu_main(int argc, char** argv)
 	//	return 0;
 	//}
 	//
-	ipaaca::CommandLineParser::ptr parser = ipaaca::CommandLineParser::create();
-	ipaaca::CommandLineOptions::ptr options = parser->parse(argc, argv);
-
 	std::string json_source("[\"old\",2,3,4]");
 	ipaaca::PayloadDocumentEntry::ptr entry = ipaaca::PayloadDocumentEntry::from_json_string_representation(json_source);
 	
@@ -186,7 +183,7 @@ int legacy_iu_main(int argc, char** argv)
 		std::cout << "Received remote update, new payload: " << iu->payload() << std::endl;
 	});
 	std::cout << "--- Create IUs with category jsonTest" << std::endl;
-	ipaaca::IU::ptr iu1 = ipaaca::IU::create("jsonTest", "JSON");
+	ipaaca::IU::ptr iu1 = ipaaca::IU::create("jsonTest");
 	ipaaca::IU::ptr iu2 = ipaaca::IU::create("jsonTest", "STR");
 	std::map<std::string, long> newmap = { {"fifty", 50}, {"ninety-nine", 99} };
 	std::cout << "--- Set map" << std::endl;
@@ -254,6 +251,9 @@ int iu_main(int argc, char** argv)
 
 int main(int argc, char** argv)
 {
+	ipaaca::CommandLineParser::ptr parser = ipaaca::CommandLineParser::create();
+	ipaaca::CommandLineOptions::ptr options = parser->parse(argc, argv);
+
 	return legacy_iu_main(argc, argv);
 	//return fakeiu_main(argc, argv);
 	//return iu_main(argc, argv);

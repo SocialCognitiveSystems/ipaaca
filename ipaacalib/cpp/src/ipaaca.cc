@@ -72,6 +72,9 @@ IPAACA_EXPORT std::string generate_uuid_string()//{{{
 #endif
 }//}}}
 
+IPAACA_EXPORT std::string __ipaaca_static_option_default_payload_type("JSON");
+IPAACA_EXPORT std::string __ipaaca_static_option_default_channel("default");
+
 /*
 void init_inprocess_too() {
 	//ParticipantConfig config = getFactory().getDefaultParticipantConfig();

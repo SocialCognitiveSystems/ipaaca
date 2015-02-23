@@ -167,6 +167,10 @@ namespace ipaaca {
 
 #include <ipaaca/ipaaca-locking.h>
 
+// Global static library variables (run-time default configuration)
+// Actual initial values are set in ipaaca.cc
+IPAACA_MEMBER_VAR_EXPORT extern std::string __ipaaca_static_option_default_payload_type;
+IPAACA_MEMBER_VAR_EXPORT extern std::string __ipaaca_static_option_default_channel;
 
 IPAACA_MEMBER_VAR_EXPORT Lock& logger_lock();
 
