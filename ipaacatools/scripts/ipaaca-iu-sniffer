@@ -61,10 +61,13 @@ def highlight_if_color(s, c='1'):
 def pretty_printed_dict(d):
 	s='{\n'
 	for k, v in d.items():
-		v = str(v)
+		if isinstance(v, unicode) or isinstance(v, str):
+			v = "'"+unicode(v)+"'"
+		else:
+			v = unicode(v)
 		v2 = v if len(v) <= arguments.max_size else v[:arguments.max_size] + '<excess length omitted>'
 		v2.replace('\\','\\\\').replace('\n', highlight_if_color('\\n'))
-		s += "\t '%s': '%s',\n" % (highlight_if_color(unicode(k),'1'), unicode(v2))
+		s += "\t '%s': %s,\n" % (highlight_if_color(unicode(k),'1'), unicode(v2))
 	s+='}'
 	return s
 

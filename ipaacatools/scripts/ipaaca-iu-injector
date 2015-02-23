@@ -43,7 +43,10 @@ import ipaaca
 
 
 def iu_update_handler(iu, event_type, local):
-	print(event_type + ': ' + str(iu))
+	try:
+		print(event_type + ': ' + unicode(iu))
+	except:
+		print(u"An error occurred printing an IU for an event of type "+event_type)
 
 
 parser = ipaaca.IpaacaArgumentParser(description='Ipaaca IU Injector -- Sent ipaaca messages or IUs from the command line')

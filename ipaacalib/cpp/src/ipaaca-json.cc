@@ -177,6 +177,31 @@ int fakeiu_main(int argc, char** argv)
 }
 
 
+int legacy_iu_main(int argc, char** argv)
+{
+	// produce and fill a new and a legacy IU with identical contents
+	
+	ipaaca::OutputBuffer::ptr ob = ipaaca::OutputBuffer::create("jsonTestSenderLegacy");
+	ob->register_handler([](ipaaca::IUInterface::ptr iu, ipaaca::IUEventType event_type, bool local) {
+		std::cout << "Received remote update, new payload: " << iu->payload() << std::endl;
+	});
+	std::cout << "--- Create IUs with category jsonTest" << std::endl;
+	ipaaca::IU::ptr iu1 = ipaaca::IU::create("jsonTest", "JSON");
+	ipaaca::IU::ptr iu2 = ipaaca::IU::create("jsonTest", "STR");
+	std::map<std::string, long> newmap = { {"fifty", 50}, {"ninety-nine", 99} };
+	std::cout << "--- Set map" << std::endl;
+	iu1->payload()["map"] = newmap;
+	iu1->payload()["array"] = std::vector<std::string>{"aaa", "bbb", "ccc"};
+	iu2->payload()["map"] = newmap;
+	iu2->payload()["array"] = std::vector<std::string>{"aaa", "bbb", "ccc"};
+	std::cout << "--- Publishing IUs with this payload:" << std::endl;
+	std::cout << iu1->payload() << std::endl;
+	ob->add(iu1);
+	ob->add(iu2);
+	std::cout << "--- Waiting for changes for 5s " << std::endl;
+	sleep(5);
+	return 0;
+}
 
 int iu_main(int argc, char** argv)
 {
@@ -229,6 +254,7 @@ int iu_main(int argc, char** argv)
 
 int main(int argc, char** argv)
 {
-	return fakeiu_main(argc, argv);
+	return legacy_iu_main(argc, argv);
+	//return fakeiu_main(argc, argv);
 	//return iu_main(argc, argv);
 }

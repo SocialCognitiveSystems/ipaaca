@@ -127,7 +127,9 @@ IPAACA_HEADER_EXPORT class IU: public IUInterface {//{{{
 		IPAACA_HEADER_EXPORT inline ~IU() {
 			//IPAACA_IMPLEMENT_ME
 		}
-		IPAACA_HEADER_EXPORT static boost::shared_ptr<IU> create(const std::string& category, IUAccessMode access_mode=IU_ACCESS_PUSH, bool read_only=false, const std::string& payload_type="JSON" );
+		[[deprecated("Please use the new argument order: category, payload_type, read_only")]]
+		IPAACA_HEADER_EXPORT static boost::shared_ptr<IU> create(const std::string& category, IUAccessMode access_mode, bool read_only=false, const std::string& payload_type="JSON" );
+		IPAACA_HEADER_EXPORT static boost::shared_ptr<IU> create(const std::string& category, const std::string& payload_type="JSON", bool read_only=false);
 		IPAACA_HEADER_EXPORT inline Payload& payload() _IPAACA_OVERRIDE_ { return _payload; }
 		IPAACA_HEADER_EXPORT inline const Payload& const_payload() const _IPAACA_OVERRIDE_ { return _payload; }
 		IPAACA_HEADER_EXPORT void commit() _IPAACA_OVERRIDE_;
@@ -156,7 +158,9 @@ IPAACA_HEADER_EXPORT class Message: public IU {//{{{
 		IPAACA_HEADER_EXPORT inline ~Message() {
 			//IPAACA_IMPLEMENT_ME
 		}
-		IPAACA_HEADER_EXPORT static boost::shared_ptr<Message> create(const std::string& category, IUAccessMode access_mode=IU_ACCESS_MESSAGE, bool read_only=true, const std::string& payload_type="JSON" );
+		[[deprecated("Please use the new argument order: category, payload_type")]]
+		IPAACA_HEADER_EXPORT static boost::shared_ptr<Message> create(const std::string& category, IUAccessMode access_mode, bool read_only=true, const std::string& payload_type="JSON" );
+		IPAACA_HEADER_EXPORT static boost::shared_ptr<Message> create(const std::string& category, const std::string& payload_type="JSON");
 	protected:
 		IPAACA_HEADER_EXPORT void _modify_links(bool is_delta, const LinkMap& new_links, const LinkMap& links_to_remove, const std::string& writer_name = "") _IPAACA_OVERRIDE_;
 		IPAACA_HEADER_EXPORT void _modify_payload(bool is_delta, const std::map<std::string, PayloadDocumentEntry::ptr>& new_items, const std::vector<std::string>& keys_to_remove, const std::string& writer_name = "") _IPAACA_OVERRIDE_;

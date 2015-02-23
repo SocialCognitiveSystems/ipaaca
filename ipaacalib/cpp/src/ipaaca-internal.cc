@@ -173,6 +173,7 @@ IPAACA_EXPORT std::string IUConverter::serialize(const AnnotatedData& data, std:
 		item->set_key(kv.first);
 		//item->set_value( kv.second->to_json_string_representation() );
 		//item->set_type("JSON");
+		IPAACA_DEBUG("Payload type: " << obj->_payload_type)
 		if (obj->_payload_type=="JSON") {
 			item->set_value( kv.second->to_json_string_representation() );
 			item->set_type("JSON");
