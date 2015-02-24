@@ -406,6 +406,7 @@ IPAACA_EXPORT Informer<AnyType>::Ptr OutputBuffer::_get_informer(const std::stri
 	} else {
 		//IPAACA_INFO("Making new informer for category " << category)
 		std::string scope_string = "/ipaaca/channel/" + _channel + "/category/" + category;
+		IPAACA_INFO("Adding informer on " << scope_string)
 
 		Informer<AnyType>::Ptr informer = getFactory().createInformer<AnyType> ( Scope(scope_string));
 		_informer_store[category] = informer;
@@ -591,17 +592,15 @@ IPAACA_EXPORT RemoteServerPtr InputBuffer::_get_remote_server(const std::string&
 
 IPAACA_EXPORT ListenerPtr InputBuffer::_create_category_listener_if_needed(const std::string& category)
 {
-	IPAACA_INFO("Entering ...")
 	std::map<std::string, ListenerPtr>::iterator it = _listener_store.find(category);
 	if (it!=_listener_store.end()) {
-		IPAACA_INFO("... exiting.")
 		return it->second;
 	}
 	//IPAACA_INFO("Creating a new listener for category " << category)
 	std::string scope_string = "/ipaaca/channel/" + _channel + "/category/" + category;
 
 	ListenerPtr listener = getFactory().createListener( Scope(scope_string) );
-	IPAACA_INFO("Adding handler")
+	IPAACA_INFO("Adding listener on " << scope_string)
 	HandlerPtr event_handler = HandlerPtr(
 			new EventFunctionHandler(
 				boost::bind(&InputBuffer::_handle_iu_events, this, _1)
@@ -609,7 +608,6 @@ IPAACA_EXPORT ListenerPtr InputBuffer::_create_category_listener_if_needed(const
 		);
 	listener->addHandler(event_handler);
 	_listener_store[category] = listener;
-	IPAACA_INFO("... exiting.")
 	return listener;
 }
 IPAACA_EXPORT void InputBuffer::_trigger_resend_request(EventPtr event) {

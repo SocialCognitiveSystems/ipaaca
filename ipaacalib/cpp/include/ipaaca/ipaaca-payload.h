@@ -110,6 +110,7 @@ IPAACA_HEADER_EXPORT class PayloadDocumentEntry//{{{
 		//IPAACA_HEADER_EXPORT PayloadDocumentEntry(const std::string& source): modified(false), json_source(source), {};
 		IPAACA_HEADER_EXPORT std::string to_json_string_representation();
 		IPAACA_HEADER_EXPORT static std::shared_ptr<PayloadDocumentEntry> from_json_string_representation(const std::string& input);
+		IPAACA_HEADER_EXPORT static std::shared_ptr<PayloadDocumentEntry> from_unquoted_string_value(const std::string& input);
 		IPAACA_HEADER_EXPORT static std::shared_ptr<PayloadDocumentEntry> create_null();
 		IPAACA_HEADER_EXPORT std::shared_ptr<PayloadDocumentEntry> clone();
 		IPAACA_HEADER_EXPORT rapidjson::Value& get_or_create_nested_value_from_proxy_path(PayloadEntryProxy* pep);
@@ -211,6 +212,8 @@ IPAACA_HEADER_EXPORT class Payload//{{{
 		//  to be more precise: types of map<string, T> with T several interesting things (string, list<string>, etc.)
 		//IPAACA_HEADER_EXPORT inline void set(const std::map<std::string, const rapidjson::Document&>& all_elems) { _internal_replace_all(all_elems); }
 		//IPAACA_HEADER_EXPORT inline void merge(const std::map<std::string, const rapidjson::Document&>& elems_to_merge) { _internal_merge(elems_to_merge); }
+		// legacy / convenience setter
+		IPAACA_HEADER_EXPORT void set(const std::map<std::string, std::string>& all_elems);
 	protected:
 		IPAACA_HEADER_EXPORT PayloadDocumentEntry::ptr get_entry(const std::string& k); // json, changed str to proxy here, too
 	public:

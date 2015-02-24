@@ -218,6 +218,13 @@ IPAACA_EXPORT PayloadDocumentEntry::ptr PayloadDocumentEntry::from_json_string_r
 	entry->json_source = json_str;
 	return entry;
 }
+IPAACA_EXPORT PayloadDocumentEntry::ptr PayloadDocumentEntry::from_unquoted_string_value(const std::string& str)
+{
+	PayloadDocumentEntry::ptr entry = std::make_shared<ipaaca::PayloadDocumentEntry>();
+	entry->document.SetString(str.c_str(), entry->document.GetAllocator());
+	entry->update_json_source();
+	return entry;
+}
 
 /// update json_source after a write operation (on newly cloned entries)
 IPAACA_EXPORT void PayloadDocumentEntry::update_json_source()
@@ -642,6 +649,20 @@ IPAACA_EXPORT std::string Payload::get(const std::string& k) { // DEPRECATED
 	if (_document_store.count(k)>0) return _document_store[k]->document.GetString();
 	return "";
 }
+
+IPAACA_EXPORT void Payload::set(const std::map<std::string, std::string>& all_elems)
+{
+	std::map<std::string, PayloadDocumentEntry::ptr> newmap;
+	for (auto& kv: all_elems) {
+		/*PayloadDocumentEntry::ptr newit = PayloadDocumentEntry::create_null();
+		newit->document.SetString(kv.second, newit->document.GetAllocator());
+		newit->update_json_source();
+		newmap[kv.first] = newit;*/
+		newmap[kv.first] = PayloadDocumentEntry::from_unquoted_string_value(kv.second);
+	}
+	_internal_replace_all(newmap);
+}
+
 IPAACA_EXPORT void Payload::_remotely_enforced_wipe()
 {
 	_document_store.clear();
