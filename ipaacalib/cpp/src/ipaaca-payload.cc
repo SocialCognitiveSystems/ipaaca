@@ -454,6 +454,19 @@ IPAACA_EXPORT PayloadEntryProxy PayloadEntryProxy::operator[](int addr_idx_)
 	return operator[]((size_t) addr_idx_);
 }
 
+IPAACA_EXPORT PayloadEntryProxy& PayloadEntryProxy::operator=(const PayloadEntryProxy& otherproxy)
+{
+	PayloadDocumentEntry::ptr new_entry = document_entry->clone(); // copy-on-write, no lock required
+	rapidjson::Value& newval = new_entry->get_or_create_nested_value_from_proxy_path(this);
+	auto valueptr = otherproxy.json_value;
+	if (valueptr) { // only set if value is valid, keep default null value otherwise
+		newval.CopyFrom(*valueptr, new_entry->document.GetAllocator());
+	}
+	new_entry->update_json_source();
+	_payload->set(_key, new_entry);
+	return *this;
+}
+
 /*
 IPAACA_EXPORT PayloadEntryProxy& PayloadEntryProxy::operator=(const std::string& value)
 {

@@ -39,6 +39,42 @@
 using namespace rapidjson;
 using namespace std;
 
+int json_testbed_main(int argc, char** argv)
+{
+	std::string json_source("[\"old\",2,3,4]");
+	ipaaca::PayloadDocumentEntry::ptr entry = ipaaca::PayloadDocumentEntry::from_json_string_representation(json_source);
+	
+	std::string newinner("{\"K\":\"V\"}");
+	ipaaca::PayloadDocumentEntry::ptr entrynew = ipaaca::PayloadDocumentEntry::from_json_string_representation(newinner);
+	
+	ipaaca::FakeIU::ptr iu = ipaaca::FakeIU::create();
+	iu->add_fake_payload_item("a", entry);
+	iu->add_fake_payload_item("b", entrynew);
+	
+	auto proxy = iu->payload()["a"][3];
+	std::cout << proxy << std::endl;
+	
+	std::cout << "IU payload before: " << iu->payload() << std::endl;
+	std::cout << "Entry before:      " << entry << std::endl;
+	std::cout << "EntryNew before:   " << entrynew << std::endl;
+	
+	/*
+	proxy.json_value->CopyFrom(entrynew->document, proxy.document_entry->document.GetAllocator());
+	proxy.document_entry->update_json_source();
+	*/
+	proxy = iu->payload()["b"];
+	
+	std::cout << "Newly written part: " << iu->payload()["a"][3] << std::endl;
+	iu->payload()["a"][3]["addkey"] = "addvalue";
+	
+	std::cout << "IU payload after: " << iu->payload() << std::endl;
+	std::cout << "Entry after:      " << entry << std::endl;
+	std::cout << "EntryNew after:   " << entrynew << std::endl;
+	
+	return 0;
+}
+
+
 int fakeiu_main(int argc, char** argv)
 {
 	//if (argc<2) {
@@ -254,7 +290,8 @@ int main(int argc, char** argv)
 	ipaaca::CommandLineParser::ptr parser = ipaaca::CommandLineParser::create();
 	ipaaca::CommandLineOptions::ptr options = parser->parse(argc, argv);
 
-	return legacy_iu_main(argc, argv);
+	return json_testbed_main(argc, argv);
+	//return legacy_iu_main(argc, argv);
 	//return fakeiu_main(argc, argv);
 	//return iu_main(argc, argv);
 }

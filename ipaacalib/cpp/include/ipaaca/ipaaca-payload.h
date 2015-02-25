@@ -300,6 +300,7 @@ IPAACA_HEADER_EXPORT class PayloadEntryProxy//{{{
 			_payload->set(_key, new_entry);
 			return *this;
 		}
+		IPAACA_HEADER_EXPORT PayloadEntryProxy& operator=(const PayloadEntryProxy& otherproxy);
 		
 		//IPAACA_HEADER_EXPORT PayloadEntryProxy& operator=(const std::string& value);
 		//IPAACA_HEADER_EXPORT PayloadEntryProxy& operator=(const char* value);
