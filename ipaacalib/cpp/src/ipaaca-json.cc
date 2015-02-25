@@ -50,6 +50,7 @@ int json_testbed_main(int argc, char** argv)
 	ipaaca::FakeIU::ptr iu = ipaaca::FakeIU::create();
 	iu->add_fake_payload_item("a", entry);
 	iu->add_fake_payload_item("b", entrynew);
+	iu->payload()["c"] = "simpleString";
 	
 	auto proxy = iu->payload()["a"][3];
 	std::cout << proxy << std::endl;

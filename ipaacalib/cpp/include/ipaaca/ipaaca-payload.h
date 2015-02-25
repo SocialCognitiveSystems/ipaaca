@@ -103,7 +103,7 @@ IPAACA_HEADER_EXPORT class PayloadDocumentEntry//{{{
 	public:
 		IPAACA_MEMBER_VAR_EXPORT ipaaca::Lock lock;
 		IPAACA_MEMBER_VAR_EXPORT bool modified;
-		IPAACA_MEMBER_VAR_EXPORT std::string json_source;
+		//IPAACA_MEMBER_VAR_EXPORT std::string json_source;
 		IPAACA_MEMBER_VAR_EXPORT rapidjson::Document document;
 		IPAACA_HEADER_EXPORT inline PayloadDocumentEntry(): modified(false) { }
 		IPAACA_HEADER_EXPORT inline ~PayloadDocumentEntry() { }
@@ -114,7 +114,7 @@ IPAACA_HEADER_EXPORT class PayloadDocumentEntry//{{{
 		IPAACA_HEADER_EXPORT static std::shared_ptr<PayloadDocumentEntry> create_null();
 		IPAACA_HEADER_EXPORT std::shared_ptr<PayloadDocumentEntry> clone();
 		IPAACA_HEADER_EXPORT rapidjson::Value& get_or_create_nested_value_from_proxy_path(PayloadEntryProxy* pep);
-		IPAACA_HEADER_EXPORT void update_json_source();
+		//IPAACA_HEADER_EXPORT void update_json_source();
 	typedef std::shared_ptr<PayloadDocumentEntry> ptr;
 };
 //}}}
@@ -296,7 +296,7 @@ IPAACA_HEADER_EXPORT class PayloadEntryProxy//{{{
 			PayloadDocumentEntry::ptr new_entry = document_entry->clone(); // copy-on-write, no lock required
 			rapidjson::Value& newval = new_entry->get_or_create_nested_value_from_proxy_path(this);
 			pack_into_json_value(newval, new_entry->document.GetAllocator(), t);
-			new_entry->update_json_source();
+			//new_entry->update_json_source();
 			_payload->set(_key, new_entry);
 			return *this;
 		}
