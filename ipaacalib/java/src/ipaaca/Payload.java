@@ -34,6 +34,8 @@ package ipaaca;
 
 import ipaaca.protobuf.Ipaaca.PayloadItem;
 
+import org.apache.commons.lang.StringEscapeUtils;
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -93,18 +95,19 @@ public class Payload implements Map<String, String>
             map.put(item.getKey(), pseudoConvertFromJSON(item.getValue(), item.getType()));
         }
     }
-    
+
     public String pseudoConvertFromJSON(String value, String type) {
-    	if (type.equals("JSON")) {
-    		if (value.startsWith("\"")) {
-    			return value.replaceAll("\\\"", "");
-    		} else if (value.startsWith("{") || value.startsWith("[") || value.matches("true") || value.matches("false") || value.matches("-?[0-9]*[.,]?[0-9][0-9]*.*")) { 
-    			return value;
-    		} else if (value.equals("null")) {
-    			return "";
-    		}
-    	}
-    	return value;
+        if (type.equals("JSON")) {
+            if (value.startsWith("\"")) {
+                //return value.replaceAll("\\\"", "");
+                return StringEscapeUtils.unescapeJava(value.substring(1, value.length() - 1));
+            } else if (value.startsWith("{") || value.startsWith("[") || value.matches("true") || value.matches("false") || value.matches("-?[0-9]*[.,]?[0-9][0-9]*.*")) { 
+                return value;
+            } else if (value.equals("null")) {
+                return "";
+            }
+        }
+        return value;
     }
 
     void enforcedSetItem(String key, String value)

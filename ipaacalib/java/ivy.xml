@@ -9,5 +9,6 @@
       <dependency org="google"  name="protobuf-java"          rev="latest.release"  />
       <dependency org="rsb"     name="rsb"                    rev="latest.release"  />
       <dependency org="lombok"  name="lombok"                 rev="latest.release"  />
+      <dependency org="apache"  name="commons-lang"           rev="latest.release"  />
    </dependencies>
 </ivy-module>
