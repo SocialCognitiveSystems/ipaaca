@@ -32,7 +32,19 @@
 
 #include <ipaaca/ipaaca.h>
 
+#include <cctype>
+#include <string>
+#include <algorithm>
+
+
 namespace ipaaca {
+
+std::string str_trim(const std::string &s)
+{
+	auto wsfront = std::find_if_not(s.begin(), s.end(), [](int c){ return std::isspace(c); } );
+	auto wsback = std::find_if_not(s.rbegin(), s.rend(), [](int c){ return std::isspace(c); } ).base();
+	return (wsback<=wsfront ? std::string() : std::string(wsfront, wsback));
+}
 
 std::string str_join(const std::set<std::string>& set,const std::string& sep)
 {

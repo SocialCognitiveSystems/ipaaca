@@ -90,6 +90,20 @@ IPAACA_EXPORT std::ostream& operator<<(std::ostream& os, const Payload& obj)//{{
 }
 //}}}
 
+double strict_numerical_interpretation(const std::string& str)
+{
+	char* endptr;
+	auto s = str_trim(str);
+	const char* startptr = s.c_str();
+	long l = strtod(startptr, &endptr);
+	if ((*endptr)=='\0') {
+		// everything could be parsed
+		return l;
+	} else {
+		throw PayloadTypeConversionError();
+	}
+}
+
 // json_value_cast//{{{
 IPAACA_EXPORT template<> std::string json_value_cast(const rapidjson::Value& v)
 {
@@ -102,7 +116,7 @@ IPAACA_EXPORT template<> std::string json_value_cast(const rapidjson::Value& v)
 }
 IPAACA_EXPORT template<> long json_value_cast(const rapidjson::Value& v)
 {
-	if (v.IsString()) return atol(std::string(v.GetString()).c_str());
+	if (v.IsString()) return (long) strict_numerical_interpretation(v.GetString());
 	if (v.IsInt()) return v.GetInt();
 	if (v.IsUint()) return v.GetUint();
 	if (v.IsInt64()) return v.GetInt64();
@@ -111,14 +125,29 @@ IPAACA_EXPORT template<> long json_value_cast(const rapidjson::Value& v)
 	if (v.IsBool()) return v.GetBool() ? 1l : 0l;
 	if (v.IsNull()) return 0l;
 	// default: return parse of string version (should always be 0 though?)
+	throw PayloadTypeConversionError();
+	/*
 	rapidjson::StringBuffer buffer;
 	rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
 	v.Accept(writer);
 	return atol(std::string(buffer.GetString()).c_str());
+	*/
+}
+IPAACA_EXPORT template<> int json_value_cast(const rapidjson::Value& v)
+{
+	if (v.IsString()) return (int) strict_numerical_interpretation(v.GetString());
+	if (v.IsInt()) return v.GetInt();
+	if (v.IsUint()) return v.GetUint();
+	if (v.IsInt64()) return v.GetInt64();
+	if (v.IsUint64()) return v.GetUint64();
+	if (v.IsDouble()) return (long) v.GetDouble();
+	if (v.IsBool()) return v.GetBool() ? 1l : 0l;
+	if (v.IsNull()) return 0l;
+	throw PayloadTypeConversionError();
 }
 IPAACA_EXPORT template<> double json_value_cast(const rapidjson::Value& v)
 {
-	if (v.IsString()) return atof(std::string(v.GetString()).c_str());
+	if (v.IsString()) return strict_numerical_interpretation(v.GetString());
 	if (v.IsDouble()) return v.GetDouble();
 	if (v.IsInt()) return (double) v.GetInt();
 	if (v.IsUint()) return (double) v.GetUint();
@@ -126,11 +155,7 @@ IPAACA_EXPORT template<> double json_value_cast(const rapidjson::Value& v)
 	if (v.IsUint64()) return (double) v.GetUint64();
 	if (v.IsBool()) return v.GetBool() ? 1.0 : 0.0;
 	if (v.IsNull()) return 0.0;
-	// default: return parse of string version (should always be 0.0 though?)
-	rapidjson::StringBuffer buffer;
-	rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
-	v.Accept(writer);
-	return atof(std::string(buffer.GetString()).c_str());
+	throw PayloadTypeConversionError();
 }
 IPAACA_EXPORT template<> bool json_value_cast(const rapidjson::Value& v)
 {
@@ -146,12 +171,8 @@ IPAACA_EXPORT template<> bool json_value_cast(const rapidjson::Value& v)
 	if (v.IsInt64()) return v.GetInt64() != 0;
 	if (v.IsUint64()) return v.GetUint64() != 0;
 	if (v.IsDouble()) return v.GetDouble() != 0.0;
-	// default: return parse of string version (should always be 0.0 though?)
-	rapidjson::StringBuffer buffer;
-	rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
-	v.Accept(writer);
-	std::string s = buffer.GetString();
-	return !((s=="")||(s=="false")||(s=="False")||(s=="0"));
+	// default: assume "pointer-like" semantics (i.e. objects are TRUE)
+	return true;
 }
 /*
  * std::map<std::string, std::string> result;
@@ -161,6 +182,10 @@ IPAACA_EXPORT template<> bool json_value_cast(const rapidjson::Value& v)
 			*/
 //}}}
 
+IPAACA_EXPORT void pack_into_json_value(rapidjson::Value& valueobject, rapidjson::Document::AllocatorType& allocator, int newvalue)
+{
+	valueobject.SetInt(newvalue);
+}
 IPAACA_EXPORT void pack_into_json_value(rapidjson::Value& valueobject, rapidjson::Document::AllocatorType& allocator, long newvalue)
 {
 	valueobject.SetInt(newvalue);

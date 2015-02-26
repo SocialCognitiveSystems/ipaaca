@@ -210,6 +210,14 @@ IPAACA_HEADER_EXPORT class NotImplementedError: public Exception//{{{
 			_description = "NotImplementedError";
 		}
 };//}}}
+IPAACA_HEADER_EXPORT class PayloadTypeConversionError: public Exception//{{{
+{
+	public:
+		IPAACA_HEADER_EXPORT inline ~PayloadTypeConversionError() throw() { }
+		IPAACA_HEADER_EXPORT inline PayloadTypeConversionError() { //boost::shared_ptr<IU> iu) {
+			_description = "PayloadTypeConversionError";
+		}
+};//}}}
 IPAACA_HEADER_EXPORT class PayloadAddressingError: public Exception//{{{
 {
 	public:
@@ -308,6 +316,7 @@ class CommandLineParser {
 //}}}
 // in ipaaca-string-utils.cc
 // additional misc functions ( String splitting / joining )//{{{
+IPAACA_HEADER_EXPORT std::string str_trim(const std::string &s);
 IPAACA_HEADER_EXPORT std::string str_join(const std::set<std::string>& set,const std::string& sep);
 IPAACA_HEADER_EXPORT std::string str_join(const std::vector<std::string>& vec,const std::string& sep);
 IPAACA_HEADER_EXPORT void str_split_wipe(const std::string& str, std::vector<std::string>& tokens, const std::string& delimiters );

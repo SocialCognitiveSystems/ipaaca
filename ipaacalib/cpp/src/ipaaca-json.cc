@@ -47,13 +47,29 @@ int iterators_main(int argc, char** argv)//{{{
 	ipaaca::FakeIU::ptr iu = ipaaca::FakeIU::create();
 	iu->add_fake_payload_item("a", entry);
 	iu->payload()["b"] = "simpleString";
+	iu->payload()["bPrime"] = "simpleString";
 	iu->payload()["c"] = "anotherSimpleString";
+	iu->payload()["d"] = 100;
+	iu->payload()["e"] = 10000l;
 	
 	std::cout << "Iterate over payload" << std::endl;
 	for (auto it = iu->payload().begin(); it != iu->payload().end(); ++it) {
 		std::cout << "  " << it->first << " -> " << it->second << std::endl;
 	}
 	
+	std::cout << "Comparisons" << std::endl;
+	bool eq;
+	eq = iu->payload()["a"] == iu->payload()["b"];
+	std::cout << "  a==b ? : " << (eq?"true":"false") << std::endl;
+	eq = iu->payload()["b"] == iu->payload()["bPrime"];
+	std::cout << "  b==bPrime ? : " << (eq?"true":"false") << std::endl;
+	eq = iu->payload()["b"] == "simpleString";
+	std::cout << "  b==\"simpleString\" ? : " << (eq?"true":"false") << std::endl;
+	eq = iu->payload()["b"] == 100;
+	std::cout << "  b==100 ? : " << (eq?"true":"false") << std::endl;
+	eq = iu->payload()["d"] == 100;
+	std::cout << "  d==100 ? : " << (eq?"true":"false") << std::endl;
+
 	return 0;
 }
 //}}}

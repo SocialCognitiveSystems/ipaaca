@@ -44,6 +44,7 @@
 IPAACA_HEADER_EXPORT template<typename T> T json_value_cast(const rapidjson::Value&);
 IPAACA_HEADER_EXPORT template<typename T> T json_value_cast(const rapidjson::Value* value) { if (!value) return T(); return json_value_cast<T>(*value); }
 IPAACA_HEADER_EXPORT template<> long json_value_cast(const rapidjson::Value&);
+IPAACA_HEADER_EXPORT template<> int json_value_cast(const rapidjson::Value&);
 IPAACA_HEADER_EXPORT template<> double json_value_cast(const rapidjson::Value&);
 IPAACA_HEADER_EXPORT template<> bool json_value_cast(const rapidjson::Value&);
 IPAACA_HEADER_EXPORT template<> std::string json_value_cast(const rapidjson::Value&);
@@ -53,6 +54,7 @@ IPAACA_HEADER_EXPORT template<> std::map<std::string, std::string> json_value_ca
 
 // helpers to set Value& from various standard types
 //IPAACA_HEADER_EXPORT template<typename T> void pack_into_json_value(rapidjson::Value&, rapidjson::Document::AllocatorType&, T t);
+IPAACA_HEADER_EXPORT void pack_into_json_value(rapidjson::Value&, rapidjson::Document::AllocatorType&, int);
 IPAACA_HEADER_EXPORT void pack_into_json_value(rapidjson::Value&, rapidjson::Document::AllocatorType&, long);
 IPAACA_HEADER_EXPORT void pack_into_json_value(rapidjson::Value&, rapidjson::Document::AllocatorType&, double);
 IPAACA_HEADER_EXPORT void pack_into_json_value(rapidjson::Value&, rapidjson::Document::AllocatorType&, bool);
@@ -301,6 +303,26 @@ IPAACA_HEADER_EXPORT class PayloadEntryProxy//{{{
 			_payload->set(_key, new_entry);
 			return *this;
 		}
+		IPAACA_HEADER_EXPORT inline bool operator==(const PayloadEntryProxy& otherproxy) { return (json_value && otherproxy.json_value && ((*json_value)==*(otherproxy.json_value))); }
+		IPAACA_HEADER_EXPORT inline bool operator!=(const PayloadEntryProxy& otherproxy) { return !operator==(otherproxy); }
+		IPAACA_HEADER_EXPORT template<typename T> bool operator==(T othervalue)
+		{
+			if (!json_value) return false;
+			try {
+				return json_value_cast<T>(*json_value) == othervalue;
+			} catch(PayloadTypeConversionError& ex) {
+				// assume conversion error = type mismatch = unequal
+				return false;
+			}
+		}
+		IPAACA_HEADER_EXPORT template<typename T> bool operator!=(T othervalue) { return !operator==(othervalue); }
+		IPAACA_HEADER_EXPORT inline bool operator==(const char* othervalue)
+		{
+			if (!json_value) return false;
+			return json_value_cast<std::string>(*json_value) == othervalue;
+		}
+		IPAACA_HEADER_EXPORT inline bool operator!=(const char* othervalue) { return !operator==(othervalue); }
+		
 		IPAACA_HEADER_EXPORT PayloadEntryProxy& operator=(const PayloadEntryProxy& otherproxy);
 		
 		//IPAACA_HEADER_EXPORT PayloadEntryProxy& operator=(const std::string& value);
