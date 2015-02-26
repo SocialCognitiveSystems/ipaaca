@@ -74,6 +74,7 @@ IPAACA_EXPORT std::string generate_uuid_string()//{{{
 
 IPAACA_EXPORT std::string __ipaaca_static_option_default_payload_type("JSON");
 IPAACA_EXPORT std::string __ipaaca_static_option_default_channel("default");
+IPAACA_EXPORT unsigned int __ipaaca_static_option_log_level(IPAACA_LOG_LEVEL_WARNING);
 
 /*
 void init_inprocess_too() {

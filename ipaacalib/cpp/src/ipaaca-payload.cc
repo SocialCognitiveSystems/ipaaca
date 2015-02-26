@@ -728,6 +728,12 @@ IPAACA_EXPORT std::pair<std::string, PayloadEntryProxy> PayloadIterator::operato
 	if (raw_iterator == _payload->_document_store.end()) throw PayloadIteratorInvalidError();
 	return std::pair<std::string, PayloadEntryProxy>(raw_iterator->first, PayloadEntryProxy(_payload, raw_iterator->first));
 }
+IPAACA_EXPORT std::shared_ptr<std::pair<std::string, PayloadEntryProxy> > PayloadIterator::operator->()
+{
+	if (_payload->revision_changed(reference_payload_revision)) throw PayloadIteratorInvalidError();
+	if (raw_iterator == _payload->_document_store.end()) throw PayloadIteratorInvalidError();
+	return std::make_shared<std::pair<std::string, PayloadEntryProxy> >(raw_iterator->first, PayloadEntryProxy(_payload, raw_iterator->first));
+}
 
 IPAACA_EXPORT bool PayloadIterator::operator==(const PayloadIterator& ref)
 {

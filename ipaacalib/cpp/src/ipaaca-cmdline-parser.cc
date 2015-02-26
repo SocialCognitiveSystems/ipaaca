@@ -96,7 +96,6 @@ void CommandLineParser::initialize_parser_defaults()
 
 bool CommandLineParser::consume_library_option(const std::string& name, bool expect, const char* optarg)
 {
-	IPAACA_DEBUG("Trying to consume " << name)
 	if (name=="ipaaca-payload-type") {
 		std::string newtype = optarg;
 		if (newtype=="MAP") newtype="STR";
@@ -111,10 +110,31 @@ bool CommandLineParser::consume_library_option(const std::string& name, bool exp
 		IPAACA_DEBUG("Setting default channel " << newch)
 		__ipaaca_static_option_default_channel = newch;
 	} else if (name=="ipaaca-enable-logging") {
-		IPAACA_DEBUG("TODO: set ipaaca log level to " << optarg)
-		IPAACA_IMPLEMENT_ME
+		std::string level(optarg);
+		if ((level=="NONE") || (level=="SILENT")) {
+			IPAACA_DEBUG("Will set log level to NONE")
+			__ipaaca_static_option_log_level = IPAACA_LOG_LEVEL_NONE;
+		} else if (level=="DEBUG") {
+			__ipaaca_static_option_log_level = IPAACA_LOG_LEVEL_DEBUG;
+			IPAACA_DEBUG("Just set log level to DEBUG")
+		} else if (level=="INFO") {
+			IPAACA_DEBUG("Set log level to INFO")
+			__ipaaca_static_option_log_level = IPAACA_LOG_LEVEL_INFO;
+		} else if (level=="WARNING") {
+			IPAACA_DEBUG("Set log level to WARNING")
+			__ipaaca_static_option_log_level = IPAACA_LOG_LEVEL_WARNING;
+		} else if (level=="ERROR") {
+			IPAACA_DEBUG("Set log level to ERROR")
+			__ipaaca_static_option_log_level = IPAACA_LOG_LEVEL_ERROR;
+		} else if (level=="CRITICAL") {
+			IPAACA_DEBUG("Set log level to CRITICAL")
+			__ipaaca_static_option_log_level = IPAACA_LOG_LEVEL_CRITICAL;
+		} else {
+			IPAACA_WARNING("Unknown log level " << optarg)
+			IPAACA_WARNING("Valid levels are: NONE, DEBUG, INFO, WARNING, ERROR, CRITICAL ")
+		}
 	} else if (name=="rsb-enable-logging") {
-		IPAACA_DEBUG("TODO: set rsb log level to " << optarg)
+		IPAACA_WARNING("Unimplemented option ignored: " << name)
 		IPAACA_IMPLEMENT_ME
 	} else {
 		return false;

@@ -245,6 +245,7 @@ IPAACA_HEADER_EXPORT class PayloadIterator//{{{
 		IPAACA_HEADER_EXPORT PayloadIterator(const PayloadIterator& iter);
 		IPAACA_HEADER_EXPORT PayloadIterator& operator++();
 		IPAACA_HEADER_EXPORT std::pair<std::string, PayloadEntryProxy> operator*();
+		IPAACA_HEADER_EXPORT std::shared_ptr<std::pair<std::string, PayloadEntryProxy> > operator->();
 		IPAACA_HEADER_EXPORT bool operator==(const PayloadIterator& ref);
 		IPAACA_HEADER_EXPORT bool operator!=(const PayloadIterator& ref);
 		// constructor to create a new top-most parent proxy (from a payload key)

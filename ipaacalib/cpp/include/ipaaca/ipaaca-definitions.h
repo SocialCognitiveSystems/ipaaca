@@ -55,6 +55,14 @@ typedef uint32_t IUEventType;
 /// Bit mask for receiving all events
 #define IU_ALL_EVENTS  127
 
+/// Ipaaca (console) log levels
+#define IPAACA_LOG_LEVEL_NONE     0
+#define IPAACA_LOG_LEVEL_CRITICAL 1
+#define IPAACA_LOG_LEVEL_ERROR    2
+#define IPAACA_LOG_LEVEL_WARNING  3
+#define IPAACA_LOG_LEVEL_INFO     4
+#define IPAACA_LOG_LEVEL_DEBUG    5
+
 /// Convert an int event type to a human-readable string
 IPAACA_HEADER_EXPORT inline std::string iu_event_type_to_str(IUEventType type)
 {

@@ -39,7 +39,26 @@
 using namespace rapidjson;
 using namespace std;
 
-int json_testbed_main(int argc, char** argv)
+int iterators_main(int argc, char** argv)//{{{
+{
+	std::string json_source("[\"old\",2,3,{\"key1\":\"value1\", \"key2\":\"value2\"}]");
+	ipaaca::PayloadDocumentEntry::ptr entry = ipaaca::PayloadDocumentEntry::from_json_string_representation(json_source);
+	
+	ipaaca::FakeIU::ptr iu = ipaaca::FakeIU::create();
+	iu->add_fake_payload_item("a", entry);
+	iu->payload()["b"] = "simpleString";
+	iu->payload()["c"] = "anotherSimpleString";
+	
+	std::cout << "Iterate over payload" << std::endl;
+	for (auto it = iu->payload().begin(); it != iu->payload().end(); ++it) {
+		std::cout << "  " << it->first << " -> " << it->second << std::endl;
+	}
+	
+	return 0;
+}
+//}}}
+
+int json_testbed_main(int argc, char** argv)//{{{
 {
 	std::string json_source("[\"old\",2,3,4]");
 	ipaaca::PayloadDocumentEntry::ptr entry = ipaaca::PayloadDocumentEntry::from_json_string_representation(json_source);
@@ -53,7 +72,6 @@ int json_testbed_main(int argc, char** argv)
 	iu->payload()["c"] = "simpleString";
 	
 	auto proxy = iu->payload()["a"][3];
-	std::cout << proxy << std::endl;
 	
 	std::cout << "IU payload before: " << iu->payload() << std::endl;
 	std::cout << "Entry before:      " << entry << std::endl;
@@ -74,9 +92,9 @@ int json_testbed_main(int argc, char** argv)
 	
 	return 0;
 }
+//}}}
 
-
-int fakeiu_main(int argc, char** argv)
+int fakeiu_main(int argc, char** argv)//{{{
 {
 	//if (argc<2) {
 	//	std::cout << "Please provide json content as the first argument." << std::endl;
@@ -198,20 +216,11 @@ int fakeiu_main(int argc, char** argv)
 	for (auto& kv: pl_flat) {
 		std::cout << "  " << std::left << std::setw(15) << (kv.first+": ") << kv.second << std::endl;
 	}
-	/*{
-		StringBuffer buffer;
-		Writer<StringBuffer> writer(buffer);
-		entry->document.Accept(writer);
-		std::string docstring = buffer.GetString();
-		std::cout << "Final document:  " << docstring << std::endl;
-	}*/
-	
-	// Done
 	return 0;
 }
+//}}}
 
-
-int legacy_iu_main(int argc, char** argv)
+int legacy_iu_main(int argc, char** argv)//{{{
 {
 	// produce and fill a new and a legacy IU with identical contents
 	
@@ -221,7 +230,7 @@ int legacy_iu_main(int argc, char** argv)
 	});
 	std::cout << "--- Create IUs with category jsonTest" << std::endl;
 	ipaaca::IU::ptr iu1 = ipaaca::IU::create("jsonTest");
-	ipaaca::IU::ptr iu2 = ipaaca::IU::create("jsonTest", "STR");
+	ipaaca::IU::ptr iu2 = ipaaca::IU::create("jsonTest", "STR"); // explicity request old payload
 	std::map<std::string, long> newmap = { {"fifty", 50}, {"ninety-nine", 99} };
 	std::cout << "--- Set map" << std::endl;
 	iu1->payload()["map"] = newmap;
@@ -236,8 +245,9 @@ int legacy_iu_main(int argc, char** argv)
 	sleep(5);
 	return 0;
 }
+//}}}
 
-int iu_main(int argc, char** argv)
+int iu_main(int argc, char** argv)//{{{
 {
 	ipaaca::InputBuffer::ptr ib = ipaaca::InputBuffer::create("jsonTestReceiver", "jsonTest");
 	ib->register_handler([](ipaaca::IUInterface::ptr iu, ipaaca::IUEventType event_type, bool local) {
@@ -285,13 +295,15 @@ int iu_main(int argc, char** argv)
 	std::cout << "--- Terminating " << std::endl;
 	return 0;
 }
+//}}}
 
 int main(int argc, char** argv)
 {
 	ipaaca::CommandLineParser::ptr parser = ipaaca::CommandLineParser::create();
 	ipaaca::CommandLineOptions::ptr options = parser->parse(argc, argv);
 
-	return json_testbed_main(argc, argv);
+	return iterators_main(argc, argv);
+	//return json_testbed_main(argc, argv);
 	//return legacy_iu_main(argc, argv);
 	//return fakeiu_main(argc, argv);
 	//return iu_main(argc, argv);

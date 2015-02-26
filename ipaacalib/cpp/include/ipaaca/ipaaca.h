@@ -75,15 +75,19 @@
 #endif
 
 #ifdef IPAACA_DEBUG_MESSAGES
-#define IPAACA_DEBUG(i) std::cout << __FILE__ << ":" << __LINE__ << ": " << __FUNCTION_NAME__ << "() -- " << i << std::endl;
-#define IPAACA_INFO(i) std::cout << __FILE__ << ":" << __LINE__ << ": " << __FUNCTION_NAME__ << "() -- " << i << std::endl;
-#define IPAACA_WARNING(i) std::cout << __FILE__ << ":" << __LINE__ << ": " << __FUNCTION_NAME__ << "() -- WARNING: " << i << std::endl;
-#define IPAACA_IMPLEMENT_ME std::cout << __FILE__ << ":" << __LINE__ << ": " << __FUNCTION_NAME__ << "() -- IMPLEMENT ME" << std::endl;
-#define IPAACA_TODO(i) std::cout << __FILE__ << ":" << __LINE__ << ": " << __FUNCTION_NAME__ << "() -- TODO: " << i << std::endl;
+#define IPAACA_DEBUG(i)     if (__ipaaca_static_option_log_level>=IPAACA_LOG_LEVEL_DEBUG) { std::cout << __FILE__ << ":" << __LINE__ << ": " << __FUNCTION_NAME__ << "() -- Debug: " << i << std::endl; }
+#define IPAACA_INFO(i)      if (__ipaaca_static_option_log_level>=IPAACA_LOG_LEVEL_INFO) { std::cout << __FILE__ << ":" << __LINE__ << ": " << __FUNCTION_NAME__ << "() -- Info: " << i << std::endl; }
+#define IPAACA_WARNING(i)   if (__ipaaca_static_option_log_level>=IPAACA_LOG_LEVEL_WARNING) { std::cout << __FILE__ << ":" << __LINE__ << ": " << __FUNCTION_NAME__ << "() -- WARNING: " << i << std::endl; }
+#define IPAACA_ERROR(i)     if (__ipaaca_static_option_log_level>=IPAACA_LOG_LEVEL_ERROR) { std::cout << __FILE__ << ":" << __LINE__ << ": " << __FUNCTION_NAME__ << "() -- ERROR: " << i << std::endl; }
+#define IPAACA_CRITICAL(i)  if (__ipaaca_static_option_log_level>=IPAACA_LOG_LEVEL_CRITICAL) { std::cout << __FILE__ << ":" << __LINE__ << ": " << __FUNCTION_NAME__ << "() -- CRITICAL: " << i << std::endl; }
+#define IPAACA_IMPLEMENT_ME if (__ipaaca_static_option_log_level>=IPAACA_LOG_LEVEL_INFO) { std::cout << __FILE__ << ":" << __LINE__ << ": " << __FUNCTION_NAME__ << "() -- IMPLEMENT_ME:" << std::endl; }
+#define IPAACA_TODO(i)      if (__ipaaca_static_option_log_level>=IPAACA_LOG_LEVEL_INFO) { std::cout << __FILE__ << ":" << __LINE__ << ": " << __FUNCTION_NAME__ << "() -- TODO: " << i << std::endl; }
 #else
 #define IPAACA_DEBUG(i) ;
 #define IPAACA_INFO(i) ;
 #define IPAACA_WARNING(i) ;
+#define IPAACA_ERROR(i) ;
+#define IPAACA_CRITICAL(i) ;
 #define IPAACA_IMPLEMENT_ME ;
 #define IPAACA_TODO(i) ;
 #endif
@@ -171,6 +175,7 @@ namespace ipaaca {
 // Actual initial values are set in ipaaca.cc
 IPAACA_MEMBER_VAR_EXPORT extern std::string __ipaaca_static_option_default_payload_type;
 IPAACA_MEMBER_VAR_EXPORT extern std::string __ipaaca_static_option_default_channel;
+IPAACA_MEMBER_VAR_EXPORT extern unsigned int __ipaaca_static_option_log_level;
 
 IPAACA_MEMBER_VAR_EXPORT Lock& logger_lock();
 
