@@ -254,10 +254,64 @@ IPAACA_HEADER_EXPORT class PayloadIterator//{{{
 };
 //}}}
 
+IPAACA_HEADER_EXPORT class PayloadEntryProxyMapIterator//{{{
+{
+	public:
+		typedef rapidjson::GenericDocument<rapidjson::UTF8<char>, rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator>, rapidjson::CrtAllocator>::MemberIterator RawIterator;
+	protected:
+		IPAACA_MEMBER_VAR_EXPORT PayloadEntryProxy* proxy;
+		IPAACA_MEMBER_VAR_EXPORT RawIterator raw_iterator;
+	public:
+		IPAACA_HEADER_EXPORT PayloadEntryProxyMapIterator(PayloadEntryProxy* proxy, RawIterator&& raw_iter);
+		IPAACA_HEADER_EXPORT PayloadEntryProxyMapIterator& operator++();
+		IPAACA_HEADER_EXPORT std::pair<std::string, PayloadEntryProxy> operator*();
+		IPAACA_HEADER_EXPORT std::shared_ptr<std::pair<std::string, PayloadEntryProxy> > operator->();
+		IPAACA_HEADER_EXPORT bool operator==(const PayloadEntryProxyMapIterator& other_iter);
+		IPAACA_HEADER_EXPORT bool operator!=(const PayloadEntryProxyMapIterator& other_iter);
+};
+//}}}
+IPAACA_HEADER_EXPORT class PayloadEntryProxyListIterator//{{{
+{
+	protected:
+		IPAACA_MEMBER_VAR_EXPORT PayloadEntryProxy* proxy;
+		IPAACA_MEMBER_VAR_EXPORT size_t current_idx;
+		IPAACA_MEMBER_VAR_EXPORT size_t size;
+	public:
+		IPAACA_HEADER_EXPORT PayloadEntryProxyListIterator(PayloadEntryProxy* proxy, size_t idx, size_t size);
+		IPAACA_HEADER_EXPORT PayloadEntryProxyListIterator& operator++();
+		IPAACA_HEADER_EXPORT PayloadEntryProxy operator*();
+		IPAACA_HEADER_EXPORT std::shared_ptr<PayloadEntryProxy> operator->();
+		IPAACA_HEADER_EXPORT bool operator==(const PayloadEntryProxyListIterator& other_iter);
+		IPAACA_HEADER_EXPORT bool operator!=(const PayloadEntryProxyListIterator& other_iter);
+};
+//}}}
+IPAACA_HEADER_EXPORT class PayloadEntryProxyMapDecorator//{{{
+{
+	public:
+		IPAACA_HEADER_EXPORT inline PayloadEntryProxyMapDecorator(PayloadEntryProxy* proxy_): proxy(proxy_) { }
+		IPAACA_HEADER_EXPORT PayloadEntryProxyMapIterator begin();
+		IPAACA_HEADER_EXPORT PayloadEntryProxyMapIterator end();
+	protected:
+		IPAACA_MEMBER_VAR_EXPORT PayloadEntryProxy* proxy;
+};
+//}}}
+IPAACA_HEADER_EXPORT class PayloadEntryProxyListDecorator//{{{
+{
+	public:
+		IPAACA_HEADER_EXPORT inline PayloadEntryProxyListDecorator(PayloadEntryProxy* proxy_): proxy(proxy_) { }
+		IPAACA_HEADER_EXPORT PayloadEntryProxyListIterator begin();
+		IPAACA_HEADER_EXPORT PayloadEntryProxyListIterator end();
+	protected:
+		IPAACA_MEMBER_VAR_EXPORT PayloadEntryProxy* proxy;
+};
+//}}}
 IPAACA_HEADER_EXPORT class PayloadEntryProxy//{{{
 {
 	friend std::ostream& operator<<(std::ostream& os, const PayloadEntryProxy& proxy);
 	protected:
+	public:
+		IPAACA_HEADER_EXPORT PayloadEntryProxyMapDecorator as_map();
+		IPAACA_HEADER_EXPORT PayloadEntryProxyListDecorator as_list();
 	public:
 		//IPAACA_MEMBER_VAR_EXPORT rapidjson::Document* _json_parent_node;
 		//IPAACA_MEMBER_VAR_EXPORT rapidjson::Document* _json_node;
@@ -283,6 +337,8 @@ IPAACA_HEADER_EXPORT class PayloadEntryProxy//{{{
 		// constructors for navigation through objects
 		IPAACA_HEADER_EXPORT PayloadEntryProxy(PayloadEntryProxy* parent, const std::string& addressed_key);
 		IPAACA_HEADER_EXPORT PayloadEntryProxy(PayloadEntryProxy* parent, size_t addressed_index);
+	public:
+		IPAACA_HEADER_EXPORT size_t size();
 	public:
 		IPAACA_HEADER_EXPORT PayloadEntryProxy operator[](size_t index); // array-style navigation
 		IPAACA_HEADER_EXPORT PayloadEntryProxy operator[](int index); // int is UNFORTUNATELY required to catch

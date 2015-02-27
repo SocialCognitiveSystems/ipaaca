@@ -567,6 +567,25 @@ IPAACA_EXPORT bool PayloadEntryProxy::to_bool()
 	//return PayloadEntryProxy::get<bool>();
 }
 
+IPAACA_EXPORT PayloadEntryProxyMapDecorator PayloadEntryProxy::as_map()
+{
+	if (json_value && json_value->IsObject()) return PayloadEntryProxyMapDecorator(this);
+	throw PayloadTypeConversionError();
+}
+
+IPAACA_EXPORT PayloadEntryProxyListDecorator PayloadEntryProxy::as_list()
+{
+	if (json_value && json_value->IsArray()) return PayloadEntryProxyListDecorator(this);
+	throw PayloadTypeConversionError();
+}
+
+IPAACA_EXPORT size_t PayloadEntryProxy::size()
+{
+	if (!json_value) return 0;
+	if (json_value->IsArray()) return json_value->Size();
+	if (json_value->IsObject()) return json_value->MemberCount();
+	return 0;
+}
 
 //
 // new stuff for protocol v2
@@ -769,6 +788,92 @@ IPAACA_EXPORT bool PayloadIterator::operator!=(const PayloadIterator& ref)
 {
 	if (_payload->revision_changed(reference_payload_revision)) throw PayloadIteratorInvalidError();
 	return (raw_iterator!=ref.raw_iterator);
+}
+//}}}
+
+// PayloadEntryProxyMapIterator//{{{
+IPAACA_EXPORT PayloadEntryProxyMapIterator::PayloadEntryProxyMapIterator(PayloadEntryProxy* proxy_, RawIterator&& raw_iter)
+: proxy(proxy_), raw_iterator(std::move(raw_iter))
+{
+}
+
+IPAACA_EXPORT PayloadEntryProxyMapIterator& PayloadEntryProxyMapIterator::operator++()
+{
+	// prevent increase beyond end() ?
+	raw_iterator++;
+	return *this;
+}
+
+IPAACA_EXPORT std::pair<std::string, PayloadEntryProxy> PayloadEntryProxyMapIterator::operator*()
+{
+	std::string key = raw_iterator->name.GetString();
+	return std::pair<std::string, PayloadEntryProxy>(key, (*proxy)[key] ); // generates child Proxy
+}
+
+IPAACA_EXPORT std::shared_ptr<std::pair<std::string, PayloadEntryProxy> > PayloadEntryProxyMapIterator::operator->()
+{
+	std::string key = raw_iterator->name.GetString();
+	return std::make_shared<std::pair<std::string, PayloadEntryProxy> >(key, (*proxy)[key] ); // generates child Proxy
+}
+IPAACA_EXPORT bool PayloadEntryProxyMapIterator::operator==(const PayloadEntryProxyMapIterator& other_iter)
+{
+	return raw_iterator==other_iter.raw_iterator;
+}
+IPAACA_EXPORT bool PayloadEntryProxyMapIterator::operator!=(const PayloadEntryProxyMapIterator& other_iter)
+{
+	return raw_iterator!=other_iter.raw_iterator;
+}
+//}}}
+// PayloadEntryProxyMapDecorator//{{{
+PayloadEntryProxyMapIterator PayloadEntryProxyMapDecorator::begin()
+{
+	return PayloadEntryProxyMapIterator(proxy, proxy->json_value->MemberBegin());
+}
+PayloadEntryProxyMapIterator PayloadEntryProxyMapDecorator::end()
+{
+	return PayloadEntryProxyMapIterator(proxy, proxy->json_value->MemberEnd());
+}
+//}}}
+
+// PayloadEntryProxyListIterator//{{{
+IPAACA_EXPORT PayloadEntryProxyListIterator::PayloadEntryProxyListIterator(PayloadEntryProxy* proxy_, size_t idx, size_t size_)
+: proxy(proxy_), current_idx(idx), size(size_)
+{
+}
+
+IPAACA_EXPORT PayloadEntryProxyListIterator& PayloadEntryProxyListIterator::operator++()
+{
+	if (current_idx!=size) current_idx++;
+	return *this;
+}
+
+IPAACA_EXPORT PayloadEntryProxy PayloadEntryProxyListIterator::operator*()
+{
+	return (*proxy)[current_idx];
+}
+
+IPAACA_EXPORT std::shared_ptr<PayloadEntryProxy> PayloadEntryProxyListIterator::operator->()
+{
+	return std::make_shared<PayloadEntryProxy>((*proxy)[current_idx]);
+}
+IPAACA_EXPORT bool PayloadEntryProxyListIterator::operator==(const PayloadEntryProxyListIterator& other_iter)
+{
+	return (proxy==other_iter.proxy) && (current_idx==other_iter.current_idx);
+}
+IPAACA_EXPORT bool PayloadEntryProxyListIterator::operator!=(const PayloadEntryProxyListIterator& other_iter)
+{
+	return (current_idx!=other_iter.current_idx) || (proxy!=other_iter.proxy);
+}
+//}}}
+// PayloadEntryProxyListDecorator//{{{
+PayloadEntryProxyListIterator PayloadEntryProxyListDecorator::begin()
+{
+	return PayloadEntryProxyListIterator(proxy, 0, proxy->json_value->Size());
+}
+PayloadEntryProxyListIterator PayloadEntryProxyListDecorator::end()
+{
+	size_t size = proxy->json_value->Size();
+	return PayloadEntryProxyListIterator(proxy, size, size);
 }
 //}}}
 

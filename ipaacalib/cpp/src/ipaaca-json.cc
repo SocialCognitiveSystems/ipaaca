@@ -41,7 +41,20 @@ using namespace std;
 
 int iterators_main(int argc, char** argv)//{{{
 {
-	std::string json_source("[\"old\",2,3,{\"key1\":\"value1\", \"key2\":\"value2\"}]");
+	std::string json_source("[\n\
+	\"old\",\n\
+	[\n\
+		\"str\",\n\
+		null\n\
+	],\n\
+	3,\n\
+	{\n\
+		\"key1\": \"value1\",\n\
+		\"key2\": \"value2\"\n\
+	}\n\
+]");
+	
+	std::cout << "Using this JSON document as initial payload entry 'a':" << std::endl << json_source << std::endl;
 	ipaaca::PayloadDocumentEntry::ptr entry = ipaaca::PayloadDocumentEntry::from_json_string_representation(json_source);
 	
 	ipaaca::FakeIU::ptr iu = ipaaca::FakeIU::create();
@@ -50,14 +63,18 @@ int iterators_main(int argc, char** argv)//{{{
 	iu->payload()["bPrime"] = "simpleString";
 	iu->payload()["c"] = "anotherSimpleString";
 	iu->payload()["d"] = 100;
-	iu->payload()["e"] = 10000l;
+	iu->payload()["e"] = 3l;
 	
-	std::cout << "Iterate over payload" << std::endl;
+	std::cout << std::endl << "Iterate over payload" << std::endl;
 	for (auto it = iu->payload().begin(); it != iu->payload().end(); ++it) {
 		std::cout << "  " << it->first << " -> " << it->second << std::endl;
 	}
+	std::cout << std::endl << "Iterate over payload, range-based" << std::endl;
+	for (auto it: iu->payload()) {
+		std::cout << "  " << it.first << " -> " << it.second << std::endl;
+	}
 	
-	std::cout << "Comparisons" << std::endl;
+	std::cout << std::endl << "Comparisons" << std::endl;
 	bool eq;
 	eq = iu->payload()["a"] == iu->payload()["b"];
 	std::cout << "  a==b ? : " << (eq?"true":"false") << std::endl;
@@ -69,7 +86,57 @@ int iterators_main(int argc, char** argv)//{{{
 	std::cout << "  b==100 ? : " << (eq?"true":"false") << std::endl;
 	eq = iu->payload()["d"] == 100;
 	std::cout << "  d==100 ? : " << (eq?"true":"false") << std::endl;
-
+	eq = iu->payload()["a"][2] == iu->payload()["e"];
+	std::cout << "  a[2]==e ? : " << (eq?"true":"false") << std::endl;
+	
+	std::cout << std::endl << "Inner iterators, map (printing values as strings)" << std::endl;
+	try {
+		auto inner = iu->payload()["a"][3];
+		std::cout << "Map iteration over payload['a'][3], which equals " << inner << std::endl;
+		std::cout << "Reported size is " << inner.size() << std::endl;
+		for (auto kv: inner.as_map()) {
+			std::cout << "  \"" << kv.first << "\" -> \"" << kv.second << "\"" << std::endl;
+		}
+	} catch (ipaaca::Exception& ex) {
+		std::cout << "  Unexpected exception: " << ex.what() << std::endl;
+	}
+	try {
+		auto inner = iu->payload()["a"][2];
+		std::cout << "Map iteration over payload['a'][2], which equals " << inner << std::endl;
+		std::cout << "Reported size is " << inner.size() << std::endl;
+		for (auto kv: inner.as_map()) {
+			std::cout << "  \"" << kv.first << "\" -> \"" << kv.second << "\"" << std::endl;
+		}
+	} catch (ipaaca::PayloadTypeConversionError& ex) {
+		std::cout << "  Failed as expected with " << ex.what() << std::endl;
+	} catch (ipaaca::Exception& ex) {
+		std::cout << "  Unexpected exception: " << ex.what() << std::endl;
+	}
+	
+	std::cout << std::endl << "Inner iterators, list (printing values as strings)" << std::endl;
+	try {
+		auto inner = iu->payload()["a"][1];
+		std::cout << "List iteration over payload['a'][1], which equals " << inner << std::endl;
+		std::cout << "Reported size is " << inner.size() << std::endl;
+		for (auto proxy: inner.as_list()) {
+			std::cout << "  \"" << proxy << "\"" << std::endl;
+		}
+	} catch (ipaaca::Exception& ex) {
+		std::cout << "  Unexpected exception: " << ex.what() << std::endl;
+	}
+	try {
+		auto inner = iu->payload()["a"][1][1];
+		std::cout << "List iteration over payload['a'][1][1], which equals " << inner << std::endl;
+		std::cout << "Reported size is " << inner.size() << std::endl;
+		for (auto proxy: inner.as_list()) {
+			std::cout << "  \"" << proxy << "\"" << std::endl;
+		}
+	} catch (ipaaca::PayloadTypeConversionError& ex) {
+		std::cout << "  Failed as expected with " << ex.what() << std::endl;
+	} catch (ipaaca::Exception& ex) {
+		std::cout << "  Unexpected exception: " << ex.what() << std::endl;
+	}
+	
 	return 0;
 }
 //}}}
