@@ -586,6 +586,34 @@ IPAACA_EXPORT size_t PayloadEntryProxy::size()
 	if (json_value->IsObject()) return json_value->MemberCount();
 	return 0;
 }
+IPAACA_EXPORT bool PayloadEntryProxy::is_null()
+{
+	return (!json_value) || json_value->IsNull();
+}
+IPAACA_EXPORT bool PayloadEntryProxy::is_string()
+{
+	return json_value && json_value->IsString();
+}
+/// is_number => whether it is *interpretable* as
+/// a numerical value (i.e. including conversions)
+IPAACA_EXPORT bool PayloadEntryProxy::is_number()
+{
+	if (!json_value) return false;
+	try {
+		double dummy = json_value_cast<double>(*json_value);
+		return true;
+	} catch (PayloadTypeConversionError& ex) {
+		return false;
+	}
+}
+IPAACA_EXPORT bool PayloadEntryProxy::is_list()
+{
+	return json_value && json_value->IsArray();
+}
+IPAACA_EXPORT bool PayloadEntryProxy::is_map()
+{
+	return json_value && json_value->IsObject();
+}
 
 //
 // new stuff for protocol v2

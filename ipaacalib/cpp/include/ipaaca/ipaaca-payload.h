@@ -339,6 +339,11 @@ IPAACA_HEADER_EXPORT class PayloadEntryProxy//{{{
 		IPAACA_HEADER_EXPORT PayloadEntryProxy(PayloadEntryProxy* parent, size_t addressed_index);
 	public:
 		IPAACA_HEADER_EXPORT size_t size();
+		IPAACA_HEADER_EXPORT bool is_null();
+		IPAACA_HEADER_EXPORT bool is_string();
+		IPAACA_HEADER_EXPORT bool is_number();
+		IPAACA_HEADER_EXPORT bool is_list();
+		IPAACA_HEADER_EXPORT bool is_map();
 	public:
 		IPAACA_HEADER_EXPORT PayloadEntryProxy operator[](size_t index); // array-style navigation
 		IPAACA_HEADER_EXPORT PayloadEntryProxy operator[](int index); // int is UNFORTUNATELY required to catch

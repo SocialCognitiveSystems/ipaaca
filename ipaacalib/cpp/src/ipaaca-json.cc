@@ -57,6 +57,7 @@ int iterators_main(int argc, char** argv)//{{{
 	std::cout << "Using this JSON document as initial payload entry 'a':" << std::endl << json_source << std::endl;
 	ipaaca::PayloadDocumentEntry::ptr entry = ipaaca::PayloadDocumentEntry::from_json_string_representation(json_source);
 	
+	std::cout << std::endl << "Setting up payload by adding some additional values" << std::endl;
 	ipaaca::FakeIU::ptr iu = ipaaca::FakeIU::create();
 	iu->add_fake_payload_item("a", entry);
 	iu->payload()["b"] = "simpleString";
@@ -64,6 +65,7 @@ int iterators_main(int argc, char** argv)//{{{
 	iu->payload()["c"] = "anotherSimpleString";
 	iu->payload()["d"] = 100;
 	iu->payload()["e"] = 3l;
+	iu->payload()["f"] = "12.5000";
 	
 	std::cout << std::endl << "Iterate over payload" << std::endl;
 	for (auto it = iu->payload().begin(); it != iu->payload().end(); ++it) {
@@ -88,6 +90,19 @@ int iterators_main(int argc, char** argv)//{{{
 	std::cout << "  d==100 ? : " << (eq?"true":"false") << std::endl;
 	eq = iu->payload()["a"][2] == iu->payload()["e"];
 	std::cout << "  a[2]==e ? : " << (eq?"true":"false") << std::endl;
+	
+	std::cout << std::endl << "Type checks" << std::endl;
+	std::cout << "  a[3] is_null() ? : " << ((iu->payload()["a"][3].is_null())?"true":"false") << std::endl;
+	std::cout << "  a[3] is_string() ? : " << ((iu->payload()["a"][3].is_string())?"true":"false") << std::endl;
+	std::cout << "  a[3] is_number() ? : " << ((iu->payload()["a"][3].is_number())?"true":"false") << std::endl;
+	std::cout << "  a[3] is_list() ? : " << ((iu->payload()["a"][3].is_list())?"true":"false") << std::endl;
+	std::cout << "  a[3] is_map() ? : " << ((iu->payload()["a"][3].is_map())?"true":"false") << std::endl;
+	std::cout << std::endl;
+	std::cout << "  f is_null() ? : " << ((iu->payload()["f"].is_null())?"true":"false") << std::endl;
+	std::cout << "  f is_string() ? : " << ((iu->payload()["f"].is_string())?"true":"false") << std::endl;
+	std::cout << "  f is_number() ? : " << ((iu->payload()["f"].is_number())?"true":"false") << std::endl;
+	std::cout << "  f is_list() ? : " << ((iu->payload()["f"].is_list())?"true":"false") << std::endl;
+	std::cout << "  f is_map() ? : " << ((iu->payload()["f"].is_map())?"true":"false") << std::endl;
 	
 	std::cout << std::endl << "Inner iterators, map (printing values as strings)" << std::endl;
 	try {
