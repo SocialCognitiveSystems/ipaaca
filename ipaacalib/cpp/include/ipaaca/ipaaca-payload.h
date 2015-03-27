@@ -31,6 +31,17 @@
  * Excellence Initiative.
  */
 
+/**
+ * \file   ipaaca-payload.h
+ *
+ * \brief Header file for IU payload functionality.
+ *
+ * Users should not include this file directly, but use ipaaca.h
+ *
+ * \author Ramin Yaghoubzadeh (ryaghoubzadeh@uni-bielefeld.de)
+ * \date   March, 2015
+ */
+
 #ifndef __ipaaca_payload_h_INCLUDED__
 #define __ipaaca_payload_h_INCLUDED__
 
@@ -305,6 +316,8 @@ IPAACA_HEADER_EXPORT class PayloadEntryProxyListDecorator//{{{
 		IPAACA_MEMBER_VAR_EXPORT PayloadEntryProxy* proxy;
 };
 //}}}
+
+/** PayloadEntryProxy description */
 IPAACA_HEADER_EXPORT class PayloadEntryProxy//{{{
 {
 	friend std::ostream& operator<<(std::ostream& os, const PayloadEntryProxy& proxy);

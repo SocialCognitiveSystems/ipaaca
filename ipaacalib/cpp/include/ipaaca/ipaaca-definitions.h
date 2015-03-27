@@ -31,6 +31,17 @@
  * Excellence Initiative.
  */
 
+/**
+ * \file   ipaaca-definitions.h
+ *
+ * \brief Header file for data and exception types and helper functions.
+ *
+ * Users should not include this file directly, but use ipaaca.h
+ *
+ * \author Ramin Yaghoubzadeh (ryaghoubzadeh@uni-bielefeld.de)
+ * \date   March, 2015
+ */
+
 #ifndef __ipaaca_definitions_h_INCLUDED__
 #define __ipaaca_definitions_h_INCLUDED__
 
@@ -43,7 +54,7 @@
 
 typedef uint32_t revision_t;
 
-/// Type of the IU event. Realized as an integer to enable bit masks for filters.
+/// Type of the IU event. Realized as an integer to enable bit masks for filters. One of: IU_ADDED, IU_COMMITTED, IU_DELETED, IU_RETRACTED, IU_UPDATED, IU_LINKSUPDATED, IU_MESSAGE
 typedef uint32_t IUEventType;
 #define IU_ADDED         1
 #define IU_COMMITTED     2
@@ -52,7 +63,7 @@ typedef uint32_t IUEventType;
 #define IU_UPDATED      16
 #define IU_LINKSUPDATED 32
 #define IU_MESSAGE      64
-/// Bit mask for receiving all events
+/// Bit mask for receiving all IU events  \see IUEventType
 #define IU_ALL_EVENTS  127
 
 /// Ipaaca (console) log levels
@@ -78,7 +89,7 @@ IPAACA_HEADER_EXPORT inline std::string iu_event_type_to_str(IUEventType type)
 	}
 }
 
-/// IU access mode: PUSH means that updates are broadcast; REMOTE means that reads are RPC calls; MESSAGE means a fire-and-forget message
+/// IU access mode: PUSH means that updates are broadcast; REMOTE means that reads are RPC calls (currently NOT implemented); MESSAGE means a fire-and-forget message
 IPAACA_HEADER_EXPORT enum IUAccessMode {
 	IU_ACCESS_PUSH,
 	IU_ACCESS_REMOTE,
@@ -88,8 +99,8 @@ IPAACA_HEADER_EXPORT enum IUAccessMode {
 /// generate a UUID as an ASCII string
 IPAACA_HEADER_EXPORT std::string generate_uuid_string();
 
-/*
- *  Exceptions and errors
+/**
+ * Exception with string description
  */
 IPAACA_HEADER_EXPORT class Exception: public std::exception//{{{
 {
@@ -251,10 +262,16 @@ IPAACA_HEADER_EXPORT class PayloadIteratorInvalidError: public Exception//{{{
 		}
 };//}}}
 
-/// Static library initialization
+/** \brief Static library initialization for backend
+ *
+ * This static class (singleton) is called once (explicitly or on-demand).
+ * Unless called manually, it is initialized when ipaaca is first used
+ * (i.e. the first Buffer is created).
+ */
 IPAACA_HEADER_EXPORT class Initializer
 {
 	public:
+		/// Explicitly initialize the backend.
 		IPAACA_HEADER_EXPORT static void initialize_ipaaca_rsb_if_needed();
 		IPAACA_HEADER_EXPORT static void initialize_updated_default_config();
 		IPAACA_HEADER_EXPORT static bool initialized();
@@ -265,6 +282,24 @@ IPAACA_HEADER_EXPORT class Initializer
 
 // in ipaaca-cmdline-parser.cc
 // additional misc classes ( Command line options )//{{{
+/** \brief Command line argument container for CommandLineParser
+ *
+ * Contains the results of argument parsing from CommandLineParser::parse()
+ *
+ * The parser is preconfigured to handle some standard options:
+ *
+ * Option                          | Function
+ * --------------------------------|------------------------------------------------------------------------------
+ * --help                          | Print list of available options
+ * --verbose                       | Set verbose flag
+ * --character-name <name>         | Set character name (legacy)
+ * --component-name <name>         | Set component name (legacy)
+ * --ipaaca-payload-type <type>    | Set default ipaaca payload type (default JSON, set STR for legacy protocol)
+ * --ipaaca-default-channel <name> | Set default channel name (default 'default')
+ * --ipaaca-enable-logging <level> | Set console log level, one of NONE, DEBUG, INFO, WARNING, ERROR, CRITICAL
+ * --rsb-enable-logging <level>    | Set rsb (transport) log level
+ *
+ */
 IPAACA_HEADER_EXPORT class CommandLineOptions {
 	public:
 		IPAACA_HEADER_EXPORT inline CommandLineOptions()
@@ -277,7 +312,9 @@ IPAACA_HEADER_EXPORT class CommandLineOptions {
 		IPAACA_MEMBER_VAR_EXPORT std::map<std::string, bool> param_set;
 	public:
 		IPAACA_HEADER_EXPORT void set_option(const std::string& name, bool expect, const char* optarg);
+		/// Get the option argument or default value (if the option expected an argument)
 		IPAACA_HEADER_EXPORT std::string get_param(const std::string& o);
+		/// Check whether option has been set
 		IPAACA_HEADER_EXPORT bool is_set(const std::string& o);
 		IPAACA_HEADER_EXPORT void dump();
 	public:
@@ -290,6 +327,23 @@ IPAACA_HEADER_EXPORT class CommandLineOptions {
 	typedef boost::shared_ptr<CommandLineOptions> ptr;
 };
 
+/**
+ * \brief Command line parser for ipaaca programs.
+ *
+ * The parser is preconfigured to handle some standard options:
+ *
+ * Option                          | Function
+ * --------------------------------|------------------------------------------------------------------------------
+ * --help                          | Print list of available options
+ * --verbose                       | Set verbose flag
+ * --character-name <name>         | Set character name (legacy)
+ * --component-name <name>         | Set component name (legacy)
+ * --ipaaca-payload-type <type>    | Set default ipaaca payload type (default JSON, set STR for legacy protocol)
+ * --ipaaca-default-channel <name> | Set default channel name (default 'default')
+ * --ipaaca-enable-logging <level> | Set console log level, one of NONE, DEBUG, INFO, WARNING, ERROR, CRITICAL
+ * --rsb-enable-logging <level>    | Set rsb (transport) log level
+ *
+ */
 class CommandLineParser {
 	protected:
 		IPAACA_MEMBER_VAR_EXPORT std::map<char, std::string> longopt; // letter->name
@@ -303,13 +357,26 @@ class CommandLineParser {
 		IPAACA_HEADER_EXPORT bool consume_library_option(const std::string& name, bool expect, const char* optarg);
 	public:
 		IPAACA_HEADER_EXPORT inline ~CommandLineParser() { }
+		/// Create a new parser object reference.
 		IPAACA_HEADER_EXPORT static inline boost::shared_ptr<CommandLineParser> create() {
 			return boost::shared_ptr<CommandLineParser>(new CommandLineParser());
 		}
 		IPAACA_HEADER_EXPORT void initialize_parser_defaults();
 		IPAACA_HEADER_EXPORT void dump_options();
+		/** \brief Add a user-defined option
+		 *
+		 * \param optname      The long option name, e.g. verbose for --verbose
+		 * \param shortn       The short option (or \0 for none)
+		 * \param expect_param Whether an argument is expected for the option
+		 * \param defaultv     The default string value (unused if expect_param is false)
+		 */
 		IPAACA_HEADER_EXPORT void add_option(const std::string& optname, char shortn, bool expect_param, const std::string& defaultv);
 		IPAACA_HEADER_EXPORT void ensure_defaults_in( CommandLineOptions::ptr clo );
+		/** \brief Parse argument list and return result.
+		 *
+		 * Parse argument list (e.g. from main()) with the parser, consuming the internal options.
+		 * The remaining options are packaged into a CommandLineOptions object.
+		 */
 		IPAACA_HEADER_EXPORT CommandLineOptions::ptr parse(int argc, char* const* argv);
 	typedef boost::shared_ptr<CommandLineParser> ptr;
 };

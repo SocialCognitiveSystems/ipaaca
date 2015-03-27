@@ -31,6 +31,17 @@
  * Excellence Initiative.
  */
 
+/**
+ * \file   ipaaca-ius.h
+ *
+ * \brief Header file for IU (incremental unit) classes.
+ *
+ * Users should not include this file directly, but use ipaaca.h
+ *
+ * \author Ramin Yaghoubzadeh (ryaghoubzadeh@uni-bielefeld.de)
+ * \date   March, 2015
+ */
+
 #ifndef __ipaaca_ius_h_INCLUDED__
 #define __ipaaca_ius_h_INCLUDED__
 

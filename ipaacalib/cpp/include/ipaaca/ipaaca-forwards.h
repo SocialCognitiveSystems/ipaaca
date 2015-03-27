@@ -31,6 +31,17 @@
  * Excellence Initiative.
  */
 
+/**
+ * \file   ipaaca-forwards.h
+ *
+ * \brief Header file for forward definitions.
+ *
+ * Users should not include this file directly, but use ipaaca.h
+ *
+ * \author Ramin Yaghoubzadeh (ryaghoubzadeh@uni-bielefeld.de)
+ * \date   March, 2015
+ */
+
 #ifndef __ipaaca_forwards_h_INCLUDED__
 #define __ipaaca_forwards_h_INCLUDED__
 

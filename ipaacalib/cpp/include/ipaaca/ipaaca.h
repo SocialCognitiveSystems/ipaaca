@@ -31,6 +31,33 @@
  * Excellence Initiative.
  */
 
+/**
+ * \file   ipaaca.h
+ *
+ * \brief Central header file for IPAACA-C++.
+ *
+ * This is the central header file for the C++ version of IPAACA. Users should <b>include this file only.</b>
+ *
+ * \author Ramin Yaghoubzadeh (ryaghoubzadeh@uni-bielefeld.de)
+ * \date   March, 2015
+ */
+
+/**
+\mainpage Documentation for IPAACA-C++
+
+This is the automatically generated documentation for the C++ implementation of IPAACA.
+
+List of most relevant entry points:
+
+Buffers: InputBuffer, OutputBuffer
+
+IUs: IU, Message
+
+IU handling (user-set): #IUEventHandlerFunction
+
+IU payload contents: Payload, PayloadEntryProxy
+*/
+
 #ifndef __ipaaca_h_INCLUDED__
 #define __ipaaca_h_INCLUDED__
 
@@ -173,8 +200,12 @@ namespace ipaaca {
 
 // Global static library variables (run-time default configuration)
 // Actual initial values are set in ipaaca.cc
+
+/// Default payload type for new IUs (defaults to "JSON")
 IPAACA_MEMBER_VAR_EXPORT extern std::string __ipaaca_static_option_default_payload_type;
+/// Default channel for buffers (defaults to "default")
 IPAACA_MEMBER_VAR_EXPORT extern std::string __ipaaca_static_option_default_channel;
+/// Current console log level (defaults to warning), one of: IPAACA_LOG_LEVEL_CRITICAL, IPAACA_LOG_LEVEL_ERROR, IPAACA_LOG_LEVEL_WARNING, IPAACA_LOG_LEVEL_INFO, IPAACA_LOG_LEVEL_DEBUG, IPAACA_LOG_LEVEL_NONE
 IPAACA_MEMBER_VAR_EXPORT extern unsigned int __ipaaca_static_option_log_level;
 
 IPAACA_MEMBER_VAR_EXPORT Lock& logger_lock();

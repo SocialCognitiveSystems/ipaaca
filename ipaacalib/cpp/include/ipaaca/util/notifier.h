@@ -30,6 +30,17 @@
  * Excellence Initiative.
  */
 
+/**
+ * \file   util/notifier.h
+ *
+ * \brief Header file for component notification (i.e. module-level introspection).
+ *
+ * Include this file in addition to ipaaca.h to use the functionality.
+ *
+ * \author Ramin Yaghoubzadeh (ryaghoubzadeh@uni-bielefeld.de)
+ * \date   March, 2015
+ */
+
 #ifndef __IPAACA_UTIL_NOTIFIER_H__
 #define __IPAACA_UTIL_NOTIFIER_H__
 

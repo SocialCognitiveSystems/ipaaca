@@ -51,6 +51,7 @@ IPAACA_HEADER_EXPORT class RemotePushIUStore: public std::map<std::string, boost
 typedef std::set<std::string> LinkSet;
 typedef std::map<std::string, LinkSet> LinkMap;
 
+/// Container for IU links that gracefully returns the empty set if required
 IPAACA_HEADER_EXPORT class SmartLinkMap {//{{{
 	friend std::ostream& operator<<(std::ostream& os, const SmartLinkMap& obj);
 	friend class IUInterface;
@@ -70,6 +71,7 @@ IPAACA_HEADER_EXPORT class SmartLinkMap {//{{{
 
 IPAACA_MEMBER_VAR_EXPORT const LinkSet EMPTY_LINK_SET;
 
+/// Configuration object that can be passed to Buffer constructors.
 IPAACA_HEADER_EXPORT class BufferConfiguration//{{{
 {
 	protected:
@@ -88,6 +90,7 @@ IPAACA_HEADER_EXPORT class BufferConfiguration//{{{
 		IPAACA_HEADER_EXPORT inline BufferConfiguration& set_channel(const std::string& channel) { _channel = channel; return *this; }
 };//}}}
 
+/// Builder object for BufferConfiguration, not required for C++ [DEPRECATED]
 IPAACA_HEADER_EXPORT class BufferConfigurationBuilder: private BufferConfiguration//{{{
 {
 	public:
@@ -110,9 +113,11 @@ IPAACA_HEADER_EXPORT class BufferConfigurationBuilder: private BufferConfigurati
 
 };//}}}
 
+/// Type of user-space functions that can be registered on a Buffer to receive IU events.
 IPAACA_HEADER_EXPORT typedef boost::function<void (boost::shared_ptr<IUInterface>, IUEventType, bool)> IUEventHandlerFunction;
 
-IPAACA_HEADER_EXPORT class IUEventHandler {//{{{
+/// Internal handler type (wraps used-specified IUEventHandlerFunction)
+IPAACA_LOG_LEVEL_NONE, IPAACA_HEADER_EXPORT class IUEventHandler {//{{{
 	protected:
 		IPAACA_MEMBER_VAR_EXPORT IUEventHandlerFunction _function;
 		IPAACA_MEMBER_VAR_EXPORT IUEventType _event_mask;
@@ -131,6 +136,11 @@ IPAACA_HEADER_EXPORT class IUEventHandler {//{{{
 	typedef boost::shared_ptr<IUEventHandler> ptr;
 };//}}}
 
+/**
+ * \brief Buffer base class
+ *
+ * This class is never instantiated directly (use OutputBuffer and InputBuffer, respectively).
+ */
 IPAACA_HEADER_EXPORT class Buffer { //: public boost::enable_shared_from_this<Buffer> {//{{{
 	friend class IU;
 	friend class RemotePushIU;
@@ -173,6 +183,17 @@ IPAACA_HEADER_EXPORT class Buffer { //: public boost::enable_shared_from_this<Bu
 };
 //}}}
 
+/**
+ * \brief A buffer to which own IUs can be added to publish them
+ *
+ * Use OutputBuffer::create() to obtain a smart pointer to a new output buffer.
+ * 
+ * Use OutputBuffer::add() to add (= publish) an IU.
+ *
+ * Use OutputBuffer::remove() to remove (= retract) an IU.
+ *
+ * Use Buffer::register_handler() to register a handler that will respond to remote changes to own published IUs.
+ */
 IPAACA_HEADER_EXPORT class OutputBuffer: public Buffer { //, public boost::enable_shared_from_this<OutputBuffer>  {//{{{
 	friend class IU;
 	friend class RemotePushIU;
@@ -220,6 +241,15 @@ IPAACA_HEADER_EXPORT class OutputBuffer: public Buffer { //, public boost::enabl
 };
 //}}}
 
+/**
+ * \brief A buffer in which remote IUs (and changes to them) are received.
+ *
+ * Use InputBuffer::create() to obtain a smart pointer to a new input buffer.
+ *
+ * Set category interests (IU filter) via the different versions of create().
+ *
+ * Use Buffer::register_handler() to register a handler that will respond to relevant remote IUs.
+ */
 IPAACA_HEADER_EXPORT class InputBuffer: public Buffer { //, public boost::enable_shared_from_this<InputBuffer>  {//{{{
 	friend class IU;
 	friend class RemotePushIU;
@@ -268,6 +298,7 @@ IPAACA_HEADER_EXPORT class InputBuffer: public Buffer { //, public boost::enable
 		IPAACA_MEMBER_VAR_EXPORT bool triggerResend;
 
 	public:
+		/// Specify whether old, but previously unknown, IUs should be requested to be sent to the buffer over a hidden channel.
 		IPAACA_HEADER_EXPORT void set_resend(bool resendActive);
 		IPAACA_HEADER_EXPORT bool get_resend();
 		IPAACA_HEADER_EXPORT static boost::shared_ptr<InputBuffer> create(const BufferConfiguration& bufferconfiguration);
@@ -286,6 +317,7 @@ IPAACA_HEADER_EXPORT class InputBuffer: public Buffer { //, public boost::enable
 };
 //}}}
 
+/// Internal, transport-independent, representation of payload updates
 IPAACA_HEADER_EXPORT class IUPayloadUpdate {//{{{
 	public:
 		IPAACA_MEMBER_VAR_EXPORT std::string uid;
@@ -299,6 +331,7 @@ IPAACA_HEADER_EXPORT class IUPayloadUpdate {//{{{
 	typedef boost::shared_ptr<IUPayloadUpdate> ptr;
 };//}}}
 
+/// Internal, transport-independent, representation of link updates
 IPAACA_HEADER_EXPORT class IULinkUpdate {//{{{
 	public:
 		IPAACA_MEMBER_VAR_EXPORT std::string uid;

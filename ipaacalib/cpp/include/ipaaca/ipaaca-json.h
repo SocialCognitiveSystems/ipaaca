@@ -31,6 +31,17 @@
  * Excellence Initiative.
  */
 
+/**
+ * \file   ipaaca-json.h
+ *
+ * \brief Header file for JSON tests. [superfluous]
+ *
+ * Users should not include this file directly, but use ipaaca.h
+ *
+ * \author Ramin Yaghoubzadeh (ryaghoubzadeh@uni-bielefeld.de)
+ * \date   March, 2015
+ */
+
 #ifndef __ipaaca_json_H__
 #define __ipaaca_json_H__
 

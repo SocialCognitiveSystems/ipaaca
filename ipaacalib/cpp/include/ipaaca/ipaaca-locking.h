@@ -31,6 +31,17 @@
  * Excellence Initiative.
  */
 
+/**
+ * \file   ipaaca-locking.h
+ *
+ * \brief Header file for locking / mutexes.
+ *
+ * Users should not include this file directly, but use ipaaca.h
+ *
+ * \author Ramin Yaghoubzadeh (ryaghoubzadeh@uni-bielefeld.de)
+ * \date   March, 2015
+ */
+
 #ifndef __ipaaca_locking_h_INCLUDED__
 #define __ipaaca_locking_h_INCLUDED__
 
@@ -39,7 +50,7 @@
 #endif
 
 
-/// a reentrant lock/mutex
+/// Reentrant lock/mutex class
 #ifdef WIN32
 #include <boost/thread/recursive_mutex.hpp>
 #include <boost/thread/thread.hpp>
@@ -85,9 +96,12 @@ IPAACA_HEADER_EXPORT class Lock
 };
 #endif
 
-/// Stack-based lock holder. Create in a new stack frame
-///  (i.e.  {}-block) and it will obtain the lock and
-///  auto-release in on exiting the stack frame.
+/** \brief Stack-based lock holder.
+ *
+ * Stack-based lock holder. Create in a new stack frame
+ *  (i.e.  {}-block) and it will obtain the lock and
+ * auto-release in on exiting the stack frame.
+ */
 IPAACA_HEADER_EXPORT class Locker
 {
 	protected:
@@ -103,6 +117,12 @@ IPAACA_HEADER_EXPORT class Locker
 		}
 };
 
+/** \brief Locker for existing pthread mutexes.
+ *
+ * Stack-based lock holder for existing pthread_mutex_t mutexes.
+ *
+ * \see Locker
+ */
 #ifndef WIN32
 IPAACA_HEADER_EXPORT class PthreadMutexLocker
 {

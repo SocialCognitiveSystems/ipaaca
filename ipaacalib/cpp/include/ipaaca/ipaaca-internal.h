@@ -31,6 +31,24 @@
  * Excellence Initiative.
  */
 
+/**
+ * \file   ipaaca-internal.h
+ *
+ * \brief Header file for internal transport implementation (RSB).
+ *
+ * Users should not include this file directly, but use ipaaca.h
+ *
+ * \b Note: This file is only included during compilation of ipaaca,
+ * for regular use, the full internal API is not exposed.
+ * Users generally need never touch the internal transport layer.
+ *
+ * The file provides callback glue from RSB, and wire converters
+ * for the respective ipaaca classes.
+ *
+ * \author Ramin Yaghoubzadeh (ryaghoubzadeh@uni-bielefeld.de)
+ * \date   March, 2015
+ */
+
 #ifndef __ipaaca_internal_h_INCLUDED__
 #define __ipaaca_internal_h_INCLUDED__
 
