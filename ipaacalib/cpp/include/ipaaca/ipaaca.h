@@ -51,7 +51,7 @@ List of most relevant entry points:
 
 Buffers: InputBuffer, OutputBuffer
 
-IUs: IU, Message
+IUs: IUInterface, IU, Message
 
 IU handling (user-set): #IUEventHandlerFunction
 
@@ -190,6 +190,7 @@ IU payload contents: Payload, PayloadEntryProxy
 #include <list>
 #include <algorithm>
 #include <utility>
+#include <initializer_list>
 
 namespace ipaaca {
 

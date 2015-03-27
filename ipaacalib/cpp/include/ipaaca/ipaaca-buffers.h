@@ -69,6 +69,7 @@ IPAACA_HEADER_EXPORT class SmartLinkMap {//{{{
 		IPAACA_HEADER_EXPORT void _replace_links(const LinkMap& links);
 };//}}}
 
+/// The empty link set is returned if undefined links are read for an IU.
 IPAACA_MEMBER_VAR_EXPORT const LinkSet EMPTY_LINK_SET;
 
 /// Configuration object that can be passed to Buffer constructors.
@@ -113,11 +114,20 @@ IPAACA_HEADER_EXPORT class BufferConfigurationBuilder: private BufferConfigurati
 
 };//}}}
 
-/// Type of user-space functions that can be registered on a Buffer to receive IU events.
+/** \brief Type of user-space functions that can be registered on a Buffer to receive IU events.
+ *
+ * The signature of these functions is void(shared_ptr<IUInterface> iu, IUEventType evt_type, bool local), where:<br/>
+ *     iu can be used mostly like a locally-generated IU reference (e.g. iu->payload() ...)<br/>
+ *     evt_type is one of IU_ADDED, IU_UPDATED, IU_RETRACTED, IU_DELETED, IU_LINKSUPDATED, IU_COMMITTED, IU_MESSAGE<br/>
+ *     local indicates that a remote change to a local IU (in an OutputBuffer) was effected
+ *
+ *
+ */
 IPAACA_HEADER_EXPORT typedef boost::function<void (boost::shared_ptr<IUInterface>, IUEventType, bool)> IUEventHandlerFunction;
 
-/// Internal handler type (wraps used-specified IUEventHandlerFunction)
-IPAACA_LOG_LEVEL_NONE, IPAACA_HEADER_EXPORT class IUEventHandler {//{{{
+/** \brief Internal handler type used in Buffer (wraps used-specified IUEventHandlerFunction)
+ */
+IPAACA_HEADER_EXPORT class IUEventHandler {//{{{
 	protected:
 		IPAACA_MEMBER_VAR_EXPORT IUEventHandlerFunction _function;
 		IPAACA_MEMBER_VAR_EXPORT IUEventType _event_mask;
@@ -137,9 +147,9 @@ IPAACA_LOG_LEVEL_NONE, IPAACA_HEADER_EXPORT class IUEventHandler {//{{{
 };//}}}
 
 /**
- * \brief Buffer base class
+ * \brief Buffer base class. Derived classes use its handler registration functionality.
  *
- * This class is never instantiated directly (use OutputBuffer and InputBuffer, respectively).
+ * \b Note: This class is never instantiated directly (use OutputBuffer and InputBuffer, respectively).
  */
 IPAACA_HEADER_EXPORT class Buffer { //: public boost::enable_shared_from_this<Buffer> {//{{{
 	friend class IU;
@@ -173,7 +183,42 @@ IPAACA_HEADER_EXPORT class Buffer { //: public boost::enable_shared_from_this<Bu
 	public:
 		IPAACA_HEADER_EXPORT virtual inline ~Buffer() { }
 		IPAACA_HEADER_EXPORT inline const std::string& unique_name() { return _unique_name; }
+		/// This version of register_handler takes a set of several category interests instead of just one.
 		IPAACA_HEADER_EXPORT void register_handler(IUEventHandlerFunction function, IUEventType event_mask, const std::set<std::string>& categories);
+		/** \brief Register a user-specified handler for IU events.
+		 *
+		 * \param function A function [object] that can be converted to #IUEventHandlerFunction (examples below)
+		 * \param event_mask Which event types to relay to the user (default: all)
+		 * \param category The category to filter for (default: do not filter)
+		 *
+		 * \b Examples:
+		 *
+		 * Adding a plain function as a handler:<br/>
+		 *     <pre>
+		 *     void global_iu_handler(IUInterface::ptr iu, IUEventType type, bool local) { ... }
+		 *     ...
+		 *     int main() {
+		 *         OutputBuffer::ptr outbuf = OutputBuffer::create("mybufname");
+		 *         outbuf->register_handler(global_iu_handler);
+		 *         ...
+		 *     }
+		 *     </pre>
+		 *
+		 * Adding a class member as a handler (using boost::bind):<br/>
+		 *     <pre>
+		 *     class MyClass {
+		 *         protected:
+		 *             void my_internal_iu_handler(IUInterface::ptr iu, IUEventType type, bool local) { ... }
+		 *             InputBuffer::ptr inbuf;
+		 *         public:
+		 *             MyClass() {
+		 *                 inbuf = InputBuffer::create("bufname", "categoryInterest");
+		 *                 inbuf->register_handler(boost::bind(&MyClass::my_internal_iu_handler, this, _1, _2, _3));
+		 *             }
+		 *     };
+		 *     </pre>
+		 *
+		 */
 		IPAACA_HEADER_EXPORT void register_handler(IUEventHandlerFunction function, IUEventType event_mask = IU_ALL_EVENTS, const std::string& category="");
 		//_IPAACA_ABSTRACT_ virtual void add(boost::shared_ptr<IUInterface> iu) = 0;
 		IPAACA_HEADER_EXPORT _IPAACA_ABSTRACT_ virtual boost::shared_ptr<IUInterface> get(const std::string& iu_uid) = 0;
@@ -225,6 +270,7 @@ IPAACA_HEADER_EXPORT class OutputBuffer: public Buffer { //, public boost::enabl
 
 		IPAACA_HEADER_EXPORT void _retract_iu(boost::shared_ptr<IU> iu);
 	protected:
+		/// \b Note: constructor is protected. Use create()
 		IPAACA_HEADER_EXPORT OutputBuffer(const std::string& basename, const std::string& channel=""); // empty string auto-replaced with __ipaaca_static_option_default_channel
 		IPAACA_HEADER_EXPORT void _initialize_server();
 	public:
@@ -287,6 +333,7 @@ IPAACA_HEADER_EXPORT class InputBuffer: public Buffer { //, public boost::enable
 			IPAACA_WARNING("(ERROR) InputBuffer::_send_iu_resendrequest() should never be invoked")
 		}*/
 	protected:
+		/// \b Note: all constructors are protected. Use create()
 		IPAACA_HEADER_EXPORT InputBuffer(const BufferConfiguration& bufferconfiguration);
 		IPAACA_HEADER_EXPORT InputBuffer(const std::string& basename, const std::set<std::string>& category_interests);
 		IPAACA_HEADER_EXPORT InputBuffer(const std::string& basename, const std::vector<std::string>& category_interests);
@@ -298,15 +345,27 @@ IPAACA_HEADER_EXPORT class InputBuffer: public Buffer { //, public boost::enable
 		IPAACA_MEMBER_VAR_EXPORT bool triggerResend;
 
 	public:
-		/// Specify whether old, but previously unknown, IUs should be requested to be sent to the buffer over a hidden channel.
+		/// Specify whether old but previously unseen IUs should be requested to be sent to the buffer over a hidden channel.
 		IPAACA_HEADER_EXPORT void set_resend(bool resendActive);
 		IPAACA_HEADER_EXPORT bool get_resend();
+		/// Create InputBuffer according to configuration in BufferConfiguration object
 		IPAACA_HEADER_EXPORT static boost::shared_ptr<InputBuffer> create(const BufferConfiguration& bufferconfiguration);
+		/// Create InputBuffer from name and set of category interests
 		IPAACA_HEADER_EXPORT static boost::shared_ptr<InputBuffer> create(const std::string& basename, const std::set<std::string>& category_interests);
+		/// Create InputBuffer from name and vector of category interests
 		IPAACA_HEADER_EXPORT static boost::shared_ptr<InputBuffer> create(const std::string& basename, const std::vector<std::string>& category_interests);
+		// /// Create InputBuffer from name and initializer_list of category interests
+		// IPAACA_HEADER_EXPORT static boost::shared_ptr<InputBuffer> create(const std::string& basename, const std::initializer_list<std::string>& category_interests);
+		/// Convenience function: create InputBuffer from name and one category interest
 		IPAACA_HEADER_EXPORT static boost::shared_ptr<InputBuffer> create(const std::string& basename, const std::string& category_interest1);
+		/// Convenience function: create InputBuffer from name and two category interests [DEPRECATED]
+		[[deprecated("Use create(string, set<string>) instead")]]
 		IPAACA_HEADER_EXPORT static boost::shared_ptr<InputBuffer> create(const std::string& basename, const std::string& category_interest1, const std::string& category_interest2);
+		/// Convenience function: create InputBuffer from name and three category interests [DEPRECATED]
+		[[deprecated("Use create(string, set<string>) instead")]]
 		IPAACA_HEADER_EXPORT static boost::shared_ptr<InputBuffer> create(const std::string& basename, const std::string& category_interest1, const std::string& category_interest2, const std::string& category_interest3);
+		/// Convenience function: create InputBuffer from name and four category interests [DEPRECATED]
+		[[deprecated("Use create(string, set<string>) instead")]]
 		IPAACA_HEADER_EXPORT static boost::shared_ptr<InputBuffer> create(const std::string& basename, const std::string& category_interest1, const std::string& category_interest2, const std::string& category_interest3, const std::string& category_interest4);
 		IPAACA_HEADER_EXPORT ~InputBuffer() {
 			IPAACA_IMPLEMENT_ME

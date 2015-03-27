@@ -476,6 +476,17 @@ IPAACA_EXPORT InputBuffer::InputBuffer(const std::string& basename, const std::v
 	_create_category_listener_if_needed(_uuid);
 	triggerResend = false;
 }
+/*IPAACA_EXPORT InputBuffer::InputBuffer(const std::string& basename, const std::initializer_list<std::string>& category_interests)
+:Buffer(basename, "IB")
+{
+	_channel = __ipaaca_static_option_default_channel;
+
+	for (std::initializer_list<std::string>::const_iterator it=category_interests.begin(); it!=category_interests.end(); ++it) {
+		_create_category_listener_if_needed(*it);
+	}
+	_create_category_listener_if_needed(_uuid);
+	triggerResend = false;
+}*/
 IPAACA_EXPORT InputBuffer::InputBuffer(const std::string& basename, const std::string& category_interest1)
 :Buffer(basename, "IB")
 {
