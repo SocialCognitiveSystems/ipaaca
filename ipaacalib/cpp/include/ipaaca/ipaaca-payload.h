@@ -329,14 +329,18 @@ IPAACA_HEADER_EXPORT class PayloadEntryProxy//{{{
 {
 	friend class Payload;
 	friend class PayloadIterator;
+	friend class PayloadDocumentEntry;
+	friend class PayloadEntryProxyListDecorator;
+	friend class PayloadEntryProxyListIterator;
+	friend class PayloadEntryProxyMapDecorator;
+	friend class PayloadEntryProxyMapIterator;
 	friend std::ostream& operator<<(std::ostream& os, const PayloadEntryProxy& proxy);
-	protected:
 	public:
 		/// Select map-style iteration for this proxy (to select iterator content type). Will throw if not actually map-type. See example in the class description.
 		IPAACA_HEADER_EXPORT PayloadEntryProxyMapDecorator as_map();
 		/// Select list-style iteration for this proxy (to select iterator content type). Will throw if not actually list-type. See example in the class description.
 		IPAACA_HEADER_EXPORT PayloadEntryProxyListDecorator as_list();
-	public:
+	protected:
 		//IPAACA_MEMBER_VAR_EXPORT rapidjson::Document* _json_parent_node;
 		//IPAACA_MEMBER_VAR_EXPORT rapidjson::Document* _json_node;
 		IPAACA_MEMBER_VAR_EXPORT Payload* _payload;
