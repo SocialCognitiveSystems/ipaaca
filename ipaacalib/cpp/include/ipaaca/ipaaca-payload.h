@@ -308,7 +308,7 @@ IPAACA_HEADER_EXPORT class PayloadEntryProxyListDecorator//{{{
  * This class is returned by IUInterface::operator[].
  * The proxy handles automatic type conversions, requests remote changes of payloads, and enables navigation into and iteration over structured json objects.
  *
- * \b Examples:
+ * \b Examples (reading):
  *
  * <code>std::string received_name = iu->payload()["name"];</code>  // implicit conversion using operator string()
  *
@@ -316,13 +316,21 @@ IPAACA_HEADER_EXPORT class PayloadEntryProxyListDecorator//{{{
  * 
  * <code>auto p = iu->payload()["otherKey"];</code>  // auto type is PayloadEntryProxy (conversion is on-demand)
  *
+ * <code>for (auto val: iu->payload()["my_list"].as_list()) { ... }</code>  // as_list is required to select list-type iteration (value type in iteration remains variant)
+ *
+ * <code>for (auto k_v_map: iu->payload()["my_map"].as_map()) { ... }</code>  // as_map is required to select map-type iteration (value type in iteration is a pair, second part remains variant)
+ *
+ * \b Examples (writing):
+ * 
+ * <code>iu->payload()["my_new_item"] = "new value";</code>  // most basic operation, set string value
+ *
  * <code>iu->payload()["double_list"][0] = 100.0;</code>  // accessing and updating an item in a list
  *
  * <code>iu->payload()["name_list"] = std::list<std::string>{"Alpha", "Bravo", "Charlie"};</code>  // set from basic uniform containers
  *
- * <code>for (auto val: iu->payload()["my_list"].as_list()) { ... }</code>  // as_list is required to select list-type iteration (value type in iteration remains variant)
+ * <code>iu->payload()["name_list"].push_back("--- adding some numbers below ---");</code>  // append a supported value to an existing list
  *
- * <code>for (auto k_v_map: iu->payload()["my_map"].as_map()) { ... }</code>  // as_map is required to select map-type iteration (value type in iteration is a pair, second part remains variant)
+ * <code>iu->payload()["name_list"].extend(iu->payload()["double_list"]);</code>  // extend list by items; \b Note: all setters also accept proxies as source values, creating copies of values
  */
 IPAACA_HEADER_EXPORT class PayloadEntryProxy//{{{
 {
