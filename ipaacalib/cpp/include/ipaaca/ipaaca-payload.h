@@ -505,8 +505,20 @@ IPAACA_HEADER_EXPORT class PayloadEntryProxy//{{{
 			list.PushBack(newval, new_entry->document.GetAllocator());
 			_payload->set(_key, new_entry);
 		}
-		/// Alias for push_back() (somewhat pythonic - since we also provide extend())
-		IPAACA_HEADER_EXPORT template<typename T> void append(T t) { push_back<T>(t); }
+		/// Append the value of another proxy (or a null value) to a list-type value
+		IPAACA_HEADER_EXPORT void push_back(const PayloadEntryProxy& otherproxy)
+		{
+			if ((!json_value) || (!json_value->IsArray())) throw PayloadAddressingError();
+			PayloadDocumentEntry::ptr new_entry = document_entry->clone(); // copy-on-write, no lock required
+			rapidjson::Value& list = new_entry->get_or_create_nested_value_from_proxy_path(this);
+			rapidjson::Value newval;
+			auto valueptr = otherproxy.json_value;
+			if (valueptr) { // only set if value is valid, keep default null value otherwise
+				newval.CopyFrom(*valueptr, new_entry->document.GetAllocator());
+			}
+			list.PushBack(newval, new_entry->document.GetAllocator());
+			_payload->set(_key, new_entry);
+		}
 		/// Extend a list-type payload value with a vector containing items of a supported type
 		IPAACA_HEADER_EXPORT template<typename T> void extend(const std::vector<T>& ts)
 		{
@@ -529,6 +541,21 @@ IPAACA_HEADER_EXPORT class PayloadEntryProxy//{{{
 			for (auto& t: ts) {
 				rapidjson::Value newval;
 				pack_into_json_value(newval, new_entry->document.GetAllocator(), t);
+				list.PushBack(newval, new_entry->document.GetAllocator());
+			}
+			_payload->set(_key, new_entry);
+		}
+		/// Extend a list-type payload value with items (copies) from another list-type value
+		IPAACA_HEADER_EXPORT void extend(const PayloadEntryProxy& otherproxy)
+		{
+			if ((!json_value) || (!json_value->IsArray())) throw PayloadAddressingError();
+			if ((!otherproxy.json_value) || (!(otherproxy.json_value->IsArray()))) throw PayloadAddressingError();
+			PayloadDocumentEntry::ptr new_entry = document_entry->clone(); // copy-on-write, no lock required
+			rapidjson::Value& list = new_entry->get_or_create_nested_value_from_proxy_path(this);
+			for (size_t i=0; i<otherproxy.json_value->Size(); ++i) {
+				rapidjson::Value newval;
+				rapidjson::Value& value = (*(otherproxy.json_value))[i];
+				newval.CopyFrom(value, new_entry->document.GetAllocator());
 				list.PushBack(newval, new_entry->document.GetAllocator());
 			}
 			_payload->set(_key, new_entry);

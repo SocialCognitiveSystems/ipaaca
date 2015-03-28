@@ -66,6 +66,7 @@ int iterators_main(int argc, char** argv)//{{{
 	iu->payload()["d"] = 100;
 	iu->payload()["e"] = 3l;
 	iu->payload()["f"] = "12.5000";
+	iu->payload()["g"] = std::vector<std::string>{"g1", "g2"};
 	
 	std::cout << std::endl << "Iterate over payload" << std::endl;
 	for (auto it = iu->payload().begin(); it != iu->payload().end(); ++it) {
@@ -161,6 +162,14 @@ int iterators_main(int argc, char** argv)//{{{
 	
 	std::cout << std::endl << "Extending payload['a'] by a list of three bools" << std::endl;
 	iu->payload()["a"].extend(std::list<bool>{false, false, true});
+	std::cout << "Resulting entries in payload['a']:" << std::endl;
+	for (auto v: iu->payload()["a"].as_list()) {
+		std::cout << "  " << v << std::endl;
+	}
+	
+	std::cout << std::endl << "Extending payload['a'] by payload['g'] and appending payload['f']" << std::endl;
+	iu->payload()["a"].extend(iu->payload()["g"]);
+	iu->payload()["a"].push_back(iu->payload()["f"]);
 	std::cout << "Resulting entries in payload['a']:" << std::endl;
 	for (auto v: iu->payload()["a"].as_list()) {
 		std::cout << "  " << v << std::endl;
