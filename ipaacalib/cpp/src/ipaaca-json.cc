@@ -152,6 +152,20 @@ int iterators_main(int argc, char** argv)//{{{
 		std::cout << "  Unexpected exception: " << ex.what() << std::endl;
 	}
 	
+	std::cout << std::endl << "Appending a string item to the end of payload['a']" << std::endl;
+	iu->payload()["a"].push_back("appended string entry");
+	std::cout << "Resulting entries in payload['a']:" << std::endl;
+	for (auto v: iu->payload()["a"].as_list()) {
+		std::cout << "  " << v << std::endl;
+	}
+	
+	std::cout << std::endl << "Extending payload['a'] by a list of three bools" << std::endl;
+	iu->payload()["a"].extend(std::list<bool>{false, false, true});
+	std::cout << "Resulting entries in payload['a']:" << std::endl;
+	for (auto v: iu->payload()["a"].as_list()) {
+		std::cout << "  " << v << std::endl;
+	}
+	
 	return 0;
 }
 //}}}
@@ -192,7 +206,6 @@ int json_testbed_main(int argc, char** argv)//{{{
 }
 //}}}
 
-/*
 int fakeiu_main(int argc, char** argv)//{{{
 {
 	//if (argc<2) {
@@ -318,7 +331,6 @@ int fakeiu_main(int argc, char** argv)//{{{
 	return 0;
 }
 //}}}
-*/
 
 int legacy_iu_main(int argc, char** argv)//{{{
 {
