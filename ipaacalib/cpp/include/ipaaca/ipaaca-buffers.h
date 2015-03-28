@@ -39,11 +39,11 @@
 #endif
 
 
-/// store for (local) IUs. TODO Stores need to be unified more
+/// Store for local IUs (used in OutputBuffer)
 IPAACA_HEADER_EXPORT class IUStore: public std::map<std::string, boost::shared_ptr<IU> >
 {
 };
-/// store for RemotePushIUs. TODO Stores need to be unified more
+/// Store for RemotePushIUs (used in InputBuffer)
 IPAACA_HEADER_EXPORT class RemotePushIUStore: public std::map<std::string, boost::shared_ptr<RemotePushIU> > // TODO genericize to all remote IU types
 {
 };
@@ -64,6 +64,7 @@ IPAACA_HEADER_EXPORT class SmartLinkMap {//{{{
 
 	protected:
 		IPAACA_MEMBER_VAR_EXPORT LinkMap _links;
+		/// The empty link set is returned if undefined links are read for an IU.
 		IPAACA_MEMBER_VAR_EXPORT static LinkSet empty_link_set;
 		IPAACA_HEADER_EXPORT void _add_and_remove_links(const LinkMap& add, const LinkMap& remove);
 		IPAACA_HEADER_EXPORT void _replace_links(const LinkMap& links);
@@ -185,7 +186,7 @@ IPAACA_HEADER_EXPORT class Buffer { //: public boost::enable_shared_from_this<Bu
 		IPAACA_HEADER_EXPORT inline const std::string& unique_name() { return _unique_name; }
 		/// This version of register_handler takes a set of several category interests instead of just one.
 		IPAACA_HEADER_EXPORT void register_handler(IUEventHandlerFunction function, IUEventType event_mask, const std::set<std::string>& categories);
-		/** \brief Register a user-specified handler for IU events.
+		/** \brief Register a user-specified handler for IU events. Unless specified, it triggers for all event types for all category interests of the buffer.
 		 *
 		 * \param function A function [object] that can be converted to #IUEventHandlerFunction (examples below)
 		 * \param event_mask Which event types to relay to the user (default: all)
@@ -195,7 +196,7 @@ IPAACA_HEADER_EXPORT class Buffer { //: public boost::enable_shared_from_this<Bu
 		 *
 		 * Adding a plain function as a handler:<br/>
 		 *     <pre>
-		 *     void global_iu_handler(IUInterface::ptr iu, IUEventType type, bool local) { ... }
+		 *     void global_iu_handler(IUInterface::ptr iu, IUEventType type, bool local) { do_something(); }
 		 *     ...
 		 *     int main() {
 		 *         OutputBuffer::ptr outbuf = OutputBuffer::create("mybufname");
@@ -208,7 +209,7 @@ IPAACA_HEADER_EXPORT class Buffer { //: public boost::enable_shared_from_this<Bu
 		 *     <pre>
 		 *     class MyClass {
 		 *         protected:
-		 *             void my_internal_iu_handler(IUInterface::ptr iu, IUEventType type, bool local) { ... }
+		 *             void my_internal_iu_handler(IUInterface::ptr iu, #IUEventType type, bool local) { do_something(); }
 		 *             InputBuffer::ptr inbuf;
 		 *         public:
 		 *             MyClass() {
@@ -216,6 +217,13 @@ IPAACA_HEADER_EXPORT class Buffer { //: public boost::enable_shared_from_this<Bu
 		 *                 inbuf->register_handler(boost::bind(&MyClass::my_internal_iu_handler, this, _1, _2, _3));
 		 *             }
 		 *     };
+		 *     </pre>
+		 *
+		 * Adding a lambda function as a handler (C++11):<br/>
+		 *     <pre>
+		 *     inbuf->register_handler([](IUInterface::ptr iu, #IUEventType event_type, bool local) {
+		 *         do_something();
+		 *     });
 		 *     </pre>
 		 *
 		 */

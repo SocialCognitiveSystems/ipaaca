@@ -302,7 +302,7 @@ IPAACA_EXPORT void OutputBuffer::_initialize_server()
 }
 IPAACA_EXPORT OutputBuffer::ptr OutputBuffer::create(const std::string& basename)
 {
-	Initializer::initialize_ipaaca_rsb_if_needed();
+	Initializer::initialize_backend();
 	return OutputBuffer::ptr(new OutputBuffer(basename));
 }
 IPAACA_EXPORT IUInterface::ptr OutputBuffer::get(const std::string& iu_uid)
@@ -532,37 +532,37 @@ IPAACA_EXPORT InputBuffer::InputBuffer(const std::string& basename, const std::s
 
 IPAACA_EXPORT InputBuffer::ptr InputBuffer::create(const BufferConfiguration& bufferconfiguration)
 {
-	Initializer::initialize_ipaaca_rsb_if_needed();
+	Initializer::initialize_backend();
 	return InputBuffer::ptr(new InputBuffer(bufferconfiguration));
 }
 IPAACA_EXPORT InputBuffer::ptr InputBuffer::create(const std::string& basename, const std::set<std::string>& category_interests)
 {
-	Initializer::initialize_ipaaca_rsb_if_needed();
+	Initializer::initialize_backend();
 	return InputBuffer::ptr(new InputBuffer(basename, category_interests));
 }
 IPAACA_EXPORT InputBuffer::ptr InputBuffer::create(const std::string& basename, const std::vector<std::string>& category_interests)
 {
-	Initializer::initialize_ipaaca_rsb_if_needed();
+	Initializer::initialize_backend();
 	return InputBuffer::ptr(new InputBuffer(basename, category_interests));
 }
 IPAACA_EXPORT InputBuffer::ptr InputBuffer::create(const std::string& basename, const std::string& category_interest1)
 {
-	Initializer::initialize_ipaaca_rsb_if_needed();
+	Initializer::initialize_backend();
 	return InputBuffer::ptr(new InputBuffer(basename, category_interest1));
 }
 IPAACA_EXPORT InputBuffer::ptr InputBuffer::create(const std::string& basename, const std::string& category_interest1, const std::string& category_interest2)
 {
-	Initializer::initialize_ipaaca_rsb_if_needed();
+	Initializer::initialize_backend();
 	return InputBuffer::ptr(new InputBuffer(basename, category_interest1, category_interest2));
 }
 IPAACA_EXPORT InputBuffer::ptr InputBuffer::create(const std::string& basename, const std::string& category_interest1, const std::string& category_interest2, const std::string& category_interest3)
 {
-	Initializer::initialize_ipaaca_rsb_if_needed();
+	Initializer::initialize_backend();
 	return InputBuffer::ptr(new InputBuffer(basename, category_interest1, category_interest2, category_interest3));
 }
 IPAACA_EXPORT InputBuffer::ptr InputBuffer::create(const std::string& basename, const std::string& category_interest1, const std::string& category_interest2, const std::string& category_interest3, const std::string& category_interest4)
 {
-	Initializer::initialize_ipaaca_rsb_if_needed();
+	Initializer::initialize_backend();
 	return InputBuffer::ptr(new InputBuffer(basename, category_interest1, category_interest2, category_interest3, category_interest4));
 }
 

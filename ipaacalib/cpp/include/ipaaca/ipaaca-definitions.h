@@ -125,6 +125,7 @@ IPAACA_HEADER_EXPORT class Abort: public std::exception//{{{
 		}
 };//}}}
 
+/// IU was not found in a buffer
 IPAACA_HEADER_EXPORT class IUNotFoundError: public Exception//{{{
 {
 	public:
@@ -133,6 +134,7 @@ IPAACA_HEADER_EXPORT class IUNotFoundError: public Exception//{{{
 			_description = "IUNotFoundError";
 		}
 };//}}}
+/// IU was already published
 IPAACA_HEADER_EXPORT class IUPublishedError: public Exception//{{{
 {
 	public:
@@ -141,6 +143,7 @@ IPAACA_HEADER_EXPORT class IUPublishedError: public Exception//{{{
 			_description = "IUPublishedError";
 		}
 };//}}}
+/// IU had already been committed to
 IPAACA_HEADER_EXPORT class IUCommittedError: public Exception//{{{
 {
 	public:
@@ -149,6 +152,7 @@ IPAACA_HEADER_EXPORT class IUCommittedError: public Exception//{{{
 			_description = "IUCommittedError";
 		}
 };//}}}
+/// Remote IU update failed because it had been modified in the mean time
 IPAACA_HEADER_EXPORT class IUUpdateFailedError: public Exception//{{{
 {
 	public:
@@ -157,6 +161,7 @@ IPAACA_HEADER_EXPORT class IUUpdateFailedError: public Exception//{{{
 			_description = "IUUpdateFailedError";
 		}
 };//}}}
+/// Requested resend of old IU due to malformed channel specification
 IPAACA_HEADER_EXPORT class IUResendRequestFailedError: public Exception//{{{
 {
 	public:
@@ -165,6 +170,7 @@ IPAACA_HEADER_EXPORT class IUResendRequestFailedError: public Exception//{{{
 			_description = "IUResendRequestFailedError";
 		}
 };//}}}
+/// Write operation failed because IU had been set read-only
 IPAACA_HEADER_EXPORT class IUReadOnlyError: public Exception//{{{
 {
 	public:
@@ -173,6 +179,7 @@ IPAACA_HEADER_EXPORT class IUReadOnlyError: public Exception//{{{
 			_description = "IUReadOnlyError";
 		}
 };//}}}
+/// Buffer::add() failed because the IU had been previously placed in another buffer
 IPAACA_HEADER_EXPORT class IUAlreadyInABufferError: public Exception//{{{
 {
 	public:
@@ -181,6 +188,7 @@ IPAACA_HEADER_EXPORT class IUAlreadyInABufferError: public Exception//{{{
 			_description = "IUAlreadyInABufferError";
 		}
 };//}}}
+/// A request was made that is only valid for an already published IU
 IPAACA_HEADER_EXPORT class IUUnpublishedError: public Exception//{{{
 {
 	public:
@@ -189,6 +197,7 @@ IPAACA_HEADER_EXPORT class IUUnpublishedError: public Exception//{{{
 			_description = "IUUnpublishedError";
 		}
 };//}}}
+/// IU had already been allocated a UID
 IPAACA_HEADER_EXPORT class IUAlreadyHasAnUIDError: public Exception//{{{
 {
 	public:
@@ -197,6 +206,7 @@ IPAACA_HEADER_EXPORT class IUAlreadyHasAnUIDError: public Exception//{{{
 			_description = "IUAlreadyHasAnUIDError";
 		}
 };//}}}
+/// IU had already been allocated an owner name
 IPAACA_HEADER_EXPORT class IUAlreadyHasAnOwnerNameError: public Exception//{{{
 {
 	public:
@@ -205,6 +215,7 @@ IPAACA_HEADER_EXPORT class IUAlreadyHasAnOwnerNameError: public Exception//{{{
 			_description = "IUAlreadyHasAnOwnerNameError";
 		}
 };//}}}
+/// UID generation failed (Windows only)
 IPAACA_HEADER_EXPORT class UUIDGenerationError: public Exception//{{{
 {
 	public:
@@ -213,6 +224,7 @@ IPAACA_HEADER_EXPORT class UUIDGenerationError: public Exception//{{{
 			_description = "UUIDGenerationError";
 		}
 };//}}}
+/// Not implemented (e.g. invalid request parameters via backend)
 IPAACA_HEADER_EXPORT class NotImplementedError: public Exception//{{{
 {
 	public:
@@ -221,6 +233,7 @@ IPAACA_HEADER_EXPORT class NotImplementedError: public Exception//{{{
 			_description = "NotImplementedError";
 		}
 };//}}}
+/// PayloadEntryProxy requested type conversion failed (including lenient interpretation)
 IPAACA_HEADER_EXPORT class PayloadTypeConversionError: public Exception//{{{
 {
 	public:
@@ -229,6 +242,7 @@ IPAACA_HEADER_EXPORT class PayloadTypeConversionError: public Exception//{{{
 			_description = "PayloadTypeConversionError";
 		}
 };//}}}
+/// PayloadEntryProxy was addressed as list when not a list or as map when not a map
 IPAACA_HEADER_EXPORT class PayloadAddressingError: public Exception//{{{
 {
 	public:
@@ -237,6 +251,7 @@ IPAACA_HEADER_EXPORT class PayloadAddressingError: public Exception//{{{
 			_description = "PayloadAddressingError";
 		}
 };//}}}
+/// Malformed json was received for a Payload
 IPAACA_HEADER_EXPORT class JsonParsingError: public Exception//{{{
 {
 	public:
@@ -245,6 +260,7 @@ IPAACA_HEADER_EXPORT class JsonParsingError: public Exception//{{{
 			_description = "JsonParsingError";
 		}
 };//}}}
+/// PayloadEntryProxy invalidated (unused)
 IPAACA_HEADER_EXPORT class PayloadEntryProxyInvalidatedError: public Exception//{{{
 {
 	public:
@@ -253,6 +269,7 @@ IPAACA_HEADER_EXPORT class PayloadEntryProxyInvalidatedError: public Exception//
 			_description = "PayloadEntryProxyInvalidatedError";
 		}
 };//}}}
+/// Iterator over Payload entries was invalidated by an intermediate IU update operation
 IPAACA_HEADER_EXPORT class PayloadIteratorInvalidError: public Exception//{{{
 {
 	public:
@@ -271,12 +288,15 @@ IPAACA_HEADER_EXPORT class PayloadIteratorInvalidError: public Exception//{{{
 IPAACA_HEADER_EXPORT class Initializer
 {
 	public:
-		/// Explicitly initialize the backend.
+		/// Initialize the backend [DEPRECATED] (old name, use initialize_backend() instead)
+		[[deprecated("Use initialize_backend() instead")]]
 		IPAACA_HEADER_EXPORT static void initialize_ipaaca_rsb_if_needed();
-		IPAACA_HEADER_EXPORT static void initialize_updated_default_config();
+		/// Explicitly initialize the backend. No effect if already initialized. Automatically called during first Buffer construction.
+		IPAACA_HEADER_EXPORT static void initialize_backend();
 		IPAACA_HEADER_EXPORT static bool initialized();
 		IPAACA_HEADER_EXPORT static void dump_current_default_config();
 	protected:
+		IPAACA_HEADER_EXPORT static void auto_configure_rsb();
 		IPAACA_MEMBER_VAR_EXPORT static bool _initialized;
 };
 
@@ -355,6 +375,7 @@ class CommandLineParser {
 		IPAACA_HEADER_EXPORT CommandLineParser();
 		IPAACA_MEMBER_VAR_EXPORT bool library_options_handled;
 		IPAACA_HEADER_EXPORT bool consume_library_option(const std::string& name, bool expect, const char* optarg);
+		IPAACA_HEADER_EXPORT void ensure_defaults_in( CommandLineOptions::ptr clo );
 	public:
 		IPAACA_HEADER_EXPORT inline ~CommandLineParser() { }
 		/// Create a new parser object reference.
@@ -371,7 +392,6 @@ class CommandLineParser {
 		 * \param defaultv     The default string value (unused if expect_param is false)
 		 */
 		IPAACA_HEADER_EXPORT void add_option(const std::string& optname, char shortn, bool expect_param, const std::string& defaultv);
-		IPAACA_HEADER_EXPORT void ensure_defaults_in( CommandLineOptions::ptr clo );
 		/** \brief Parse argument list and return result.
 		 *
 		 * Parse argument list (e.g. from main()) with the parser, consuming the internal options.

@@ -43,12 +43,16 @@ using namespace rsb::patterns;
 // static library Initializer
 IPAACA_EXPORT bool Initializer::_initialized = false;
 IPAACA_EXPORT bool Initializer::initialized() { return _initialized; }
-IPAACA_EXPORT void Initializer::initialize_ipaaca_rsb_if_needed()//{{{
+IPAACA_EXPORT void Initializer::initialize_ipaaca_rsb_if_needed()
+{
+	initialize_backend();
+}
+IPAACA_EXPORT void Initializer::initialize_backend()//{{{
 {
 	if (_initialized) return;
 
-	//IPAACA_INFO("Calling initialize_updated_default_config()")
-	initialize_updated_default_config();
+	//IPAACA_INFO("Calling auto_configure_rsb()")
+	auto_configure_rsb();
 
 	// RYT FIXME This configuration stuff has been simply removed in rsb!
 	//ParticipantConfig config = ParticipantConfig::fromConfiguration();
@@ -97,7 +101,7 @@ IPAACA_EXPORT void Initializer::dump_current_default_config()//{{{
 	//inprocess.setEnabled(true);
 	//config.addTransport(inprocess);
 }//}}}
-IPAACA_EXPORT void Initializer::initialize_updated_default_config()//{{{
+IPAACA_EXPORT void Initializer::auto_configure_rsb()//{{{
 {
 	// quick hack to iterate through the pwd parents
 	// and find the closest rsb plugin dir

@@ -192,6 +192,7 @@ int json_testbed_main(int argc, char** argv)//{{{
 }
 //}}}
 
+/*
 int fakeiu_main(int argc, char** argv)//{{{
 {
 	//if (argc<2) {
@@ -317,6 +318,7 @@ int fakeiu_main(int argc, char** argv)//{{{
 	return 0;
 }
 //}}}
+*/
 
 int legacy_iu_main(int argc, char** argv)//{{{
 {

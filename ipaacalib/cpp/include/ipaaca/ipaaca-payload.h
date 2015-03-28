@@ -118,7 +118,7 @@ IPAACA_HEADER_EXPORT template<> void pack_into_json_value(rapidjson::Value&, rap
 
 // FIXME TODO locking / invalidating proxy on first write of a payload entry
 
-/// Single payload entry wrapping a rapidjson::Document with some conversion glue. Also handles copy-on-write Document cloning.
+/// Single payload entry wrapping a rapidjson::Document with some conversion glue. Also handles copy-on-write Document cloning. <b>Internal type</b> - users generally do not see this.
 IPAACA_HEADER_EXPORT class PayloadDocumentEntry//{{{
 {
 	friend std::ostream& operator<<(std::ostream& os, std::shared_ptr<PayloadDocumentEntry> entry);
@@ -185,8 +185,6 @@ IPAACA_HEADER_EXPORT class Payload//{{{
 		IPAACA_HEADER_EXPORT PayloadEntryProxy operator[](const std::string& key);
 		/// Legacy / convenience function: interpret the payload map as a map string->string (casting all entries to string)
 		IPAACA_HEADER_EXPORT operator std::map<std::string, std::string>();
-		/// set or overwrite a single payload entry with a PayloadDocumentEntry object (typically \b not called by users - use PayloadEntryProxy::operator=() instead).
-		IPAACA_HEADER_EXPORT inline void set(const std::string& k, PayloadDocumentEntry::ptr entry) { _internal_set(k, entry); }
 		/// remove a single payload entry
 		IPAACA_HEADER_EXPORT inline void remove(const std::string& k) { _internal_remove(k); }
 		// FIXME: json: these two must support a bunch of standard types, not [only] json (users touch them)
@@ -197,6 +195,8 @@ IPAACA_HEADER_EXPORT class Payload//{{{
 		/// Legacy / convenience function: set the whole payload map from a map string->string (all JSON types are also set as string, no interpretation)
 		IPAACA_HEADER_EXPORT void set(const std::map<std::string, std::string>& all_elems);
 	protected:
+		/// set or overwrite a single payload entry with a PayloadDocumentEntry object (used by PayloadEntryProxy::operator=()).
+		IPAACA_HEADER_EXPORT inline void set(const std::string& k, PayloadDocumentEntry::ptr entry) { _internal_set(k, entry); }
 		IPAACA_HEADER_EXPORT PayloadDocumentEntry::ptr get_entry(const std::string& k); // json, changed str to proxy here, too
 	public:
 		[[deprecated("Use operator[] and operator std::string() instead")]]
@@ -205,7 +205,6 @@ IPAACA_HEADER_EXPORT class Payload//{{{
 	protected:
 		IPAACA_MEMBER_VAR_EXPORT unsigned long internal_revision;
 		IPAACA_MEMBER_VAR_EXPORT inline void mark_revision_change() { internal_revision++; }
-	public:
 		IPAACA_HEADER_EXPORT inline bool revision_changed(unsigned long reference_revision) { return internal_revision != reference_revision; }
 	public:
 		/// obtain a standard iterator marking the first entry in the payload
@@ -473,13 +472,17 @@ IPAACA_HEADER_EXPORT class PayloadEntryProxy//{{{
 			return result;
 		}
 		// FIXME why are these needed again?
+		/// [DECPRECATED] use normal type conversion syntax instead
 		[[deprecated("Use operator std::string() instead (i.e. explicit or implicit cast)")]]
 		IPAACA_HEADER_EXPORT std::string to_str();
 		//long to_int() { return operator long(); ;
+		/// [DECPRECATED] use normal type conversion syntax instead
 		[[deprecated("Use operator long() instead (i.e. explicit or implicit cast)")]]
 		IPAACA_HEADER_EXPORT long to_long();
+		/// [DECPRECATED] use normal type conversion syntax instead
 		[[deprecated("Use operator double() instead (i.e. explicit or implicit cast)")]]
 		IPAACA_HEADER_EXPORT double to_float();
+		/// [DECPRECATED] use normal type conversion syntax instead
 		[[deprecated("Use operator bool() instead (i.e. explicit or implicit cast)")]]
 		IPAACA_HEADER_EXPORT bool to_bool();
 		// getters  (not needed since conversions are enough?)
