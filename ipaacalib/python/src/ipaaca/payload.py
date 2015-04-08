@@ -148,11 +148,11 @@ class Payload(dict):
 
 	def _remotely_enforced_setitem(self, k, v):
 		"""Sets an item when requested remotely."""
-		return dict.__setitem__(self, k, v)
+		dict.__setitem__(self, k, v)
 
 	def _remotely_enforced_delitem(self, k):
 		"""Deletes an item when requested remotely."""
-		return dict.__delitem__(self, k)
+		if k in self: dict.__delitem__(self, k)
 
 	def _wait_batch_update_lock(self, timeout):
 		# wait lock with time-out http://stackoverflow.com/a/8393033
