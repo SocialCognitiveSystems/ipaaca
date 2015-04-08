@@ -96,6 +96,8 @@ class Payload(dict):
 			else: # Collect additions/modifications
 				self._batch_update_writer_name = writer_name
 				self._collected_modifications[k] = v
+				# revoke deletion of item since a new version has been added
+				self._collected_removals = [i for i in self._collected_removals if i!=k]
 			return dict.__setitem__(self, k, v)
 
 	def __delitem__(self, k, writer_name=None):
@@ -110,6 +112,8 @@ class Payload(dict):
 			else: # Collect additions/modifications
 				self._batch_update_writer_name = writer_name
 				self._collected_removals.append(k)
+				# revoke older update of item since more recent changes take precedence
+				if k in self._collected_modifications: del self._collected_modifications[k]
 			return dict.__delitem__(self, k)
 
 	# Context-manager based batch updates, not thread-safe (on remote updates)
