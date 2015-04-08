@@ -671,6 +671,24 @@ IPAACA_EXPORT template<> std::map<std::string, std::string> PayloadEntryProxy::g
 
 // Payload//{{{
 
+IPAACA_EXPORT void Payload::on_lock()
+{
+	Locker locker(_payload_operation_mode_lock);
+	IPAACA_DEBUG("Starting batch update mode ...")
+	_update_on_every_change = false;
+}
+IPAACA_EXPORT void Payload::on_unlock()
+{
+	Locker locker(_payload_operation_mode_lock);
+	IPAACA_DEBUG("... applying batch update with " << _collected_modifications.size() << " modifications and " << _collected_removals.size() << " removals ...")
+	_internal_merge_and_remove(_collected_modifications, _collected_removals, _batch_update_writer_name);
+	_update_on_every_change = true;
+	_batch_update_writer_name = "";
+	_collected_modifications.clear();
+	_collected_removals.clear();
+	IPAACA_DEBUG("... exiting batch update mode.")
+}
+
 IPAACA_EXPORT void Payload::initialize(boost::shared_ptr<IUInterface> iu)
 {
 	_iu = boost::weak_ptr<IUInterface>(iu);
@@ -693,41 +711,105 @@ IPAACA_EXPORT Payload::operator std::map<std::string, std::string>()
 }
 
 IPAACA_EXPORT void Payload::_internal_set(const std::string& k, PayloadDocumentEntry::ptr v, const std::string& writer_name) {
-	std::map<std::string, PayloadDocumentEntry::ptr> _new;
-	std::vector<std::string> _remove;
-	_new[k] = v;
-	_iu.lock()->_modify_payload(true, _new, _remove, writer_name );
-	IPAACA_DEBUG(" Setting local payload item \"" << k << "\" to " << v)
-	_document_store[k] = v;
-	mark_revision_change();
+	Locker locker(_payload_operation_mode_lock);
+	if (_update_on_every_change) {
+		std::map<std::string, PayloadDocumentEntry::ptr> _new;
+		std::vector<std::string> _remove;
+		_new[k] = v;
+		_iu.lock()->_modify_payload(true, _new, _remove, writer_name );
+		IPAACA_DEBUG(" Setting local payload item \"" << k << "\" to " << v)
+		_document_store[k] = v;
+		mark_revision_change();
+	} else {
+		IPAACA_DEBUG("queueing a payload set operation")
+		_batch_update_writer_name = writer_name;
+		_collected_modifications[k] = v;
+		// revoke deletions of this updated key
+		std::vector<std::string> new_removals;
+		for (auto& rk: _collected_removals) {
+			if (rk!=k) new_removals.push_back(rk);
+		}
+		_collected_removals = new_removals;
+	}
 }
 IPAACA_EXPORT void Payload::_internal_remove(const std::string& k, const std::string& writer_name) {
-	std::map<std::string, PayloadDocumentEntry::ptr> _new;
-	std::vector<std::string> _remove;
-	_remove.push_back(k);
-	_iu.lock()->_modify_payload(true, _new, _remove, writer_name );
-	_document_store.erase(k);
-	mark_revision_change();
+	Locker locker(_payload_operation_mode_lock);
+	if (_update_on_every_change) {
+		std::map<std::string, PayloadDocumentEntry::ptr> _new;
+		std::vector<std::string> _remove;
+		_remove.push_back(k);
+		_iu.lock()->_modify_payload(true, _new, _remove, writer_name );
+		_document_store.erase(k);
+		mark_revision_change();
+	} else {
+		IPAACA_DEBUG("queueing a payload remove operation")
+		_batch_update_writer_name = writer_name;
+		_collected_removals.push_back(k);
+		// revoke updates of this deleted key
+		_collected_modifications.erase(k);
+	}
 }
 IPAACA_EXPORT void Payload::_internal_replace_all(const std::map<std::string, PayloadDocumentEntry::ptr>& new_contents, const std::string& writer_name)
 {
-	std::vector<std::string> _remove;
-	_iu.lock()->_modify_payload(false, new_contents, _remove, writer_name );
-	_document_store = new_contents;
-	mark_revision_change();
+	Locker locker(_payload_operation_mode_lock);
+	if (_update_on_every_change) {
+		std::vector<std::string> _remove;
+		_iu.lock()->_modify_payload(false, new_contents, _remove, writer_name );
+		_document_store = new_contents;
+		mark_revision_change();
+	} else {
+		IPAACA_DEBUG("queueing a payload replace_all operation")
+		_batch_update_writer_name = writer_name;
+		_collected_modifications.clear();
+		for (auto& kv: new_contents) {
+			_collected_modifications[kv.first] = kv.second;
+		}
+		// take all existing keys and flag to remove them, unless overridden in current update
+		for (auto& kv: _document_store) {
+			if (! new_contents.count(kv.first)) {
+				_collected_removals.push_back(kv.first);
+				_collected_modifications.erase(kv.first);
+			}
+		}
+	}
 }
 IPAACA_EXPORT void Payload::_internal_merge(const std::map<std::string, PayloadDocumentEntry::ptr>& contents_to_merge, const std::string& writer_name)
 {
-	std::vector<std::string> _remove;
-	_iu.lock()->_modify_payload(true, contents_to_merge, _remove, writer_name );
+	Locker locker(_payload_operation_mode_lock);
+	if (_update_on_every_change) {
+		std::vector<std::string> _remove;
+		_iu.lock()->_modify_payload(true, contents_to_merge, _remove, writer_name );
+		for (auto& kv: contents_to_merge) {
+			_document_store[kv.first] = kv.second;
+		}
+		mark_revision_change();
+	} else {
+		IPAACA_DEBUG("queueing a payload merge operation")
+		std::set<std::string> updated_keys;
+		_batch_update_writer_name = writer_name;
+		for (auto& kv: contents_to_merge) {
+			_collected_modifications[kv.first] = kv.second;
+			updated_keys.insert(kv.first);
+		}
+		// revoke deletions of updated keys
+		std::vector<std::string> new_removals;
+		for (auto& rk: _collected_removals) {
+			if (! updated_keys.count(rk)) new_removals.push_back(rk);
+		}
+		_collected_removals = new_removals;
+	}
+}
+IPAACA_EXPORT void Payload::_internal_merge_and_remove(const std::map<std::string, PayloadDocumentEntry::ptr>& contents_to_merge, const std::vector<std::string>& keys_to_remove, const std::string& writer_name)
+{
+	// this function is called by exiting the batch update mode only, so no extra locking here
+	_iu.lock()->_modify_payload(true, contents_to_merge, keys_to_remove, writer_name );
+	for (auto& k: keys_to_remove) {
+		_document_store.erase(k);
+	}
 	for (auto& kv: contents_to_merge) {
 		_document_store[kv.first] = kv.second;
 	}
 	mark_revision_change();
-	//_document_store.insert(contents_to_merge.begin(), contents_to_merge.end());
-	//for (std::map<std::string, std::string>::iterator it = contents_to_merge.begin(); it!=contents_to_merge.end(); i++) {
-	//	_store[it->first] = it->second;
-	//}
 }
 IPAACA_EXPORT PayloadDocumentEntry::ptr Payload::get_entry(const std::string& k) {
 	if (_document_store.count(k)>0) return _document_store[k];

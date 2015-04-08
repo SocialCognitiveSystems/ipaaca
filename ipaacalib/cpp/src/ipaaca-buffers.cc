@@ -338,6 +338,7 @@ IPAACA_EXPORT void OutputBuffer::_send_iu_payload_update(IUInterface* iu, bool i
 {
 	IUPayloadUpdate* pup = new ipaaca::IUPayloadUpdate();
 	Informer<ipaaca::IUPayloadUpdate>::DataPtr pdata(pup);
+	pup->payload_type = iu->payload_type();
 	pup->uid = iu->uid();
 	pup->is_delta = is_delta;
 	pup->revision = revision;

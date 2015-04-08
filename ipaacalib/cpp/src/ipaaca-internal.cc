@@ -481,10 +481,15 @@ IPAACA_EXPORT std::string IUPayloadUpdateConverter::serialize(const AnnotatedDat
 			// legacy mode
 			item->set_value( json_value_cast<std::string>(kv.second->document));
 			item->set_type("STR");
+		} else {
+			IPAACA_ERROR("Uninitialized payload update type!")
+			throw NotImplementedError();
 		}
+		IPAACA_DEBUG("Adding updated item (type " << item->type() << "): " << item->key() << " -> " << item->value() )
 	}
 	for (auto& key: obj->keys_to_remove) {
 		pbo->add_keys_to_remove(key);
+		IPAACA_DEBUG("Adding removed key: " << key)
 	}
 	pbo->SerializeToString(&wire);
 	return getWireSchema();

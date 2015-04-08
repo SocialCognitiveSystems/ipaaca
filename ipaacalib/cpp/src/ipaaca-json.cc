@@ -39,6 +39,74 @@
 using namespace rapidjson;
 using namespace std;
 
+int batch_update_main(int argc, char** argv)//{{{
+{
+	std::string json_source("[\n\
+	\"old\",\n\
+	[\n\
+		\"str\",\n\
+		null\n\
+	],\n\
+	3,\n\
+	{\n\
+		\"key1\": \"value1\",\n\
+		\"key2\": \"value2\"\n\
+	}\n\
+]");
+	
+	ipaaca::OutputBuffer::ptr ob = ipaaca::OutputBuffer::create("myprog");
+	std::cout << std::endl << "Setting up an IU with initial contents" << std::endl;
+	ipaaca::IU::ptr iu = ipaaca::IU::create("testcategory");
+	iu->payload()["a"] = "OLD: initial contents of payload";
+	iu->payload()["b"] = "OLD: initial value for b";
+	std::cout << std::endl << "Initial contents of payload:" << std::endl;
+	for (auto it: iu->payload()) {
+		std::cout << "  " << it.first << " -> " << it.second << std::endl;
+	}
+	
+	std::cout << std::endl << "Publishing IU (sniffer should receive one ADDED)" << std::endl;
+	ob->add(iu);
+	
+	std::cout << std::endl << "Batch-writing some stuff (sniffer should receive a single UPDATED)" << std::endl;
+	{
+		ipaaca::Locker locker(iu->payload());
+		iu->payload().set(std::map<std::string, std::string>{{"b", "VALUE"}, {"bPrime", "VALUE"}});
+		iu->payload()["a"] = std::map<std::string, long>{{"a", 1},{"b", 2},{"c", 3}};
+		iu->payload()["remove_me"] = "WARNING: this should not be in the payload where an update is received!";
+		iu->payload()["c"] = "WARNING: this should read abc123, not this warning message!";
+		iu->payload()["d"] = 100;
+		iu->payload().remove("d");
+		iu->payload()["d"] = 200;
+		iu->payload()["d"] = 300;
+		iu->payload().remove("d");
+		iu->payload()["d"] = 400;
+		iu->payload()["e"] = "Note: a key 'd' should exist with value 400, and 'b' and 'bPrime' should be equal";
+		iu->payload()["f"] = "12.5000";
+		iu->payload()["g"] = std::vector<std::string>{"g1", "g2"};
+		iu->payload().remove("remove_me");
+		iu->payload()["c"] = "abc123";
+	}
+	
+	std::cout << std::endl << "Adding another key 'XYZ' outside batch mode (sniffer -> UPDATED)" << std::endl;
+	iu->payload()["XYZ"] = "blabla";
+	
+	std::cout << std::endl << "Final batch update, wiping most (sniffer should receive a third UPDATED, with 3 keys remaining in the payload)" << std::endl;
+	{
+		ipaaca::Locker locker(iu->payload());
+		iu->payload()["SHOULD_NOT_EXIST"] = "WARNING: this key should never be visible";
+		iu->payload().set(std::map<std::string, std::string>{{"A", "Final contents (3 entries)"}, {"B", "Final stuff (3 entries)"}});
+		iu->payload()["C"] = std::vector<std::string>{"payload ", "should ", "have ", "three ", "entries, ", "A ", "B ", "and ", "C"};
+	}
+	
+	std::cout << std::endl << "Final contents of payload:" << std::endl;
+	for (auto it: iu->payload()) {
+		std::cout << "  " << it.first << " -> " << it.second << std::endl;
+	}
+	
+	return 0;
+}
+//}}}
+
 int iterators_main(int argc, char** argv)//{{{
 {
 	std::string json_source("[\n\
@@ -423,7 +491,8 @@ int main(int argc, char** argv)
 	ipaaca::CommandLineParser::ptr parser = ipaaca::CommandLineParser::create();
 	ipaaca::CommandLineOptions::ptr options = parser->parse(argc, argv);
 
-	return iterators_main(argc, argv);
+	return batch_update_main(argc, argv);
+	//return iterators_main(argc, argv);
 	//return json_testbed_main(argc, argv);
 	//return legacy_iu_main(argc, argv);
 	//return fakeiu_main(argc, argv);

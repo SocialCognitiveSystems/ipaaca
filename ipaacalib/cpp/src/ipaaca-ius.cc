@@ -109,8 +109,16 @@ IPAACA_EXPORT void IU::_modify_payload(bool is_delta, const std::map<std::string
 	}
 	_increase_revision_number();
 	if (is_published()) {
-		//std::cout << "Sending a payload update with " << new_items.size() << " entries to merge." << std::endl;
+		IPAACA_DEBUG("Sending a payload update, new entries:")
+		for (auto& kv: new_items) {
+			IPAACA_DEBUG("  " << kv.first << " -> " << kv.second)
+		}
+		IPAACA_DEBUG("and with removed keys:")
+		for (auto& k: keys_to_remove) {
+			IPAACA_DEBUG("  " << k)
+		}
 		_buffer->_send_iu_payload_update(this, is_delta, _revision, new_items, keys_to_remove, writer_name);
+		IPAACA_DEBUG("... sent.")
 	}
 	_revision_lock.unlock();
 }

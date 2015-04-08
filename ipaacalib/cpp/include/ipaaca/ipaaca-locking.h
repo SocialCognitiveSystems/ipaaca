@@ -65,9 +65,15 @@ IPAACA_HEADER_EXPORT class Lock
 		}
 		IPAACA_HEADER_EXPORT inline void lock() {
 			_mutex.lock();
+			on_lock();
 		}
 		IPAACA_HEADER_EXPORT inline void unlock() {
+			on_unlock();
 			_mutex.unlock();
+		}
+		IPAACA_HEADER_EXPORT virtual inline void on_lock() {
+		}
+		IPAACA_HEADER_EXPORT virtual inline void on_unlock() {
 		}
 };
 #else
@@ -89,9 +95,15 @@ IPAACA_HEADER_EXPORT class Lock
 		}
 		IPAACA_HEADER_EXPORT inline void lock() {
 			pthread_mutex_lock(&_mutex);
+			on_lock();
 		}
 		IPAACA_HEADER_EXPORT inline void unlock() {
+			on_unlock();
 			pthread_mutex_unlock(&_mutex);
+		}
+		IPAACA_HEADER_EXPORT virtual inline void on_lock() {
+		}
+		IPAACA_HEADER_EXPORT virtual inline void on_unlock() {
 		}
 };
 #endif

@@ -55,6 +55,7 @@
 class PayloadDocumentEntry;
 //class PayloadDocumentStore;
 
+class PayloadBatchUpdateLock;
 class PayloadEntryProxy;
 class Payload;
 class PayloadIterator;

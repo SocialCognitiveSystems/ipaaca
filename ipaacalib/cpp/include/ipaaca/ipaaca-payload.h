@@ -143,11 +143,28 @@ IPAACA_HEADER_EXPORT class PayloadDocumentEntry//{{{
 
 typedef std::map<std::string, PayloadDocumentEntry::ptr> PayloadDocumentStore;
 
+
+#if 0
+/** \brief Lock to accumulate payload changes into one single update transaction
+ *
+ */
+IPAACA_HEADER_EXPORT class PayloadBatchUpdateLock: public ipaaca::Lock
+{
+	friend class Payload;
+	protected:
+		Payload* _payload;
+	public:
+		IPAACA_HEADER_EXPORT inline PayloadBatchUpdateLock(): Lock() { }
+		IPAACA_HEADER_EXPORT void on_lock() override;
+		IPAACA_HEADER_EXPORT void on_unlock() override;
+};
+#endif
+
 /** \brief Central class containing the user-set payload of any IUInterface class (IU, Message, RemotePushIU or RemoteMessage)
  *
  * Obtained by calling payload() on any IUInterface derived object. Created during IU creation.
  */
-IPAACA_HEADER_EXPORT class Payload//{{{
+IPAACA_HEADER_EXPORT class Payload: public Lock //{{{
 {
 	friend std::ostream& operator<<(std::ostream& os, const Payload& obj);
 	friend class IUInterface;
@@ -161,13 +178,28 @@ IPAACA_HEADER_EXPORT class Payload//{{{
 	friend class PayloadEntryProxy;
 	friend class PayloadIterator;
 	friend class FakeIU;
+	//friend class PayloadBatchUpdateLock;
 	protected:
 		IPAACA_MEMBER_VAR_EXPORT std::string _owner_name;
 		//IPAACA_MEMBER_VAR_EXPORT rapidjson::Document _json_document;
 		//IPAACA_MEMBER_VAR_EXPORT std::map<std::string, rapidjson::Document> _json_store;
 		IPAACA_MEMBER_VAR_EXPORT PayloadDocumentStore _document_store;
 		IPAACA_MEMBER_VAR_EXPORT boost::weak_ptr<IUInterface> _iu;
+		//IPAACA_MEMBER_VAR_EXPORT PayloadBatchUpdateLock _batch_update_lock;
+		//
+		IPAACA_MEMBER_VAR_EXPORT Lock _payload_operation_mode_lock; //< enforcing atomicity wrt the bool flag below
+		//
+		IPAACA_MEMBER_VAR_EXPORT bool _update_on_every_change; //< true: batch update not active; false: collecting updates (payload locked)
+		IPAACA_MEMBER_VAR_EXPORT std::map<std::string, PayloadDocumentEntry::ptr> _collected_modifications;
+		IPAACA_MEMBER_VAR_EXPORT std::vector<std::string> _collected_removals;
+		IPAACA_MEMBER_VAR_EXPORT std::string _batch_update_writer_name;
 	protected:
+		/// inherited from ipaaca::Lock, starting batch update collection mode
+		IPAACA_HEADER_EXPORT void on_lock() override;
+		/// inherited from ipaaca::Lock, finishing batch update collection mode
+		IPAACA_HEADER_EXPORT void on_unlock() override;
+	protected:
+		//IPAACA_HEADER_EXPORT ipaaca::Locker&& batch_update() { return std::move(ipaaca::Locker(*this); }
 		IPAACA_HEADER_EXPORT void initialize(boost::shared_ptr<IUInterface> iu);
 		IPAACA_HEADER_EXPORT inline void _set_owner_name(const std::string& name) { _owner_name = name; }
 		IPAACA_HEADER_EXPORT void _remotely_enforced_wipe();
@@ -178,7 +210,9 @@ IPAACA_HEADER_EXPORT class Payload//{{{
 		IPAACA_HEADER_EXPORT void _internal_merge(const std::map<std::string, PayloadDocumentEntry::ptr>& contents_to_merge, const std::string& writer_name="");
 		IPAACA_HEADER_EXPORT void _internal_set(const std::string& k, PayloadDocumentEntry::ptr v, const std::string& writer_name="");
 		IPAACA_HEADER_EXPORT void _internal_remove(const std::string& k, const std::string& writer_name="");
+		IPAACA_HEADER_EXPORT void _internal_merge_and_remove(const std::map<std::string, PayloadDocumentEntry::ptr>& contents_to_merge, const std::vector<std::string>& keys_to_remove, const std::string& writer_name="");
 	public:
+		IPAACA_HEADER_EXPORT inline Payload(): _batch_update_writer_name(""), _update_on_every_change(true) { }
 		IPAACA_HEADER_EXPORT inline const std::string& owner_name() { return _owner_name; }
 		// access
 		/// Obtain a payload item by name as a PayloadEntryProxy (returning null-type proxy if undefined)
