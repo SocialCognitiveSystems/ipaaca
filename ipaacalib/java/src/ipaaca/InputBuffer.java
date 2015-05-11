@@ -508,6 +508,14 @@ public class InputBuffer extends Buffer
         }
     }
 
+    public void addCategoryInterest(String... categories)
+    {
+        for(String cat:categories)
+        {
+            createCategoryListenerIfNeeded(cat);
+        }
+    }
+
     public Collection<RemotePushIU> getIUs()
     {
         return iuStore.values();
