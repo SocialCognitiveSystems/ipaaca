@@ -660,7 +660,6 @@ IPAACA_EXPORT void InputBuffer::_trigger_resend_request(EventPtr event) {
 }
 IPAACA_EXPORT void InputBuffer::_handle_iu_events(EventPtr event)
 {
-	std::cout << "handle iu events" << std::endl;
 	std::string type = event->getType();
 	if (type == "ipaaca::RemotePushIU") {
 		boost::shared_ptr<RemotePushIU> iu = boost::static_pointer_cast<RemotePushIU>(event->getData());
