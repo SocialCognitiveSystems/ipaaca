@@ -37,6 +37,7 @@ import copy
 import threading
 import uuid
 
+import ipaaca_pb2
 import ipaaca.converter
 import ipaaca.exception
 import ipaaca.misc
