@@ -33,6 +33,7 @@
 package ipaaca;
 
 
+import java.util.HashSet;
 import java.util.Set;
 
 
@@ -50,6 +51,7 @@ class BufferConfiguration {
 		this._owningComponentName = owningComponentName;
 		this._channel = "default";
 		this._resendActive = false;
+		this._category_interests = new HashSet<String>();
 	}
 
 	public String getOwningComponentName() {

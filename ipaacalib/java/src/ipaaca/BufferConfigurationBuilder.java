@@ -33,7 +33,7 @@
 
 package ipaaca;
 
-class BufferConfigurationBuilder extends BufferConfiguration {
+public class BufferConfigurationBuilder extends BufferConfiguration {
 
 	public BufferConfigurationBuilder(String owningComponentName) {
 		super(owningComponentName);
