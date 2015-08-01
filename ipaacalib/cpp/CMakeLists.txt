@@ -15,7 +15,6 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DIPAACA_EXPOSE_FULL_RSB_API")
 
 # find cmake modules locally too
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMakeModules )
-#set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/../../deps/share/rsc0.10/cmake/Modules )
 
 if(WIN32) # Check if we are on Windows
 	if(MSVC) # Check if we are using the Visual Studio compiler
@@ -41,12 +40,12 @@ if(WIN32) # Check if we are on Windows
 		#  On the other hand, if you simply want to use the precompiled rsb from inside
 		#  "rsx" (it works but has no debug info), uncomment the following four lines.
 		#
-		include_directories( ${PROJECT_SOURCE_DIR}/../../../rsx/RSC-0.10.0-win32/include/rsc0.10 )
-		include_directories( ${PROJECT_SOURCE_DIR}/../../../rsx/RSB-0.10.2-win32/include/rsb0.10 )
-		link_directories( ${PROJECT_SOURCE_DIR}/../../../rsx/RSC-0.10.0-win32/lib )
-		link_directories( ${PROJECT_SOURCE_DIR}/../../../rsx/RSB-0.10.2-win32/lib )
+		include_directories( ${PROJECT_SOURCE_DIR}/../../../rsx/RSC-0.11.0-win32/include/rsc0.11 )
+		include_directories( ${PROJECT_SOURCE_DIR}/../../../rsx/RSB-0.11.2-win32/include/rsb0.11 )
+		link_directories( ${PROJECT_SOURCE_DIR}/../../../rsx/RSC-0.11.0-win32/lib )
+		link_directories( ${PROJECT_SOURCE_DIR}/../../../rsx/RSB-0.11.2-win32/lib )
 		
-		set(RSBLIBS rsc0.10 rsb)
+		set(RSBLIBS rsc0.11 rsb0.11)
 		set(LIBS ${LIBS} rpcrt4)
 		
 		# Using custom Protobuf script (from rsc) because it honors PROTOBUF_ROOT
@@ -57,10 +56,6 @@ if(WIN32) # Check if we are on Windows
 		find_package(Boost COMPONENTS date_time program_options system filesystem thread signals regex REQUIRED)
 		link_directories(${Boost_LIBRARY_DIRS})
 		include_directories(${Boost_INCLUDE_DIRS})
-		
-		### (First attempts to fix linking problem:)
-		##list(REMOVE_ITEM Boost_LIBRARIES boost_thread-vc100-mt-gd-1_54)
-		##set(Boost_LIBRARIES boost_regex-vc100-mt-gd-1_54 boost_date_time-vc100-mt-gd-1_54 boost_program_options-vc100-mt-gd-1_54 boost_filesystem-vc100-mt-gd-1_54 boost_signals-vc100-mt-gd-1_54 boost_system-vc100-mt-gd-1_54)
 		
 		# Windows linkage hack: overriding the determined libs to remove boost_thread (causes multiple-definition issues)
 		set(CORRECT_BOOST_LIBS "")
@@ -74,16 +69,6 @@ if(WIN32) # Check if we are on Windows
 			endif(drop_item)
 		endforeach(BLIB ${Boost_LIBRARIES})
 		set(Boost_LIBRARIES ${CORRECT_BOOST_LIBS})
-
-		#include_directories( ${PROJECT_SOURCE_DIR}/../../../rsx/boost/include/boost-1_54 )
-		#link_directories( ${PROJECT_SOURCE_DIR}/../../../rsx/boost/lib )
-		
-		#include_directories( ${PROJECT_SOURCE_DIR}/../../../rsx/RSC-0.10.0-win32/include/rsc0.10 )
-		#include_directories( ${PROJECT_SOURCE_DIR}/../../../rsx/RSB-0.10.2-win32/include/rsb0.10 )
-		#include_directories( ${PROJECT_SOURCE_DIR}/../../../rsx/protobuf/include )
-		#link_directories( ${PROJECT_SOURCE_DIR}/../../../rsx/RSC-0.10.0-win32/lib )
-		#link_directories( ${PROJECT_SOURCE_DIR}/../../../rsx/RSB-0.10.2-win32/lib )
-		#link_directories( ${PROJECT_SOURCE_DIR}/../../../rsx/protobuf/bin )
 		
 	else()
 		message(SEND_ERROR "Unsupported compiler! Please build with MSVC (2010).")
