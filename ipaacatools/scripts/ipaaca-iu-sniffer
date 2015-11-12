@@ -78,7 +78,8 @@ def pretty_printed_iu_event(iu, event_type, local):
 	s += highlight_if_color('%.3f' % t, '1')
 	s += ' %02d:%02d:%02d' % (lt.tm_hour, lt.tm_min, lt.tm_sec)
 	s += ' ' + highlight_if_color('%-9s' % event_type, event_type_color(event_type))
-	s += ' category=' + highlight_if_color(iu.category,event_type_color(event_type)) 
+	s += ' category=' + highlight_if_color(iu.category,event_type_color(event_type))
+	s += ' channel=' + iu.buffer._channel
 	s += ' uid=' + iu.uid
 	s += ' owner=' + iu.owner_name
 	if event_type is not 'MESSAGE':
