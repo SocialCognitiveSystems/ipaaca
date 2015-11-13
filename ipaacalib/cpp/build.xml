@@ -18,5 +18,21 @@
       </exec>
    </target>
    <target name="-pre-compilation" depends="-proto-yes,-proto-no" />
+   <target name="-compilation" depends="-build-setup, -pre-compilation">
+      <!-- echo message="Using temporary RSBProtocol_DIR=${cmake.base.dir}/rsc_tmp/share/rsbprotocol0.10" / -->
+      <cmake srcdir="${cmake.base.dir}"
+         bindir="${build.dir}"
+         buildtype="Debug">
+         <generator name="Visual Studio 10" platform="windows" buildargs="ALL_BUILD.vcxproj">
+             <variable name="CMAKE_INSTALL_PREFIX" type="PATH" value="../${zip.tmp.dir}" />
+         </generator>
+         <generator name="Unix Makefiles">
+             <variable name="CMAKE_INSTALL_PREFIX" type="PATH" value="" />
+         </generator>
+         <variable name="SPREAD_ROOT" type="FILEPATH" value="${env.SPREAD_ROOT}" />
+         <variable name="PROTOBUF_ROOT" type="FILEPATH" value="${env.PROTOBUF_ROOT}" />
+      </cmake>
+   </target>
+
 </project>
 

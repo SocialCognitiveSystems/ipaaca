@@ -5,7 +5,7 @@ project (ipaaca_soa_cpp)
 
 install(
 	DIRECTORY include
-	DESTINATION /
+	DESTINATION .
 	FILES_MATCHING PATTERN "*.h" PATTERN "*.hh" PATTERN "*.hpp" PATTERN "*.inl"
 	)
 

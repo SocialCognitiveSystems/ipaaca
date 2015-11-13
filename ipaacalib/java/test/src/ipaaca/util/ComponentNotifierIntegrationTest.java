@@ -1,20 +1,21 @@
 package ipaaca.util;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import ipaaca.AbstractIU;
 import ipaaca.HandlerFunctor;
 import ipaaca.IUEventType;
 import ipaaca.Initializer;
 import ipaaca.InputBuffer;
+import ipaaca.LocalIU;
 import ipaaca.OutputBuffer;
-import ipaaca.util.ComponentNotifier;
 
 import java.util.Set;
 
+import lombok.Getter;
+
 import org.junit.After;
 import org.junit.Test;
-
-import lombok.Getter;
 
 import com.google.common.collect.ImmutableSet;
 
@@ -29,7 +30,7 @@ public class ComponentNotifierIntegrationTest
     private ComponentNotifier notifier2;
     private InputBuffer inBuffer;
     private OutputBuffer outBuffer;
-
+    private static final String OTHER_CATEGORY="OTHER";
     static
     {
         Initializer.initializeIpaacaRsb();
@@ -67,6 +68,13 @@ public class ComponentNotifierIntegrationTest
         return new ComponentNotifier(id, "test", ImmutableSet.copyOf(sendList), ImmutableSet.copyOf(recvList), outBuffer, inBuffer);
     }
 
+    private ComponentNotifier setupCompNotifierWithOtherCategoryInputBuffer(String id, Set<String> sendList, Set<String> recvList)
+    {
+        inBuffer = new InputBuffer(id + "in", ImmutableSet.of(ComponentNotifier.NOTIFY_CATEGORY, OTHER_CATEGORY));
+        outBuffer = new OutputBuffer(id + "out");
+        return new ComponentNotifier(id, "test", ImmutableSet.copyOf(sendList), ImmutableSet.copyOf(recvList), outBuffer, inBuffer);
+    }
+    
     @Test
     public void testSelf() throws InterruptedException
     {
@@ -96,5 +104,20 @@ public class ComponentNotifierIntegrationTest
 
         assertEquals(1, h1.getNumCalled());
         assertEquals(1, h2.getNumCalled());
+    }
+    
+    @Test
+    public void testOtherCategoryInInputBuffer() throws InterruptedException
+    {
+        notifier1 = setupCompNotifierWithOtherCategoryInputBuffer("not1", ImmutableSet.of("a1", "b1"), ImmutableSet.of("a3", "b1"));
+        MyHandlerFunctor h1 = new MyHandlerFunctor();
+        notifier1.addNotificationHandler(h1);
+        
+        OutputBuffer out = new OutputBuffer("out");
+        LocalIU iu = new LocalIU(OTHER_CATEGORY);
+        out.add(iu);
+        Thread.sleep(500);
+        assertEquals(0, h1.getNumCalled());
+        assertNotNull(inBuffer.getIU(iu.getUid()));
     }
 }

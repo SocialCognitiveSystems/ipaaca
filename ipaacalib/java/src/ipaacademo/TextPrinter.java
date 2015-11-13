@@ -222,7 +222,8 @@ public class TextPrinter
         TextPrinter tp = new TextPrinter();        
         
         
-        OutputBuffer outBuffer = new OutputBuffer("componentX");
+        //OutputBuffer outBuffer = new OutputBuffer("componentX");
+
         /*String[] inputString = {"h","e","l","l","o"," ","w","o","r","l","d","!"};
         LocalIU predIU = null;        
         for(String str:inputString)

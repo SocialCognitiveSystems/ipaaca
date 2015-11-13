@@ -34,6 +34,8 @@ package ipaaca;
 
 import ipaaca.protobuf.Ipaaca.PayloadItem;
 
+import org.apache.commons.lang.StringEscapeUtils;
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -55,18 +57,6 @@ public class Payload implements Map<String, String>
         this.iu = iu;
     }
 
-    // def __init__(self, remote_push_iu, new_payload):
-    // """Create remote payload object.
-    //
-    // Keyword arguments:
-    // remote_push_iu -- remote IU holding this payload
-    // new_payload -- payload dict to initialise this remote payload with
-    // """
-    // super(RemotePushPayload, self).__init__()
-    // self._remote_push_iu = remote_push_iu
-    // if new_payload is not None:
-    // for k,v in new_payload.items():
-    // dict.__setitem__(self, k, v)
     public Payload(AbstractIU iu, List<PayloadItem> payloadItems)
     {
         this(iu, payloadItems, null);
@@ -102,21 +92,29 @@ public class Payload implements Map<String, String>
         map.clear();
         for (PayloadItem item : newPayload)
         {
-            map.put(item.getKey(), item.getValue());
+            map.put(item.getKey(), pseudoConvertFromJSON(item.getValue(), item.getType()));
         }
     }
 
-    // def _remotely_enforced_setitem(self, k, v):
-    // """Sets an item when requested remotely."""
-    // return dict.__setitem__(self, k, v)
+    public String pseudoConvertFromJSON(String value, String type) {
+        if (type.equals("JSON")) {
+            if (value.startsWith("\"")) {
+                //return value.replaceAll("\\\"", "");
+                return StringEscapeUtils.unescapeJava(value.substring(1, value.length() - 1));
+            } else if (value.startsWith("{") || value.startsWith("[") || value.matches("true") || value.matches("false") || value.matches("-?[0-9]*[.,]?[0-9][0-9]*.*")) { 
+                return value;
+            } else if (value.equals("null")) {
+                return "";
+            }
+        }
+        return value;
+    }
+
     void enforcedSetItem(String key, String value)
     {
         map.put(key, value);
     }
 
-    // def _remotely_enforced_delitem(self, k):
-    // """Deletes an item when requested remotely."""
-    // return dict.__delitem__(self, k)
     void enforcedRemoveItem(String key)
     {
         map.remove(key);
@@ -168,31 +166,6 @@ public class Payload implements Map<String, String>
         return map.keySet();
     }
 
-    // def __setitem__(self, k, v):
-    // """Set item in this payload.
-    //
-    // Requests item setting from the OutputBuffer holding the local version
-    // of this IU. Returns when permission is granted and item is set;
-    // otherwise raises an IUUpdateFailedError.
-    // """
-    // if self._remote_push_iu.committed:
-    // raise IUCommittedError(self._remote_push_iu)
-    // if self._remote_push_iu.read_only:
-    // raise IUReadOnlyError(self._remote_push_iu)
-    // requested_update = IUPayloadUpdate(
-    // uid=self._remote_push_iu.uid,
-    // revision=self._remote_push_iu.revision,
-    // is_delta=True,
-    // writer_name=self._remote_push_iu.buffer.unique_name,
-    // new_items={k:v},
-    // keys_to_remove=[])
-    // remote_server = self._remote_push_iu.buffer._get_remote_server(self._remote_push_iu)
-    // new_revision = remote_server.updatePayload(requested_update)
-    // if new_revision == 0:
-    // raise IUUpdateFailedError(self._remote_push_iu)
-    // else:
-    // self._remote_push_iu._revision = new_revision
-    // dict.__setitem__(self, k, v)
     /**
      * Set item in this payload.
      * Requests item setting from the OutputBuffer holding the local version
@@ -205,32 +178,6 @@ public class Payload implements Map<String, String>
         return map.put(key, value);
     }
 
-    //
-    // def __delitem__(self, k):
-    // """Delete item in this payload.
-    //
-    // Requests item deletion from the OutputBuffer holding the local version
-    // of this IU. Returns when permission is granted and item is deleted;
-    // otherwise raises an IUUpdateFailedError.
-    // """
-    // if self._remote_push_iu.committed:
-    // raise IUCommittedError(self._remote_push_iu)
-    // if self._remote_push_iu.read_only:
-    // raise IUReadOnlyError(self._remote_push_iu)
-    // requested_update = IUPayloadUpdate(
-    // uid=self._remote_push_iu.uid,
-    // revision=self._remote_push_iu.revision,
-    // is_delta=True,
-    // writer_name=self._remote_push_iu.buffer.unique_name,
-    // new_items={},
-    // keys_to_remove=[k])
-    // remote_server = self._remote_push_iu.buffer._get_remote_server(self._remote_push_iu)
-    // new_revision = remote_server.updatePayload(requested_update)
-    // if new_revision == 0:
-    // raise IUUpdateFailedError(self._remote_push_iu)
-    // else:
-    // self._remote_push_iu._revision = new_revision
-    // dict.__delitem__(self, k)
     /**
      * Delete item in this payload.//
      * Requests item deletion from the OutputBuffer holding the local version
@@ -251,7 +198,7 @@ public class Payload implements Map<String, String>
     
     public void putAll(Map<? extends String, ? extends String> newItems)
     {
-        putAll(newItems);
+        putAll(newItems, null);
     }
 
     public void putAll(Map<? extends String, ? extends String> newItems, String writer)

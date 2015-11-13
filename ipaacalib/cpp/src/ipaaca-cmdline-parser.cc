@@ -31,7 +31,10 @@
  */
 
 #include <ipaaca/ipaaca.h>
+
+#ifndef WIN32
 #include <getopt.h>
+#endif
 
 namespace ipaaca {
 
@@ -72,6 +75,7 @@ void CommandLineOptions::dump() {
 //
 
 CommandLineParser::CommandLineParser()
+: library_options_handled(true)
 {
 	initialize_parser_defaults();
 }
@@ -82,6 +86,60 @@ void CommandLineParser::initialize_parser_defaults()
 	add_option("verbose",        'v', false, "");
 	add_option("character-name", 'c', true, "UnknownCharacter");
 	add_option("component-name", 'n', true, "UnknownComponent");
+	if (library_options_handled) {
+		add_option("ipaaca-payload-type", 0, true, "JSON");
+		add_option("ipaaca-default-channel", 0, true, "default");
+		add_option("ipaaca-enable-logging", 0, true, "WARNING");
+		add_option("rsb-enable-logging", 0, true, "ERROR");
+	}
+}
+
+bool CommandLineParser::consume_library_option(const std::string& name, bool expect, const char* optarg)
+{
+	if (name=="ipaaca-payload-type") {
+		std::string newtype = optarg;
+		if (newtype=="MAP") newtype="STR";
+		if ((newtype=="JSON") || (newtype=="STR")) {
+			IPAACA_DEBUG("Setting default payload type " << newtype)
+			__ipaaca_static_option_default_payload_type = newtype;
+		} else {
+			IPAACA_WARNING("Ignoring unknown default payload type " << newtype << " - should be one of JSON or STR")
+		}
+	} else if (name=="ipaaca-default-channel") {
+		std::string newch = optarg;
+		IPAACA_DEBUG("Setting default channel " << newch)
+		__ipaaca_static_option_default_channel = newch;
+	} else if (name=="ipaaca-enable-logging") {
+		std::string level(optarg);
+		if ((level=="NONE") || (level=="SILENT")) {
+			IPAACA_DEBUG("Will set log level to NONE")
+			__ipaaca_static_option_log_level = IPAACA_LOG_LEVEL_NONE;
+		} else if (level=="DEBUG") {
+			__ipaaca_static_option_log_level = IPAACA_LOG_LEVEL_DEBUG;
+			IPAACA_DEBUG("Just set log level to DEBUG")
+		} else if (level=="INFO") {
+			IPAACA_DEBUG("Set log level to INFO")
+			__ipaaca_static_option_log_level = IPAACA_LOG_LEVEL_INFO;
+		} else if (level=="WARNING") {
+			IPAACA_DEBUG("Set log level to WARNING")
+			__ipaaca_static_option_log_level = IPAACA_LOG_LEVEL_WARNING;
+		} else if (level=="ERROR") {
+			IPAACA_DEBUG("Set log level to ERROR")
+			__ipaaca_static_option_log_level = IPAACA_LOG_LEVEL_ERROR;
+		} else if (level=="CRITICAL") {
+			IPAACA_DEBUG("Set log level to CRITICAL")
+			__ipaaca_static_option_log_level = IPAACA_LOG_LEVEL_CRITICAL;
+		} else {
+			IPAACA_WARNING("Unknown log level " << optarg)
+			IPAACA_WARNING("Valid levels are: NONE, DEBUG, INFO, WARNING, ERROR, CRITICAL ")
+		}
+	} else if (name=="rsb-enable-logging") {
+		IPAACA_WARNING("Unimplemented option ignored: " << name)
+		IPAACA_IMPLEMENT_ME
+	} else {
+		return false;
+	}
+	return true;
 }
 
 void CommandLineParser::dump_options()
@@ -114,6 +172,11 @@ void CommandLineParser::add_option(const std::string& optname, char shortoptn, b
 
 CommandLineOptions::ptr CommandLineParser::parse(int argc, char* const* argv)
 {
+#ifdef WIN32
+	LOG_IPAACA_CONSOLE("IMPLEMENT ME: command line parsing for Windows. (req'd: getopt)")
+	throw NotImplementedError();
+#else
+	IPAACA_DEBUG("")
 	int len = options.size();
 	struct option long_options[len+1];
 	int i=0;
@@ -148,19 +211,23 @@ CommandLineOptions::ptr CommandLineParser::parse(int argc, char* const* argv)
 		// Detect the end of the options. 
 		if (c == -1) break;
 		
+		bool do_set_option = false;
+		std::string longname;
+		std::string longoption;
+		bool expect;
 		switch (c)
 		{
 			case 0:
 				{
-				std::string longname = long_options[option_index].name;
+				longname = long_options[option_index].name;
 				if (longname == "help") {
 					std::cout << "Options:" << std::endl;
 					dump_options();
 					exit(0);
 				}
-				std::string longoption = long_options[option_index].name;
-				bool expect = options[longoption];
-				clo->set_option(longoption, expect, optarg);
+				longoption = long_options[option_index].name;
+				expect = options[longoption];
+				do_set_option = true;
 				}
 				break;
 
@@ -170,13 +237,22 @@ CommandLineOptions::ptr CommandLineParser::parse(int argc, char* const* argv)
 			default:
 				std::string s;
 				s += c;
-				std::string longoption = longopt[c];
-				bool expect = options[longoption];
+				longoption = longopt[c];
+				expect = options[longoption];
+				do_set_option = true;
+		}
+		if (do_set_option) {
+			if (library_options_handled) {
+				do_set_option = ! consume_library_option(longoption, expect, optarg );
+			}
+			if (do_set_option) {
 				clo->set_option(longoption, expect, optarg);
+			}
 		}
 	}
 	ensure_defaults_in( clo );
 	return clo;
+#endif
 }
 
 void CommandLineParser::ensure_defaults_in( CommandLineOptions::ptr clo )

@@ -32,7 +32,7 @@
 
 package ipaaca;
 
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * An IUStore maps an IUid to an IU
@@ -40,7 +40,7 @@ import java.util.HashMap;
  *
  * @param <X> type of AbstractIU stored in the store
  */
-public class IUStore<X extends AbstractIU> extends HashMap<String, X>
+public class IUStore<X extends AbstractIU> extends ConcurrentHashMap<String, X>
 {
     private static final long serialVersionUID = 1L;
 }
