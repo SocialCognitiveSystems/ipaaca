@@ -205,7 +205,7 @@ public class JavaPythonTest
         String pypr = PYTHON_PREAMBLE 
                 +"ob = ipaaca.OutputBuffer('pythonside')\n"
                 +"iu = ipaaca.Message('JavaPythonTest')\n"
-                +"iu.payload['data'] = 'Hello from Python!'\n"
+                +"iu.payload = {'data':'Hello from Python!'}\n"
                 +"time.sleep(0.1)\n"
                 +"ob.add(iu)\n";
         runPythonProgram(pypr);

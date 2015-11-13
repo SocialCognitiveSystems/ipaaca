@@ -198,7 +198,7 @@ public class Payload implements Map<String, String>
     
     public void putAll(Map<? extends String, ? extends String> newItems)
     {
-        putAll(newItems);
+        putAll(newItems, null);
     }
 
     public void putAll(Map<? extends String, ? extends String> newItems, String writer)

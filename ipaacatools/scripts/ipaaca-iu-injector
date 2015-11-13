@@ -97,11 +97,11 @@ if __name__ == '__main__':
 	ob.add(iu)
 
 	print(
-		'Sent {iu_type} with category "{category}" and payload {{'.format(**vars(arguments)),
+		u'Sent {iu_type} with category "{category}" and payload {{'.format(**vars(arguments)),
 		end='\n' if len(iu.payload) > 0 else '')
 	for k, v in iu.payload.items():
-		print("  '{key}': {value},".format(key=k, value=v))
-	print('}.')
+		print(u"  '{key}': {value},".format(key=k, value=v))
+	print(u'}.')
 	
 	# Wait for updates to the IU
 	try:

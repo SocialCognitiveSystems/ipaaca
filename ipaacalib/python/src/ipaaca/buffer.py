@@ -35,6 +35,7 @@ from __future__ import division, print_function
 
 import threading
 import uuid
+import traceback
 
 import rsb
 
@@ -170,6 +171,7 @@ class Buffer(object):
 				if local:
 					LOGGER.error('Local IU handler raised an exception upon remote write.' + unicode(e))
 				else:
+					print(unicode(traceback.format_exc()))
 					raise e
 	
 	def _get_owning_component_name(self):

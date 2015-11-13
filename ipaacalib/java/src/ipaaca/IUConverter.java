@@ -108,6 +108,12 @@ public class IUConverter implements Converter<ByteBuffer>
         try
         {
             iu = IU.newBuilder().mergeFrom(buffer.array()).build();
+            // If there are rsb buffer read-only issues in some build, use this code instead of the above line:
+            //int size = buffer.capacity();
+            //byte[] array = new byte[size];
+            //buffer.get(array, 0, size);
+            //iu = IU.newBuilder().mergeFrom(array).build();
+
         }
         catch (InvalidProtocolBufferException e)
         {
