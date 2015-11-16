@@ -141,13 +141,13 @@ IPAACA_EXPORT void Buffer::_allocate_unique_name(const std::string& basename, co
 }
 IPAACA_EXPORT void Buffer::register_handler(IUEventHandlerFunction function, IUEventType event_mask, const std::set<std::string>& categories)
 {
-	std::cout << "register_handler " << function << " " << event_mask << " " << categories << std::endl;
+	//std::cout << "register_handler " << function << " " << event_mask << " " << categories << std::endl;
 	IUEventHandler::ptr handler = IUEventHandler::ptr(new IUEventHandler(function, event_mask, categories));
 	_event_handlers.push_back(handler);
 }
 IPAACA_EXPORT void Buffer::register_handler(IUEventHandlerFunction function, IUEventType event_mask, const std::string& category)
 {
-	std::cout << "register_handler " << function << " " << event_mask << " " << category << std::endl;
+	//std::cout << "register_handler " << function << " " << event_mask << " " << category << std::endl;
 	IUEventHandler::ptr handler = IUEventHandler::ptr(new IUEventHandler(function, event_mask, category));
 	_event_handlers.push_back(handler);
 }
@@ -640,7 +640,7 @@ IPAACA_EXPORT void InputBuffer::_trigger_resend_request(EventPtr event) {
 		uid = update->uid();
 		writerName = update->writer_name();
 	} else {
-		std::cout << "_trigger_resend_request: unhandled event type " << type << std::endl;
+		IPAACA_WARNING("_trigger_resend_request: unhandled event type " << type)
 	}
 
 	if (!writerName.empty()) {
@@ -683,7 +683,7 @@ IPAACA_EXPORT void InputBuffer::_handle_iu_events(EventPtr event)
 		if (type == "ipaaca::IUPayloadUpdate") {
 			boost::shared_ptr<IUPayloadUpdate> update = boost::static_pointer_cast<IUPayloadUpdate>(event->getData());
 			//IPAACA_INFO("** writer name: " << update->writer_name)
-			std::cout << "writer name " << update->writer_name << std::endl;
+			//std::cout << "writer name " << update->writer_name << std::endl;
 			if (update->writer_name == _unique_name) {
 				return;
 			}
@@ -746,7 +746,7 @@ IPAACA_EXPORT void InputBuffer::_handle_iu_events(EventPtr event)
 			call_iu_event_handlers(it->second, false, IU_COMMITTED, it->second->category() );
 			//
 		} else {
-			std::cout << "(Unhandled Event type " << type << " !)" << std::endl;
+			IPAACA_WARNING("(Unhandled Event type " << type << " !)");
 			return;
 		}
 		//IPAACA_INFO( "New RemotePushIU state: " << *(it->second) )
