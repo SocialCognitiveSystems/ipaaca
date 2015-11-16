@@ -352,7 +352,7 @@ IPAACA_HEADER_EXPORT class PayloadEntryProxyListDecorator//{{{
  *
  * <code>for (auto val: iu->payload()["my_list"].as_list()) { ... }</code>  // as_list is required to select list-type iteration (value type in iteration remains variant)
  *
- * <code>for (auto k_v_map: iu->payload()["my_map"].as_map()) { ... }</code>  // as_map is required to select map-type iteration (value type in iteration is a pair, second part remains variant)
+ * <code>for (auto k_v_pair: iu->payload()["my_map"].as_map()) { ... }</code>  // as_map is required to select map-type iteration (value type in iteration is a pair, second part remains variant)
  *
  * \b Examples (writing):
  * 
