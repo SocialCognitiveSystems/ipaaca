@@ -56,7 +56,7 @@ def event_type_color(typ):
 	return colors.get(typ, '1')
 
 def highlight_if_color(s, c='1'):
-	return s if not arguments.color else '[' + c + 'm' + s +'[m'
+	return s if arguments.color else '[' + c + 'm' + s +'[m'
 
 def pretty_printed_dict(d):
 	s='{\n'
@@ -100,16 +100,6 @@ def my_update_handler(iu, event_type, local):
 
 parser = ipaaca.IpaacaArgumentParser(description='Ipaaca IU Sniffer -- Selectively listen to IPAACA traffic')
 parser.add_argument(
-	'-r', '--regex',
-	action='store_true',
-	dest='regex',
-	help='match categories by regular expressions')
-parser.add_argument(
-	'-c', '--color',
-	action='store_true',
-	dest='color',
-	help='colorize output')
-parser.add_argument(
 	'--channels',
 	dest='channels',
 	default=['default'],
@@ -117,12 +107,22 @@ parser.add_argument(
 	nargs='+',
 	help="set the channels to listen on (otherwise 'default')")
 parser.add_argument(
-	'--categories',
+	'-c', '--categories',
 	default=[''],
 	dest='categories',
 	metavar='CATEGORY',
 	nargs='+',
 	help='set categories (or regex patterns) to be matched')
+parser.add_argument(
+	'-r', '--regex',
+	action='store_true',
+	dest='regex',
+	help='match categories by regular expressions')
+parser.add_argument(
+	'--no-color',
+	action='store_true',
+	dest='color',
+	help='do not colorize output')
 parser.add_argument(
 	'--size-limit',
 	default=2048,
@@ -146,7 +146,7 @@ if __name__ == '__main__':
 
 	channellist = 's ' if len(arguments.channels) > 1 else ' '
 	channellist += ', '.join(arguments.channels)
-	
+
 	print('Listening on channel' + channellist + ' for IU events of ', end='')
 	if arguments.categories == ['']:
 		print('any category ...')
@@ -162,9 +162,9 @@ if __name__ == '__main__':
 			time.sleep(1)
 	except KeyboardInterrupt:
 		pass
-	
+
 	if platform.system() == 'Windows':
 		os._exit(0)
 	else:
 		sys.exit(0)
-	
+
