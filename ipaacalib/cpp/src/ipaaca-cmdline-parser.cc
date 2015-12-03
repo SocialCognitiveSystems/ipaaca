@@ -173,7 +173,7 @@ void CommandLineParser::add_option(const std::string& optname, char shortoptn, b
 CommandLineOptions::ptr CommandLineParser::parse(int argc, char* const* argv)
 {
 #ifdef WIN32
-	LOG_IPAACA_CONSOLE("IMPLEMENT ME: command line parsing for Windows. (req'd: getopt)")
+	IPAACA_ERROR("IMPLEMENT ME: command line parsing for Windows. (req'd: getopt)")
 	throw NotImplementedError();
 #else
 	IPAACA_DEBUG("")
