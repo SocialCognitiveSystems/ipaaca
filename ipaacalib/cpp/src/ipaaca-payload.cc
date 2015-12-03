@@ -95,10 +95,10 @@ double strict_numerical_interpretation(const std::string& str)
 	char* endptr;
 	auto s = str_trim(str);
 	const char* startptr = s.c_str();
-	long l = strtod(startptr, &endptr);
+	double d = strtod(startptr, &endptr);
 	if ((*endptr)=='\0') {
 		// everything could be parsed
-		return l;
+		return d;
 	} else {
 		throw PayloadTypeConversionError();
 	}
