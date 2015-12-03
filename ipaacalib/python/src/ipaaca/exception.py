@@ -4,7 +4,7 @@
 #  "Incremental Processing Architecture
 #   for Artificial Conversational Agents".
 #
-# Copyright (c) 2009-2014 Social Cognitive Systems Group
+# Copyright (c) 2009-2015 Social Cognitive Systems Group
 #                         CITEC, Bielefeld University
 #
 # http://opensource.cit-ec.de/projects/ipaaca/
@@ -82,13 +82,21 @@ class IUPublishedError(IpaacaError):
 class IUReadOnlyError(IpaacaError):
 	"""Error indicating that an IU is immutable because it is 'read only'."""
 	def __init__(self, iu):
-		super(IUReadOnlyError, self).__init__('Writing to IU ' + str(iu.uid) + ' failed -- it is read-only.')
+		super(IUReadOnlyError, self).__init__(
+			'Writing to IU ' + str(iu.uid) + ' failed -- it is read-only.')
 
 
 class IUResendRequestFailedError(IpaacaError):
 	"""Error indicating that a remote IU resend failed."""
 	def __init__(self, iu):
-		super(IUResendFailedError, self).__init__('Remote resend failed for IU ' + str(iu.uid) + '.')
+		super(IUResendRequestFailedError, self).__init__(
+			'Remote resend failed for IU ' + str(iu.uid) + '.')
+
+
+class IURetractedError(IpaacaError):
+	"""Error indicating that an IU has been retracted."""
+	def __init__(self, iu):
+		super(IURetractedError, self).__init__('Writing to IU ' + str(iu.uid) + ' failed -- it has been retracted.')
 
 
 class IUUpdateFailedError(IpaacaError):
