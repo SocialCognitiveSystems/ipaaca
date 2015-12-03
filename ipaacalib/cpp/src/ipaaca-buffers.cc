@@ -184,6 +184,12 @@ IPAACA_EXPORT boost::shared_ptr<int> CallbackIUPayloadUpdate::call(const std::st
 		IPAACA_INFO(" Referred-to revision was " << update->revision << " while local one is " << iu->_revision)
 		iu->_revision_lock.unlock();
 		return boost::shared_ptr<int>(new int(0));
+	} else if (iu->committed()) {
+		iu->_revision_lock.unlock();
+		return boost::shared_ptr<int>(new int(0));
+	} else if (iu->retracted()) {
+		iu->_revision_lock.unlock();
+		return boost::shared_ptr<int>(new int(0));
 	}
 	if (update->is_delta) {
 		// FIXME FIXME this is an unsolved problem atm: deletes in a delta update are
@@ -216,6 +222,12 @@ IPAACA_EXPORT boost::shared_ptr<int> CallbackIULinkUpdate::call(const std::strin
 		IPAACA_INFO("Remote write operation failed because request was out of date; IU " << update->uid)
 		iu->_revision_lock.unlock();
 		return boost::shared_ptr<int>(new int(0));
+	} else if (iu->committed()) {
+		iu->_revision_lock.unlock();
+		return boost::shared_ptr<int>(new int(0));
+	} else if (iu->retracted()) {
+		iu->_revision_lock.unlock();
+		return boost::shared_ptr<int>(new int(0));
 	}
 	if (update->is_delta) {
 		iu->modify_links(update->new_links, update->links_to_remove, update->writer_name);
@@ -240,8 +252,11 @@ IPAACA_EXPORT boost::shared_ptr<int> CallbackIUCommission::call(const std::strin
 		IPAACA_INFO("Remote write operation failed because request was out of date; IU " << update->uid())
 		iu->_revision_lock.unlock();
 		return boost::shared_ptr<int>(new int(0));
-	}
-	if (iu->committed()) {
+	} else if (iu->committed()) {
+		iu->_revision_lock.unlock();
+		return boost::shared_ptr<int>(new int(0));
+	} else if (iu->retracted()) {
+		iu->_revision_lock.unlock();
 		return boost::shared_ptr<int>(new int(0));
 	} else {
 	}
@@ -374,6 +389,8 @@ IPAACA_EXPORT void OutputBuffer::add(IU::ptr iu)
 	}
 	if (iu->is_published()) {
 		throw IUPublishedError();
+	} else if (iu->retracted()) {
+		throw IURetractedError();
 	}
 	if (iu->access_mode() != IU_ACCESS_MESSAGE) {
 		// (for Message-type IUs: do not actually store them)
@@ -433,11 +450,27 @@ IPAACA_EXPORT boost::shared_ptr<IU> OutputBuffer::remove(IU::ptr iu)
 
 IPAACA_EXPORT void OutputBuffer::_retract_iu(IU::ptr iu)
 {
+	if (iu->_retracted) return; // ignore subsequent retractions
+	iu->_retracted = true;
 	Informer<protobuf::IURetraction>::DataPtr data(new protobuf::IURetraction());
 	data->set_uid(iu->uid());
 	data->set_revision(iu->revision());
 	Informer<AnyType>::Ptr informer = _get_informer(iu->category());
 	informer->publish(data);
+}
+
+IPAACA_EXPORT void OutputBuffer::_retract_all_internal()
+{
+	for (IUStore::iterator it=_iu_store.begin(); it!=_iu_store.end(); ++it) {
+		if (!(it->second->_retracted)) {
+			_retract_iu(it->second);
+		}
+	}
+}
+
+IPAACA_EXPORT OutputBuffer::~OutputBuffer()
+{
+	_retract_all_internal();
 }
 
 
@@ -740,10 +773,11 @@ IPAACA_EXPORT void InputBuffer::_handle_iu_events(EventPtr event)
 			//
 			it->second->_revision = update->revision();
 			it->second->_apply_retraction();
+			auto final_iu_ref = it->second;
 			// remove from InputBuffer     FIXME: this is a crossover between retracted and deleted behavior
 			_iu_store.erase(it->first);
 			// and call the handler. IU reference is still valid for this call, although removed from buffer.
-			call_iu_event_handlers(it->second, false, IU_COMMITTED, it->second->category() );
+			call_iu_event_handlers(final_iu_ref, false, IU_RETRACTED, it->second->category() );
 			//
 		} else {
 			IPAACA_WARNING("(Unhandled Event type " << type << " !)");

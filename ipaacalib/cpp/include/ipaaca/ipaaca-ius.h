@@ -95,6 +95,8 @@ IPAACA_HEADER_EXPORT class IUInterface {//{{{
 		IPAACA_HEADER_EXPORT void _add_and_remove_links(const LinkMap& add, const LinkMap& remove) { _links._add_and_remove_links(add, remove); }
 		IPAACA_HEADER_EXPORT void _replace_links(const LinkMap& links) { _links._replace_links(links); }
 	public:
+		/// Return whether IU has been retracted
+		IPAACA_HEADER_EXPORT inline bool retracted() const { return _retracted; }
 		/// Return whether IU has already been published (is in a Buffer).
 		IPAACA_HEADER_EXPORT inline bool is_published() { return (_buffer != 0); }
 		/// Return auto-generated UID string (set during IU construction)
