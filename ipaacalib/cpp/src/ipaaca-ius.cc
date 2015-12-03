@@ -62,6 +62,7 @@ IPAACA_EXPORT IU::IU(const std::string& category, IUAccessMode access_mode, bool
 	_read_only = read_only;
 	_access_mode = access_mode;
 	_committed = false;
+	_retracted = false;
 }
 
 IPAACA_EXPORT void IU::_modify_links(bool is_delta, const LinkMap& new_links, const LinkMap& links_to_remove, const std::string& writer_name)
@@ -70,6 +71,9 @@ IPAACA_EXPORT void IU::_modify_links(bool is_delta, const LinkMap& new_links, co
 	if (_committed) {
 		_revision_lock.unlock();
 		throw IUCommittedError();
+	} else if (_retracted) {
+		_revision_lock.unlock();
+		throw IURetractedError();
 	}
 	_increase_revision_number();
 	if (is_published()) {
@@ -106,6 +110,9 @@ IPAACA_EXPORT void IU::_modify_payload(bool is_delta, const std::map<std::string
 	if (_committed) {
 		_revision_lock.unlock();
 		throw IUCommittedError();
+	} else if (_retracted) {
+		_revision_lock.unlock();
+		throw IURetractedError();
 	}
 	_increase_revision_number();
 	if (is_published()) {
@@ -134,6 +141,9 @@ IPAACA_EXPORT void IU::_internal_commit(const std::string& writer_name)
 	if (_committed) {
 		_revision_lock.unlock();
 		throw IUCommittedError();
+	} else if (_retracted) {
+		_revision_lock.unlock();
+		throw IURetractedError();
 	}
 	_increase_revision_number();
 	_committed = true;
@@ -198,8 +208,9 @@ IPAACA_EXPORT void RemotePushIU::_modify_links(bool is_delta, const LinkMap& new
 {
 	if (_committed) {
 		throw IUCommittedError();
-	}
-	if (_read_only) {
+	} else if (_retracted) {
+		throw IURetractedError();
+	} else if (_read_only) {
 		throw IUReadOnlyError();
 	}
 	RemoteServerPtr server = boost::static_pointer_cast<InputBuffer>(_buffer)->_get_remote_server(_owner_name);
@@ -222,8 +233,9 @@ IPAACA_EXPORT void RemotePushIU::_modify_payload(bool is_delta, const std::map<s
 	//std::cout << "-- Sending a modify_payload with " << new_items.size() << " keys to merge." << std::endl;
 	if (_committed) {
 		throw IUCommittedError();
-	}
-	if (_read_only) {
+	} else if (_retracted) {
+		throw IURetractedError();
+	} else if (_read_only) {
 		throw IUReadOnlyError();
 	}
 	RemoteServerPtr server = boost::static_pointer_cast<InputBuffer>(_buffer)->_get_remote_server(_owner_name);
@@ -247,6 +259,8 @@ IPAACA_EXPORT void RemotePushIU::commit()
 {
 	if (_read_only) {
 		throw IUReadOnlyError();
+	} else if (_retracted) {
+		throw IURetractedError();
 	}
 	if (_committed) {
 		// Following python version: ignoring multiple commit

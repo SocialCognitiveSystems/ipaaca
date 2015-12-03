@@ -152,6 +152,15 @@ IPAACA_HEADER_EXPORT class IUCommittedError: public Exception//{{{
 			_description = "IUCommittedError";
 		}
 };//}}}
+/// IU had already been retracted
+IPAACA_HEADER_EXPORT class IURetractedError: public Exception//{{{
+{
+	public:
+		IPAACA_HEADER_EXPORT inline ~IURetractedError() throw() { }
+		IPAACA_HEADER_EXPORT inline IURetractedError() { //boost::shared_ptr<IU> iu) {
+			_description = "IURetractedError";
+		}
+};//}}}
 /// Remote IU update failed because it had been modified in the mean time
 IPAACA_HEADER_EXPORT class IUUpdateFailedError: public Exception//{{{
 {

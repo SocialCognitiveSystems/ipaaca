@@ -275,17 +275,18 @@ IPAACA_HEADER_EXPORT class OutputBuffer: public Buffer { //, public boost::enabl
 		// _remote_update_payload(IUPayloadUpdate)
 		// _remote_commit(protobuf::IUCommission)
 		IPAACA_HEADER_EXPORT void _publish_iu(boost::shared_ptr<IU> iu);
-
+		/// mark and send IU retraction on own IU (removal from buffer is in remove(IU))
 		IPAACA_HEADER_EXPORT void _retract_iu(boost::shared_ptr<IU> iu);
+		/// mark and send retraction for all unretracted IUs (without removal, used in ~OutputBuffer)
+		IPAACA_HEADER_EXPORT void _retract_all_internal();
 	protected:
 		/// \b Note: constructor is protected. Use create()
 		IPAACA_HEADER_EXPORT OutputBuffer(const std::string& basename, const std::string& channel=""); // empty string auto-replaced with __ipaaca_static_option_default_channel
 		IPAACA_HEADER_EXPORT void _initialize_server();
 	public:
 		IPAACA_HEADER_EXPORT static boost::shared_ptr<OutputBuffer> create(const std::string& basename);
-		IPAACA_HEADER_EXPORT ~OutputBuffer() {
-			IPAACA_IMPLEMENT_ME
-		}
+		/// OutputBuffer destructor will retract all IUs that are still live
+		IPAACA_HEADER_EXPORT ~OutputBuffer();
 		IPAACA_HEADER_EXPORT void add(boost::shared_ptr<IU> iu);
 		IPAACA_HEADER_EXPORT boost::shared_ptr<IU> remove(const std::string& iu_uid);
 		IPAACA_HEADER_EXPORT boost::shared_ptr<IU> remove(boost::shared_ptr<IU> iu);
