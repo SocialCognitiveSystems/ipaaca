@@ -110,10 +110,10 @@ IPAACA_EXPORT void Initializer::auto_configure_rsb()//{{{
 	const char* plugin_path = getenv("RSB_PLUGINS_CPP_PATH");
 	if (!plugin_path) {
 #ifdef WIN32
-		LOG_IPAACA_CONSOLE("WARNING: RSB_PLUGINS_CPP_PATH not set - in Windows it has to be specified.")
+		IPAACA_WARN("WARNING: RSB_PLUGINS_CPP_PATH not set - in Windows it has to be specified.")
 		//throw NotImplementedError();
 #else
-		LOG_IPAACA_CONSOLE("RSB_PLUGINS_CPP_PATH not set; looking here and up to 7 dirs up.")
+		IPAACA_INFO("RSB_PLUGINS_CPP_PATH not set; looking here and up to 7 dirs up.")
 		std::string pathstr = "./";
 		for (int i=0; i<   8 /* depth EIGHT (totally arbitrary..) */  ; i++) {
 			std::string where_str = pathstr+"deps/lib/rsb*/plugins";
@@ -122,7 +122,7 @@ IPAACA_EXPORT void Initializer::auto_configure_rsb()//{{{
 			glob(where, 0, NULL, &g);
 			if (g.gl_pathc>0) {
 				const char* found_path = g.gl_pathv[0];
-				LOG_IPAACA_CONSOLE("Found an RSB plugin dir which will be used automatically: " << found_path)
+				IPAACA_INFO("Found an RSB plugin dir which will be used automatically: " << found_path)
 				setenv("RSB_PLUGINS_CPP_PATH", found_path, 1);
 				break;
 			} // else keep going
@@ -131,7 +131,7 @@ IPAACA_EXPORT void Initializer::auto_configure_rsb()//{{{
 		}
 #endif
 	} else {
-		LOG_IPAACA_CONSOLE("RSB_PLUGINS_CPP_PATH already defined: " << plugin_path)
+		IPAACA_INFO("RSB_PLUGINS_CPP_PATH already defined: " << plugin_path)
 	}
 }//}}}
 
