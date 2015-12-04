@@ -183,6 +183,12 @@ IPAACA_EXPORT boost::shared_ptr<int> CallbackIUPayloadUpdate::call(const std::st
 	} else if (iu->retracted()) {
 		iu->_revision_lock.unlock();
 		return boost::shared_ptr<int>(new int(0));
+	} else if (iu->committed()) {
+		iu->_revision_lock.unlock();
+		return boost::shared_ptr<int>(new int(0));
+	} else if (iu->retracted()) {
+		iu->_revision_lock.unlock();
+		return boost::shared_ptr<int>(new int(0));
 	}
 	if (update->is_delta) {
 		// FIXME TODO this is an unsolved problem atm: deletions in a delta update are
@@ -212,6 +218,12 @@ IPAACA_EXPORT boost::shared_ptr<int> CallbackIULinkUpdate::call(const std::strin
 	iu->_revision_lock.lock();
 	if ((update->revision != 0) && (update->revision != iu->_revision)) {
 		IPAACA_WARNING("Remote write operation failed because request was out of date; IU " << update->uid)
+		iu->_revision_lock.unlock();
+		return boost::shared_ptr<int>(new int(0));
+	} else if (iu->committed()) {
+		iu->_revision_lock.unlock();
+		return boost::shared_ptr<int>(new int(0));
+	} else if (iu->retracted()) {
 		iu->_revision_lock.unlock();
 		return boost::shared_ptr<int>(new int(0));
 	} else if (iu->committed()) {
