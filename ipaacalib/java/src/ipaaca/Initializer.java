@@ -3,7 +3,7 @@
  *  "Incremental Processing Architecture
  *   for Artificial Conversational Agents".  
  *
- * Copyright (c) 2009-2013 Sociable Agents Group
+ * Copyright (c) 2009-2015 Social Cognitive Systems Group
  *                         CITEC, Bielefeld University   
  *
  * http://opensource.cit-ec.de/projects/ipaaca/
@@ -32,9 +32,12 @@
 
 package ipaaca;
 
+import java.nio.ByteBuffer;
 import ipaaca.protobuf.Ipaaca.IUCommission;
 import ipaaca.protobuf.Ipaaca.IUResendRequest;
+import ipaaca.protobuf.Ipaaca.IURetraction;
 import rsb.converter.ConverterSignature;
+import rsb.converter.ConverterRepository;
 import rsb.converter.DefaultConverterRepository;
 import rsb.converter.ProtocolBufferConverter;
 
@@ -43,34 +46,74 @@ import rsb.converter.ProtocolBufferConverter;
  * @author hvanwelbergen
  * 
  */
-public final class Initializer
-{
-    private Initializer()
-    {
-    }
+public final class Initializer {
+
+    private Initializer() {}
+
     private static volatile boolean initialized = false;
     
-    public synchronized static void initializeIpaacaRsb()
-    {
-        if(initialized)return;
-        DefaultConverterRepository.getDefaultConverterRepository().addConverter(new IntConverter());
-        DefaultConverterRepository.getDefaultConverterRepository().addConverter(
-                new ProtocolBufferConverter<IUCommission>(IUCommission.getDefaultInstance()));
-	// dlw
-	DefaultConverterRepository.getDefaultConverterRepository().addConverter(
-                new ProtocolBufferConverter<IUResendRequest>(IUResendRequest.getDefaultInstance()));
+    public synchronized static void initializeIpaacaRsb() {
+        if (initialized)
+            return;
 
-        DefaultConverterRepository.getDefaultConverterRepository().addConverter(
-                new IUConverter(new ConverterSignature("ipaaca-iu", RemotePushIU.class)));
-        DefaultConverterRepository.getDefaultConverterRepository().addConverter(
-         new IUConverter(new ConverterSignature("ipaaca-localiu", LocalIU.class)));
-        DefaultConverterRepository.getDefaultConverterRepository().addConverter(
-                new IUConverter(new ConverterSignature("ipaaca-messageiu", RemoteMessageIU.class)));
-        DefaultConverterRepository.getDefaultConverterRepository().addConverter(
-                new IUConverter(new ConverterSignature("ipaaca-localmessageiu", LocalMessageIU.class)));
+        ConverterRepository<ByteBuffer> dcr =
+            DefaultConverterRepository.getDefaultConverterRepository();
+
+        // for IU revision numbers
+        dcr.addConverter(
+            new IntConverter());
+
+        // IU commit messages
+        dcr.addConverter(
+            new ProtocolBufferConverter<IUCommission>(
+                IUCommission.getDefaultInstance()));
+
+        // IU commit messages
+        dcr.addConverter(
+            new ProtocolBufferConverter<IURetraction>(
+                IURetraction.getDefaultInstance()));
+
+        // IU resend request messages
+        dcr.addConverter(
+            new ProtocolBufferConverter<IUResendRequest>(
+                IUResendRequest.getDefaultInstance()));
+
+        // IUs
+        dcr.addConverter(
+            new IUConverter(
+                new ConverterSignature(
+                    "ipaaca-iu",
+                    RemotePushIU.class)));
+
+        // Local IUs
+        dcr.addConverter(
+            new IUConverter(
+                new ConverterSignature(
+                    "ipaaca-localiu",
+                    LocalIU.class)));
+
+        // Messages
+        dcr.addConverter(
+            new IUConverter(
+                new ConverterSignature(
+                    "ipaaca-messageiu",
+                    RemoteMessageIU.class)));
+
+        // LocalMessages
+        dcr.addConverter(
+            new IUConverter(
+                new ConverterSignature(
+                    "ipaaca-localmessageiu",
+                    LocalMessageIU.class)));
          
-        DefaultConverterRepository.getDefaultConverterRepository().addConverter(new PayloadConverter());
-        DefaultConverterRepository.getDefaultConverterRepository().addConverter(new LinkUpdateConverter());
+        // Payloads
+        dcr.addConverter(
+            new PayloadConverter());
+
+        // LinkUpdates
+        dcr.addConverter(
+            new LinkUpdateConverter());
+
         initialized = true;
     }
 }

@@ -32,22 +32,23 @@
 
 package ipaaca;
 
-
 /**
- * Local IU of Message sub-type. Can be handled like a normal IU, but on the remote side it is only existent during the handler calls.
- * @author hvanwelbergen
+ * Error indicating that an IU is immutable because it has been retracted.
+ * 
  */
-public class LocalMessageIU extends LocalIU
+public class IURetractedException extends RuntimeException
 {
+    private static final long serialVersionUID = 1L;
+    private final AbstractIU iu;
 
-    public LocalMessageIU()
+    public AbstractIU getIU()
     {
-        super();
+        return iu;
     }
 
-    public LocalMessageIU(String category)
+    public IURetractedException(AbstractIU iu)
     {
-        super(category);
+        super("Writing to IU " + iu.getUid() + " failed -- it has been retracted.");
+        this.iu = iu;
     }
-
 }

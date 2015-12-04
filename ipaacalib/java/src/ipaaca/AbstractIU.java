@@ -57,6 +57,7 @@ public abstract class AbstractIU
     protected Payload payload;
     protected String category;
     protected boolean committed = false;
+    protected boolean retracted = false;
     private String uid;
     protected int revision;
     private boolean readOnly = false;
@@ -201,6 +202,11 @@ public abstract class AbstractIU
         return committed;
     }
 
+    public boolean isRetracted()
+    {
+        return retracted;
+    }
+
     public void setBuffer(Buffer buffer)
     {
         this.buffer = buffer;
@@ -217,6 +223,8 @@ public abstract class AbstractIU
     }
 
     public abstract void commit();
+
+    public abstract void retract();
 
     // XXX: might not be valid for all types of IUs
     public abstract void commit(String writerName);

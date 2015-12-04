@@ -84,9 +84,9 @@ public class RemotePushIU extends AbstractIU
     }
 
     @Override
-    public void commit()
+    public void retract()
     {
-        commit(null);
+        logger.info("Retracting a RemoteIU has no effect.");
     }
 
     void putIntoPayload(String key, String value, String writer)
@@ -94,6 +94,10 @@ public class RemotePushIU extends AbstractIU
         if (isCommitted())
         {
             throw new IUCommittedException(this);
+        }
+        if (isRetracted())
+        {
+            throw new IURetractedException(this);
         }
         if (isReadOnly())
         {
@@ -135,6 +139,10 @@ public class RemotePushIU extends AbstractIU
         if (isCommitted())
         {
             throw new IUCommittedException(this);
+        }
+        if (isRetracted())
+        {
+            throw new IURetractedException(this);
         }
         if (isReadOnly())
         {
@@ -180,8 +188,18 @@ public class RemotePushIU extends AbstractIU
     }
 
     @Override
+    public void commit()
+    {
+        commit(null);
+    }
+
+    @Override
     public void commit(String writerName)
     {
+        if (isRetracted())
+        {
+            throw new IURetractedException(this);
+        }
         if (isReadOnly())
         {
             throw new IUReadOnlyException(this);
@@ -253,6 +271,10 @@ public class RemotePushIU extends AbstractIU
         if (isCommitted())
         {
             throw new IUCommittedException(this);
+        }
+        if (isRetracted())
+        {
+            throw new IURetractedException(this);
         }
         if (isReadOnly())
         {
@@ -357,12 +379,21 @@ public class RemotePushIU extends AbstractIU
         committed = true;
     }
 
+    public void applyRetraction()
+    {
+        retracted = true;
+    }
+
     @Override
     void removeFromPayload(Object key, String writer)
     {
         if (isCommitted())
         {
             throw new IUCommittedException(this);
+        }
+        if (isRetracted())
+        {
+            throw new IURetractedException(this);
         }
         if (isReadOnly())
         {
@@ -402,6 +433,10 @@ public class RemotePushIU extends AbstractIU
         if (isCommitted())
         {
             throw new IUCommittedException(this);
+        }
+        if (isRetracted())
+        {
+            throw new IURetractedException(this);
         }
         if (isReadOnly())
         {

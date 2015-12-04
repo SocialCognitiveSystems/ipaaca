@@ -3,7 +3,7 @@
  *  "Incremental Processing Architecture
  *   for Artificial Conversational Agents".  
  *
- * Copyright (c) 2009-2013 Sociable Agents Group
+ * Copyright (c) 2009-2015 Social Cognitive Systems Group
  *                         CITEC, Bielefeld University   
  *
  * http://opensource.cit-ec.de/projects/ipaaca/
@@ -57,6 +57,12 @@ public class RemoteMessageIU extends AbstractIU
         log.info("Info: committing to a RemoteMessage only has local effects");
         committed = true;
     }
+
+    @Override
+    public void retract()
+    {
+        log.info("Retracting a RemoteMessage has no effect.");
+    }    
 
     @Override
     public void commit(String writerName)
