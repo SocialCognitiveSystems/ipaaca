@@ -37,6 +37,9 @@ import threading
 import uuid
 import traceback
 
+import weakref
+import atexit
+
 import rsb
 
 import ipaaca_pb2
@@ -53,6 +56,27 @@ __all__ = [
 ]
 
 LOGGER = ipaaca.misc.get_library_logger()
+
+# set of objects to auto-clean on exit, assumes _teardown() method
+TEARDOWN_OBJECTS = set()
+
+def atexit_cleanup_function():
+	'''Function to call at program exit to auto-clean objects.'''
+	global TEARDOWN_OBJECTS
+	for obj_r in TEARDOWN_OBJECTS:
+		obj = obj_r()
+		if obj is not None: # if weakref still valid
+			obj._teardown()
+atexit.register(atexit_cleanup_function)
+
+def auto_teardown_instances(fn):
+	'''Decorator function for object constructors, to add
+	new instances to the object set to auto-clean at exit.'''
+	def auto_teardown_instances_wrapper(instance, *args, **kwargs):
+		global TEARDOWN_OBJECTS
+		fn(instance, *args, **kwargs)
+		TEARDOWN_OBJECTS.add(weakref.ref(instance))
+	return auto_teardown_instances_wrapper
 
 class IUStore(dict):
 	"""A dictionary storing IUs."""
@@ -207,7 +231,7 @@ class InputBuffer(Buffer):
 		self._add_category_listener(str(self._uuid))
 		if category_interests is not None:
 			self.add_category_interests(category_interests)
-
+	
 	def _get_remote_server(self, iu):
 		'''Return (or create, store and return) a remote server.'''
 		_owner = None
@@ -364,6 +388,7 @@ class OutputBuffer(Buffer):
 
 	"""An OutputBuffer that holds local IUs."""
 
+	@auto_teardown_instances
 	def __init__(self, owning_component_name, channel=None, participant_config=None):
 		'''Create an OutputBuffer.
 
@@ -381,6 +406,16 @@ class OutputBuffer(Buffer):
 		self._informer_store = {}
 		self._id_prefix = str(owning_component_name)+'-'+str(self._uuid)+'-IU-'
 		self.__iu_id_counter_lock = threading.Lock()
+
+	def _teardown(self):
+		'''OutputBuffer retracts remaining live IUs on teardown'''
+		self._retract_all_internal()
+	def __del__(self):
+		'''Perform teardown (IU retractions) as soon as Buffer is lost.
+		Note that at program exit the teardown might be called
+		twice for live objects (atexit, then del), but the
+		_retract_all_internal method prevents double retractions.'''
+		self._retract_all_internal()
 
 	def _remote_update_links(self, update):
 		'''Apply a remotely requested update to one of the stored IU's links.'''
@@ -508,12 +543,18 @@ class OutputBuffer(Buffer):
 
 	def _retract_iu(self, iu):
 		'''Retract an IU.'''
+		iu._retracted = True
 		iu_retraction = ipaaca_pb2.IURetraction()
 		iu_retraction.uid = iu.uid
 		iu_retraction.revision = iu.revision
 		informer = self._get_informer(iu._category)
 		informer.publishData(iu_retraction)
-		iu._retracted = True
+	
+	def _retract_all_internal(self):
+		'''Retract all IUs without removal (for Buffer teardown).'''
+		for iu in self._iu_store.values():
+			if not iu._retracted:
+				self._retract_iu(iu)
 
 	def _send_iu_commission(self, iu, writer_name):
 		'''Send IU commission.
