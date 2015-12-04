@@ -31,10 +31,33 @@
  * Excellence Initiative.
  */
 
-#include <ipaaca/ipaaca.h>
-#include <ipaaca/ipaaca-json.h>
+/**
+ * \file   ipaaca-json.cc
+ *
+ * \brief Testbed for ipaaca / JSON functionality
+ *
+ * This file is not used in the ipaaca library, but produces
+ * a separate program, if enabled in CMakeLists.txt
+ *
+ * \author Ramin Yaghoubzadeh (ryaghoubzadeh@uni-bielefeld.de)
+ * \date   March, 2015
+ */
 
+#include <ipaaca/ipaaca.h>
+
+#include "rapidjson/document.h"
+#include "rapidjson/prettywriter.h"
+#include "rapidjson/filestream.h"
+
+#include <cstdio>
 #include <iomanip>
+
+// Notes:
+//  - From http://stackoverflow.com/questions/10426924/json-root-element
+//    Actually there are two different JSON specifications. RFC 4627 requires a JSON text to be
+//    an object or an array. ECMA-262, 5th edition, section 15.12 does not impose this restriction.
+
+
 
 using namespace rapidjson;
 using namespace std;
@@ -107,6 +130,7 @@ int batch_update_main(int argc, char** argv)//{{{
 }
 //}}}
 
+#ifdef IPAACA_BUILD_MOCK_OBJECTS
 int iterators_main(int argc, char** argv)//{{{
 {
 	std::string json_source("[\n\
@@ -408,6 +432,7 @@ int fakeiu_main(int argc, char** argv)//{{{
 	return 0;
 }
 //}}}
+#endif
 
 int legacy_iu_main(int argc, char** argv)//{{{
 {

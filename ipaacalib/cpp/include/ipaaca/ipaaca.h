@@ -67,9 +67,9 @@ IU payload contents: Payload, PayloadEntryProxy
 #define IPAACA_PROTOCOL_VERSION_MINOR         0
 
 /// running release number of ipaaca-c++
-#define IPAACA_CPP_RELEASE_NUMBER             12
+#define IPAACA_CPP_RELEASE_NUMBER             13
 /// date of last release number increment
-#define IPAACA_CPP_RELEASE_DATE     "2015-01-15"
+#define IPAACA_CPP_RELEASE_DATE     "2015-12-04"
 
 #ifndef __FUNCTION_NAME__
 	#ifdef WIN32   // Windows

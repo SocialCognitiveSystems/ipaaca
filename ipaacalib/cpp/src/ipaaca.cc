@@ -76,18 +76,6 @@ IPAACA_EXPORT std::string __ipaaca_static_option_default_payload_type("JSON");
 IPAACA_EXPORT std::string __ipaaca_static_option_default_channel("default");
 IPAACA_EXPORT unsigned int __ipaaca_static_option_log_level(IPAACA_LOG_LEVEL_WARNING);
 
-/*
-void init_inprocess_too() {
-	//ParticipantConfig config = getFactory().getDefaultParticipantConfig();
-	ParticipantConfig config = ParticipantConfig::fromFile("rsb.cfg");
-	//ParticipantConfig::Transport inprocess = config.getTransport("inprocess");
-	//inprocess.setEnabled(true);
-	//config.addTransport(inprocess);
-	getFactory().setDefaultParticipantConfig(config);
-}
-*/
-
-
 } // of namespace ipaaca
 
 

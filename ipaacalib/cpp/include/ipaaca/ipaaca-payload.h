@@ -111,12 +111,6 @@ IPAACA_HEADER_EXPORT template<typename T> void pack_into_json_value(rapidjson::V
 		valueobject.AddMember(key, newv, allocator);
 	}
 }
-/*IPAACA_HEADER_EXPORT template<> void pack_into_json_value(rapidjson::Value&, rapidjson::Document::AllocatorType&, const std::vector<std::string>&);
-IPAACA_HEADER_EXPORT template<> void pack_into_json_value(rapidjson::Value&, rapidjson::Document::AllocatorType&, const std::list<std::string>&);
-IPAACA_HEADER_EXPORT template<> void pack_into_json_value(rapidjson::Value&, rapidjson::Document::AllocatorType&, const std::map<std::string, std::string>&);
-*/
-
-// FIXME TODO locking / invalidating proxy on first write of a payload entry
 
 /// Single payload entry wrapping a rapidjson::Document with some conversion glue. Also handles copy-on-write Document cloning. <b>Internal type</b> - users generally do not see this.
 IPAACA_HEADER_EXPORT class PayloadDocumentEntry//{{{
@@ -125,40 +119,21 @@ IPAACA_HEADER_EXPORT class PayloadDocumentEntry//{{{
 	public:
 		IPAACA_MEMBER_VAR_EXPORT ipaaca::Lock lock;
 		IPAACA_MEMBER_VAR_EXPORT bool modified;
-		//IPAACA_MEMBER_VAR_EXPORT std::string json_source;
 		IPAACA_MEMBER_VAR_EXPORT rapidjson::Document document;
 		IPAACA_HEADER_EXPORT inline PayloadDocumentEntry(): modified(false) { }
 		IPAACA_HEADER_EXPORT inline ~PayloadDocumentEntry() { }
-		//IPAACA_HEADER_EXPORT PayloadDocumentEntry(const std::string& source): modified(false), json_source(source), {};
 		IPAACA_HEADER_EXPORT std::string to_json_string_representation();
 		IPAACA_HEADER_EXPORT static std::shared_ptr<PayloadDocumentEntry> from_json_string_representation(const std::string& input);
 		IPAACA_HEADER_EXPORT static std::shared_ptr<PayloadDocumentEntry> from_unquoted_string_value(const std::string& input);
 		IPAACA_HEADER_EXPORT static std::shared_ptr<PayloadDocumentEntry> create_null();
 		IPAACA_HEADER_EXPORT std::shared_ptr<PayloadDocumentEntry> clone();
 		IPAACA_HEADER_EXPORT rapidjson::Value& get_or_create_nested_value_from_proxy_path(PayloadEntryProxy* pep);
-		//IPAACA_HEADER_EXPORT void update_json_source();
 	typedef std::shared_ptr<PayloadDocumentEntry> ptr;
 };
 //}}}
 
 typedef std::map<std::string, PayloadDocumentEntry::ptr> PayloadDocumentStore;
 
-
-#if 0
-/** \brief Lock to accumulate payload changes into one single update transaction
- *
- */
-IPAACA_HEADER_EXPORT class PayloadBatchUpdateLock: public ipaaca::Lock
-{
-	friend class Payload;
-	protected:
-		Payload* _payload;
-	public:
-		IPAACA_HEADER_EXPORT inline PayloadBatchUpdateLock(): Lock() { }
-		IPAACA_HEADER_EXPORT void on_lock() override;
-		IPAACA_HEADER_EXPORT void on_unlock() override;
-};
-#endif
 
 /** \brief Central class containing the user-set payload of any IUInterface class (IU, Message, RemotePushIU or RemoteMessage)
  *
@@ -178,17 +153,11 @@ IPAACA_HEADER_EXPORT class Payload: public Lock //{{{
 	friend class PayloadEntryProxy;
 	friend class PayloadIterator;
 	friend class FakeIU;
-	//friend class PayloadBatchUpdateLock;
 	protected:
 		IPAACA_MEMBER_VAR_EXPORT std::string _owner_name;
-		//IPAACA_MEMBER_VAR_EXPORT rapidjson::Document _json_document;
-		//IPAACA_MEMBER_VAR_EXPORT std::map<std::string, rapidjson::Document> _json_store;
 		IPAACA_MEMBER_VAR_EXPORT PayloadDocumentStore _document_store;
 		IPAACA_MEMBER_VAR_EXPORT boost::weak_ptr<IUInterface> _iu;
-		//IPAACA_MEMBER_VAR_EXPORT PayloadBatchUpdateLock _batch_update_lock;
-		//
 		IPAACA_MEMBER_VAR_EXPORT Lock _payload_operation_mode_lock; //< enforcing atomicity wrt the bool flag below
-		//
 		IPAACA_MEMBER_VAR_EXPORT bool _update_on_every_change; //< true: batch update not active; false: collecting updates (payload locked)
 		IPAACA_MEMBER_VAR_EXPORT std::map<std::string, PayloadDocumentEntry::ptr> _collected_modifications;
 		IPAACA_MEMBER_VAR_EXPORT std::vector<std::string> _collected_removals;
@@ -199,13 +168,11 @@ IPAACA_HEADER_EXPORT class Payload: public Lock //{{{
 		/// inherited from ipaaca::Lock, finishing batch update collection mode
 		IPAACA_HEADER_EXPORT void on_unlock() override;
 	protected:
-		//IPAACA_HEADER_EXPORT ipaaca::Locker&& batch_update() { return std::move(ipaaca::Locker(*this); }
 		IPAACA_HEADER_EXPORT void initialize(boost::shared_ptr<IUInterface> iu);
 		IPAACA_HEADER_EXPORT inline void _set_owner_name(const std::string& name) { _owner_name = name; }
 		IPAACA_HEADER_EXPORT void _remotely_enforced_wipe();
 		IPAACA_HEADER_EXPORT void _remotely_enforced_delitem(const std::string& k);
 		IPAACA_HEADER_EXPORT void _remotely_enforced_setitem(const std::string& k, PayloadDocumentEntry::ptr entry);
-		//IPAACA_HEADER_EXPORT void _internal_replace_all(const std::map<std::string, PayloadDocumentEntry::ptr>& new_contents, const std::string& writer_name="");
 		IPAACA_HEADER_EXPORT void _internal_replace_all(const std::map<std::string, PayloadDocumentEntry::ptr>& new_contents, const std::string& writer_name="");
 		IPAACA_HEADER_EXPORT void _internal_merge(const std::map<std::string, PayloadDocumentEntry::ptr>& contents_to_merge, const std::string& writer_name="");
 		IPAACA_HEADER_EXPORT void _internal_set(const std::string& k, PayloadDocumentEntry::ptr v, const std::string& writer_name="");
@@ -221,11 +188,6 @@ IPAACA_HEADER_EXPORT class Payload: public Lock //{{{
 		IPAACA_HEADER_EXPORT operator std::map<std::string, std::string>();
 		/// remove a single payload entry
 		IPAACA_HEADER_EXPORT inline void remove(const std::string& k) { _internal_remove(k); }
-		// FIXME: json: these two must support a bunch of standard types, not [only] json (users touch them)
-		//  to be more precise: types of map<string, T> with T several interesting things (string, list<string>, etc.)
-		//IPAACA_HEADER_EXPORT inline void set(const std::map<std::string, const rapidjson::Document&>& all_elems) { _internal_replace_all(all_elems); }
-		//IPAACA_HEADER_EXPORT inline void merge(const std::map<std::string, const rapidjson::Document&>& elems_to_merge) { _internal_merge(elems_to_merge); }
-		// legacy / convenience setter
 		/// Legacy / convenience function: set the whole payload map from a map string->string (all JSON types are also set as string, no interpretation)
 		IPAACA_HEADER_EXPORT void set(const std::map<std::string, std::string>& all_elems);
 	protected:
@@ -235,7 +197,7 @@ IPAACA_HEADER_EXPORT class Payload: public Lock //{{{
 	public:
 		[[deprecated("Use operator[] and operator std::string() instead")]]
 		/// Read a single entry as string [DEPRECATED] (use string conversion in PayloadEntryProxy instead)
-		IPAACA_HEADER_EXPORT std::string get(const std::string& k); // DEPRECATED
+		IPAACA_HEADER_EXPORT std::string get(const std::string& k);
 	protected:
 		IPAACA_MEMBER_VAR_EXPORT unsigned long internal_revision;
 		IPAACA_MEMBER_VAR_EXPORT inline void mark_revision_change() { internal_revision++; }
@@ -267,7 +229,6 @@ IPAACA_HEADER_EXPORT class PayloadIterator//{{{
 		IPAACA_MEMBER_VAR_EXPORT Payload* _payload;
 		IPAACA_MEMBER_VAR_EXPORT unsigned long reference_payload_revision;
 		IPAACA_MEMBER_VAR_EXPORT PayloadDocumentStore::iterator raw_iterator;
-		//IPAACA_MEMBER_VAR_EXPORT bool is_end;
 	protected:
 		IPAACA_HEADER_EXPORT PayloadIterator(Payload* payload, PayloadDocumentStore::iterator&& pl_iter ); //, bool is_end);
 	public:
@@ -277,7 +238,6 @@ IPAACA_HEADER_EXPORT class PayloadIterator//{{{
 		IPAACA_HEADER_EXPORT std::shared_ptr<std::pair<std::string, PayloadEntryProxy> > operator->();
 		IPAACA_HEADER_EXPORT bool operator==(const PayloadIterator& ref);
 		IPAACA_HEADER_EXPORT bool operator!=(const PayloadIterator& ref);
-		// constructor to create a new top-most parent proxy (from a payload key)
 };
 //}}}
 
@@ -382,13 +342,9 @@ IPAACA_HEADER_EXPORT class PayloadEntryProxy//{{{
 		/// Select list-style iteration for this proxy (to select iterator content type). Will throw if not actually list-type. See example in the class description.
 		IPAACA_HEADER_EXPORT PayloadEntryProxyListDecorator as_list();
 	protected:
-		//IPAACA_MEMBER_VAR_EXPORT rapidjson::Document* _json_parent_node;
-		//IPAACA_MEMBER_VAR_EXPORT rapidjson::Document* _json_node;
 		IPAACA_MEMBER_VAR_EXPORT Payload* _payload;
 		IPAACA_MEMBER_VAR_EXPORT std::string _key;
-		//
 		// new json stuff / hierarchical navigation
-		//
 		IPAACA_MEMBER_VAR_EXPORT PayloadEntryProxy* parent; ///< Parent proxy (up to document root -> then null)
 		IPAACA_MEMBER_VAR_EXPORT PayloadDocumentEntry::ptr document_entry; // contains lock and json Doc
 		IPAACA_MEMBER_VAR_EXPORT bool existent; ///< Whether Value exists already (or else 'blindly' navigated)
@@ -397,9 +353,6 @@ IPAACA_HEADER_EXPORT class PayloadEntryProxy//{{{
 		IPAACA_MEMBER_VAR_EXPORT std::string addressed_key; ///< Key that was used in map-style access
 		/// currently navigated value in json tree (or a new Null value)
 		IPAACA_MEMBER_VAR_EXPORT rapidjson::Value* json_value; ///< json value that corresponds to the current navigation (or nullptr)
-/*	protected:
-		IPAACA_HEADER_EXPORT void connect_to_existing_parents();
-*/
 	protected:
 		// constructor to create a new top-most parent proxy (from a payload key)
 		IPAACA_HEADER_EXPORT PayloadEntryProxy(Payload* payload, const std::string& key);
@@ -440,7 +393,6 @@ IPAACA_HEADER_EXPORT class PayloadEntryProxy//{{{
 			PayloadDocumentEntry::ptr new_entry = document_entry->clone(); // copy-on-write, no lock required
 			rapidjson::Value& newval = new_entry->get_or_create_nested_value_from_proxy_path(this);
 			pack_into_json_value(newval, new_entry->document.GetAllocator(), t);
-			//new_entry->update_json_source();
 			_payload->set(_key, new_entry);
 			return *this;
 		}
@@ -472,11 +424,6 @@ IPAACA_HEADER_EXPORT class PayloadEntryProxy//{{{
 		
 		/// Copy value from below other json node, preserving types
 		IPAACA_HEADER_EXPORT PayloadEntryProxy& operator=(const PayloadEntryProxy& otherproxy);
-		
-		//IPAACA_HEADER_EXPORT PayloadEntryProxy& operator=(const std::string& value);
-		//IPAACA_HEADER_EXPORT PayloadEntryProxy& operator=(const char* value);
-		//IPAACA_HEADER_EXPORT PayloadEntryProxy& operator=(double value);
-		//IPAACA_HEADER_EXPORT PayloadEntryProxy& operator=(bool value);
 		
 		/// Conversion to std::string (explicit or implicit)
 		IPAACA_HEADER_EXPORT operator std::string();
@@ -513,7 +460,7 @@ IPAACA_HEADER_EXPORT class PayloadEntryProxy//{{{
 			}
 			return result;
 		}
-		// FIXME why are these needed again?
+		// TODO maybe remove these deprecated converters later
 		/// [DECPRECATED] use normal type conversion syntax instead
 		[[deprecated("Use operator std::string() instead (i.e. explicit or implicit cast)")]]
 		IPAACA_HEADER_EXPORT std::string to_str();
@@ -527,15 +474,6 @@ IPAACA_HEADER_EXPORT class PayloadEntryProxy//{{{
 		/// [DECPRECATED] use normal type conversion syntax instead
 		[[deprecated("Use operator bool() instead (i.e. explicit or implicit cast)")]]
 		IPAACA_HEADER_EXPORT bool to_bool();
-		// getters  (not needed since conversions are enough?)
-		//IPAACA_HEADER_EXPORT template<typename T> T get() { return json_value_cast<T>(json_value); }
-		// setters
-		//IPAACA_HEADER_EXPORT template<typename T> PayloadEntryProxy& set(T t);
-		/*{
-			pack_into_json_value<T>(t);
-			connect_to_existing_parents();
-			_payload->set(key, document_entry->document);
-		}*/
 		/// Append a supported type to a list-type payload value
 		IPAACA_HEADER_EXPORT template<typename T> void push_back(T t)
 		{
@@ -603,18 +541,6 @@ IPAACA_HEADER_EXPORT class PayloadEntryProxy//{{{
 			_payload->set(_key, new_entry);
 		}
 };
-// Available interpretations of payload entries (or children thereof) below.
-//  Usage of standard complex data structures (vector etc.) currently entails
-//  casting all entries to a uniform type (a-priori choice: std::string).
-/*
-IPAACA_HEADER_EXPORT template<> long PayloadEntryProxy::get();
-IPAACA_HEADER_EXPORT template<> double PayloadEntryProxy::get();
-IPAACA_HEADER_EXPORT template<> bool PayloadEntryProxy::get();
-IPAACA_HEADER_EXPORT template<> std::string PayloadEntryProxy::get();
-IPAACA_HEADER_EXPORT template<> std::vector<std::string> PayloadEntryProxy::get();
-IPAACA_HEADER_EXPORT template<> std::list<std::string> PayloadEntryProxy::get();
-IPAACA_HEADER_EXPORT template<> std::map<std::string, std::string> PayloadEntryProxy::get();
-*/
 
 //}}}
 

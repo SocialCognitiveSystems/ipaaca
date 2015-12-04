@@ -82,27 +82,6 @@ IPAACA_EXPORT void IU::_modify_links(bool is_delta, const LinkMap& new_links, co
 	_revision_lock.unlock();
 }
 
-
-/*
- * IPAACA_EXPORT void IU::_publish_resend(IU::ptr iu, const std::string& hidden_scope_name)
-{
-	//_revision_lock.lock();
-	//if (_committed) {
-	//	_revision_lock.unlock();
-	//	throw IUCommittedError();
-	//}
-	//_increase_revision_number();
-	//if (is_published()) {
-	//IUInterface* iu, bool is_delta, revision_t revision, const LinkMap& new_links, const LinkMap& links_to_remove, const std::string& writer_name
-	_buffer->_publish_iu_resend(iu, hidden_scope_name);
-	//}
-	//_revision_lock.unlock();
-}
-*/
-
-
-
-
 IPAACA_EXPORT void IU::_modify_payload(bool is_delta, const std::map<std::string, PayloadDocumentEntry::ptr>& new_items, const std::vector<std::string>& keys_to_remove, const std::string& writer_name)
 {
 	IPAACA_INFO("")
@@ -196,13 +175,12 @@ void Message::_internal_commit(const std::string& writer_name)
 
 IPAACA_EXPORT RemotePushIU::ptr RemotePushIU::create()
 {
-	RemotePushIU::ptr iu = RemotePushIU::ptr(new RemotePushIU(/* params */));
+	RemotePushIU::ptr iu = RemotePushIU::ptr(new RemotePushIU());
 	iu->_payload.initialize(iu);
 	return iu;
 }
 IPAACA_EXPORT RemotePushIU::RemotePushIU()
 {
-	// nothing
 }
 IPAACA_EXPORT void RemotePushIU::_modify_links(bool is_delta, const LinkMap& new_links, const LinkMap& links_to_remove, const std::string& writer_name)
 {
@@ -230,7 +208,7 @@ IPAACA_EXPORT void RemotePushIU::_modify_links(bool is_delta, const LinkMap& new
 }
 IPAACA_EXPORT void RemotePushIU::_modify_payload(bool is_delta, const std::map<std::string, PayloadDocumentEntry::ptr>& new_items, const std::vector<std::string>& keys_to_remove, const std::string& writer_name)
 {
-	//std::cout << "-- Sending a modify_payload with " << new_items.size() << " keys to merge." << std::endl;
+	IPAACA_DEBUG("Sending a modify_payload with " << new_items.size() << " keys to merge.")
 	if (_committed) {
 		throw IUCommittedError();
 	} else if (_retracted) {
@@ -319,13 +297,12 @@ IPAACA_EXPORT void RemotePushIU::_apply_retraction()
 
 IPAACA_EXPORT RemoteMessage::ptr RemoteMessage::create()
 {
-	RemoteMessage::ptr iu = RemoteMessage::ptr(new RemoteMessage(/* params */));
+	RemoteMessage::ptr iu = RemoteMessage::ptr(new RemoteMessage());
 	iu->_payload.initialize(iu);
 	return iu;
 }
 IPAACA_EXPORT RemoteMessage::RemoteMessage()
 {
-	// nothing
 }
 IPAACA_EXPORT void RemoteMessage::_modify_links(bool is_delta, const LinkMap& new_links, const LinkMap& links_to_remove, const std::string& writer_name)
 {

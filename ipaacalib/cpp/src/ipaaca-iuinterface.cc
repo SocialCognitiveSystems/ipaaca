@@ -70,7 +70,7 @@ IPAACA_EXPORT void IUInterface::_set_uid(const std::string& uid) {
 	_uid = uid;
 }
 
-IPAACA_EXPORT void IUInterface::_set_buffer(Buffer* buffer) { //boost::shared_ptr<Buffer> buffer) {
+IPAACA_EXPORT void IUInterface::_set_buffer(Buffer* buffer) {
 	if (_buffer) {
 		throw IUAlreadyInABufferError();
 	}
@@ -86,7 +86,7 @@ IPAACA_EXPORT void IUInterface::_set_owner_name(const std::string& owner_name) {
 }
 
 /// set the buffer pointer and the owner names of IU and Payload
-IPAACA_EXPORT void IUInterface::_associate_with_buffer(Buffer* buffer) { //boost::shared_ptr<Buffer> buffer) {
+IPAACA_EXPORT void IUInterface::_associate_with_buffer(Buffer* buffer) {
 	_set_buffer(buffer); // will throw if already set
 	_set_owner_name(buffer->unique_name());
 	payload()._set_owner_name(buffer->unique_name());
