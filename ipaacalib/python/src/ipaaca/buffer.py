@@ -4,7 +4,7 @@
 #  "Incremental Processing Architecture
 #   for Artificial Conversational Agents".
 #
-# Copyright (c) 2009-2014 Social Cognitive Systems Group
+# Copyright (c) 2009-2015 Social Cognitive Systems Group
 #                         CITEC, Bielefeld University
 #
 # http://opensource.cit-ec.de/projects/ipaaca/
@@ -365,7 +365,7 @@ class OutputBuffer(Buffer):
 	"""An OutputBuffer that holds local IUs."""
 
 	def __init__(self, owning_component_name, channel=None, participant_config=None):
-		'''Create an Output Buffer.
+		'''Create an OutputBuffer.
 
 		Keyword arguments:
 		owning_component_name -- name of the entity that own this buffer
@@ -479,6 +479,8 @@ class OutputBuffer(Buffer):
 			raise ipaaca.exception.IUPublishedError(iu)
 		if iu.buffer is not None:
 			raise ipaaca.exception.IUPublishedError(iu)
+		if iu.retracted:
+			raise ipaaca.exception.IURetractedError(iu)
 		if iu.access_mode != ipaaca.iu.IUAccessMode.MESSAGE:
 			# Messages are not really stored in the OutputBuffer
 			self._iu_store[iu.uid] = iu
@@ -486,12 +488,12 @@ class OutputBuffer(Buffer):
 		self._publish_iu(iu)
 
 	def remove(self, iu=None, iu_uid=None):
-		'''Remove the iu or an IU corresponding to iu_uid from the OutputBuffer, retracting it from the system.'''
+		'''Retracts an IU and removes it from the OutputBuffer.'''
 		if iu is None:
 			if iu_uid is None:
 				return None
 			else:
-				if iu_uid not in self. _iu_store:
+				if iu_uid not in self._iu_store:
 					raise ipaaca.exception.IUNotFoundError(iu_uid)
 				iu = self._iu_store[iu_uid]
 		# unpublish the IU
@@ -505,12 +507,13 @@ class OutputBuffer(Buffer):
 		informer.publishData(iu)
 
 	def _retract_iu(self, iu):
-		'''Retract (unpublish) an IU.'''
+		'''Retract an IU.'''
 		iu_retraction = ipaaca_pb2.IURetraction()
 		iu_retraction.uid = iu.uid
 		iu_retraction.revision = iu.revision
 		informer = self._get_informer(iu._category)
 		informer.publishData(iu_retraction)
+		iu._retracted = True
 
 	def _send_iu_commission(self, iu, writer_name):
 		'''Send IU commission.
