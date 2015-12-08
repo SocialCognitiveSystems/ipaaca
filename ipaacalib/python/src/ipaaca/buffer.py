@@ -232,20 +232,22 @@ class InputBuffer(Buffer):
 		if category_interests is not None:
 			self.add_category_interests(category_interests)
 	
-	def _get_remote_server(self, iu):
+	def _get_remote_server(self, event):
 		'''Return (or create, store and return) a remote server.'''
 		_owner = None
-		if hasattr(iu,'owner_name'):
-			_owner = iu.owner_name
-		elif hasattr(iu,'writer_name'):
-			_owner = iu.writer_name
-		if _owner is not None:
+		if hasattr(event.data, 'owner_name'):
+			_owner = event.data.owner_name
+		elif hasattr(event.data, 'writer_name'):
+			_owner = event.data.writer_name
+		if _owner:
 			if _owner in self._remote_server_store:
 				return self._remote_server_store[_owner]
 			#  TODO remove the str() when unicode is supported (issue #490)
 			remote_server = rsb.createRemoteServer(rsb.Scope(str(_owner)))
 			self._remote_server_store[_owner] = remote_server
-		return remote_server
+			return remote_server
+		else:
+			return None
 
 	def _add_category_listener(self, iu_category):
 		'''Create and store a listener on a specific category.'''
@@ -294,9 +296,14 @@ class InputBuffer(Buffer):
 			del self._iu_store[ event.data.uid ]
 		else:
 			if event.data.uid not in self._iu_store:
-				if self._resend_active:
-					# send resend request to remote server
-					self._request_remote_resend(event.data)
+				if (self._resend_active and 
+							not type_ is ipaaca_pb2.IURetraction):
+					# send resend request to remote server, IURetraction is ignored
+					try:
+						self._request_remote_resend(event)
+					except ipaaca.exception.IUResendRequestFailedError:
+						LOGGER.warning('Requesting resend for IU {} failed.'.
+								format(event.data.uid))
 				else:
 					LOGGER.warning("Received an update for an IU which we did not receive before.")
 				return
@@ -307,10 +314,6 @@ class InputBuffer(Buffer):
 				iu._revision = event.data.revision
 				iu._apply_retraction() # for now - just sets the _rectracted flag.
 				self.call_iu_event_handlers(event.data.uid, local=False, event_type=ipaaca.iu.IUEventType.RETRACTED, category=iu.category)
-				# SPECIAL CASE: allow the handlers (which will need to find the IU
-				#  in the buffer) to operate on the IU - then delete it afterwards!
-				# FIXME: for now: retracted == deleted! Think about this later
-				del(self._iu_store[iu.uid])
 			else:
 				if event.data.writer_name == self.unique_name:
 					# Notify only for remotely triggered events;
@@ -349,13 +352,17 @@ class InputBuffer(Buffer):
 		else:
 			self._remove_category_listener(category_interests)
 
-	def _request_remote_resend(self, iu):
-		remote_server = self._get_remote_server(iu)
-		resend_request = ipaaca_pb2.IUResendRequest()
-		resend_request.uid = iu.uid # target iu
-		resend_request.hidden_scope_name = str(self._uuid) # hidden category name
-		remote_revision = remote_server.requestResend(resend_request)
-		if remote_revision == 0:
+	def _request_remote_resend(self, event):
+		remote_server = self._get_remote_server(event)
+		if remote_server:
+			resend_request = ipaaca_pb2.IUResendRequest()
+			resend_request.uid = event.data.uid # target iu
+			resend_request.hidden_scope_name = str(self._uuid) # hidden category name
+			remote_revision = remote_server.requestResend(resend_request)
+			if remote_revision == 0:
+				raise ipaaca.exception.IUResendRequestFailedError()
+		else:
+			# Remote server is not known
 			raise ipaaca.exception.IUResendRequestFailedError()
 
 	def register_handler(self, handler_function, for_event_types=None, for_categories=None):
