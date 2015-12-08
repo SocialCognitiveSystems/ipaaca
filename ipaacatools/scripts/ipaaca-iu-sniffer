@@ -123,7 +123,7 @@ parser.add_argument(
 	dest='event_types',
 	metavar='EVENT-TYPE',
 	nargs='+',
-	help='set event types (ADDED, MESSAGE, UPDATED, LINKSUPDATED, COMMITTED)')
+	help='set event types ({})'.format(' '.join(ipaaca.iu.IUEventType._choices)))
 parser.add_argument(
 	'-r', '--regex',
 	action='store_true',
@@ -157,7 +157,7 @@ if __name__ == '__main__':
 		# Check whether the specified event_types are valid
 		if arguments.event_types is not None:
 			for et in arguments.event_types:
-				if et.upper() not in ['ADDED', 'MESSAGE', 'UPDATED', 'LINKSUPDATED', 'COMMITTED']:
+				if et.upper() not in ipaaca.iu.IUEventType._choices:
 					print('ERROR: "{et}" is not a valid IPAACA event type.'.format(et=et.upper()))
 					exit(code=1)
 		buffers[channel].register_handler(
