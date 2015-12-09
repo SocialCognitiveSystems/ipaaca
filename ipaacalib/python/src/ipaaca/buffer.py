@@ -232,22 +232,32 @@ class InputBuffer(Buffer):
 		if category_interests is not None:
 			self.add_category_interests(category_interests)
 	
-	def _get_remote_server(self, event):
+	def _get_remote_server(self, event_or_iu):
 		'''Return (or create, store and return) a remote server.'''
-		_owner = None
-		if hasattr(event.data, 'owner_name'):
-			_owner = event.data.owner_name
-		elif hasattr(event.data, 'writer_name'):
-			_owner = event.data.writer_name
+		_owner = self._get_owner(event_or_iu)
 		if _owner:
-			if _owner in self._remote_server_store:
+			try:
 				return self._remote_server_store[_owner]
-			#  TODO remove the str() when unicode is supported (issue #490)
-			remote_server = rsb.createRemoteServer(rsb.Scope(str(_owner)))
-			self._remote_server_store[_owner] = remote_server
-			return remote_server
+			except KeyError:
+				remote_server = rsb.createRemoteServer(rsb.Scope(str(_owner)))
+				self._remote_server_store[_owner] = remote_server
+				return remote_server
 		else:
-			return None
+			None
+
+	def _get_owner(self, event_or_iu):
+		if hasattr(event_or_iu, 'data'):
+			# is RSB event
+			data = event_or_iu.data
+			if hasattr(data, 'owner_name'):
+				return data.owner_name
+			elif hasattr(data, 'writer_name'):
+				return data.writer_name
+			else:
+				return None
+		else:
+			# is IU
+			return event_or_iu.owner_name
 
 	def _add_category_listener(self, iu_category):
 		'''Create and store a listener on a specific category.'''
