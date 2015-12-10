@@ -633,7 +633,8 @@ IPAACA_EXPORT void InputBuffer::_trigger_resend_request(EventPtr event) {
 		uid = update->uid();
 		writerName = update->writer_name();
 	} else {
-		IPAACA_WARNING("_trigger_resend_request: unhandled event type " << type)
+		IPAACA_ERROR("_trigger_resend_request: called for unhandled event type " << type)
+		return;
 	}
 
 	if (!writerName.empty()) {
@@ -674,7 +675,7 @@ IPAACA_EXPORT void InputBuffer::_handle_iu_events(EventPtr event)
 			it = _iu_store.find(update->uid);
 			if (it == _iu_store.end()) {
 				_trigger_resend_request(event);
-				IPAACA_INFO("Using UPDATED message for an IU that we did not fully receive before")
+				IPAACA_INFO("UPDATED message for an IU that we did not fully receive before")
 				return;
 			}
 			it->second->_apply_update(update);
@@ -687,7 +688,7 @@ IPAACA_EXPORT void InputBuffer::_handle_iu_events(EventPtr event)
 			it = _iu_store.find(update->uid);
 			if (it == _iu_store.end()) {
 				_trigger_resend_request(event);
-				IPAACA_INFO("Ignoring LINKSUPDATED message for an IU that we did not fully receive before")
+				IPAACA_INFO("LINKSUPDATED message for an IU that we did not fully receive before")
 				return;
 			}
 			it->second->_apply_link_update(update);
@@ -700,7 +701,7 @@ IPAACA_EXPORT void InputBuffer::_handle_iu_events(EventPtr event)
 			it = _iu_store.find(update->uid());
 			if (it == _iu_store.end()) {
 				_trigger_resend_request(event);
-				IPAACA_INFO("Ignoring COMMITTED message for an IU that we did not fully receive before")
+				IPAACA_INFO("COMMITTED message for an IU that we did not fully receive before")
 				return;
 			}
 			it->second->_apply_commission();
@@ -710,16 +711,15 @@ IPAACA_EXPORT void InputBuffer::_handle_iu_events(EventPtr event)
 			boost::shared_ptr<protobuf::IURetraction> update = boost::static_pointer_cast<protobuf::IURetraction>(event->getData());
 			it = _iu_store.find(update->uid());
 			if (it == _iu_store.end()) {
-				_trigger_resend_request(event);
 				IPAACA_INFO("Ignoring RETRACTED message for an IU that we did not fully receive before")
 				return;
 			}
 			it->second->_revision = update->revision();
 			it->second->_apply_retraction();
 			auto final_iu_ref = it->second;
-			// remove from InputBuffer     FIXME: this is a crossover between retracted and deleted behavior
-			_iu_store.erase(it->first);
-			// and call the handler. IU reference is still valid for this call, although removed from buffer.
+			////// remove from InputBuffer?  FIXME: unclear issue - resolve in ipaaca3
+			////_iu_store.erase(it->first);
+			// and call the handler. IU reference is still valid for this call, even if removed from buffer.
 			call_iu_event_handlers(final_iu_ref, false, IU_RETRACTED, it->second->category() );
 			//
 		} else {
