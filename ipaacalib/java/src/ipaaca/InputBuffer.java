@@ -453,8 +453,10 @@ public class InputBuffer extends Buffer
                     logger.warn("Update message for IU which we did not fully receive before.");
                 }
                 RemotePushIU iu = this.iuStore.get(iuc.getUid());
-                iu.applyRetraction();
-                callIuEventHandlers(iuc.getUid(), false, IUEventType.RETRACTED, iu.getCategory());
+                if (iu != null) {
+                    iu.applyRetraction();
+                    callIuEventHandlers(iuc.getUid(), false, IUEventType.RETRACTED, iu.getCategory());
+                }
             }
         }
     }
