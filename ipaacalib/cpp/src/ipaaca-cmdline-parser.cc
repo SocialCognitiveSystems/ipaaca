@@ -90,6 +90,8 @@ void CommandLineParser::initialize_parser_defaults()
 		add_option("ipaaca-default-channel", 0, true, "default");
 		add_option("ipaaca-enable-logging", 0, true, "WARNING");
 		add_option("rsb-enable-logging", 0, true, "ERROR");
+		add_option("rsb-host", 0, true, ""); // empty = don't set
+		add_option("rsb-port", 0, true, ""); // empty = don't set
 	}
 }
 
@@ -108,6 +110,14 @@ bool CommandLineParser::consume_library_option(const std::string& name, bool exp
 		std::string newch = optarg;
 		IPAACA_DEBUG("Setting default channel " << newch)
 		__ipaaca_static_option_default_channel = newch;
+	} else if (name=="rsb-host") {
+		std::string newhost = optarg;
+		IPAACA_DEBUG("Setting RSB host " << newhost)
+		__ipaaca_static_option_rsb_host = newhost;
+	} else if (name=="rsb-port") {
+		std::string newport = optarg;
+		IPAACA_DEBUG("Setting RSB port " << newport)
+		__ipaaca_static_option_rsb_port = newport;
 	} else if (name=="ipaaca-enable-logging") {
 		std::string level(optarg);
 		if ((level=="NONE") || (level=="SILENT")) {

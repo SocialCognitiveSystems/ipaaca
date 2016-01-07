@@ -209,6 +209,11 @@ IPAACA_MEMBER_VAR_EXPORT extern std::string __ipaaca_static_option_default_chann
 /// Current console log level (defaults to warning), one of: IPAACA_LOG_LEVEL_CRITICAL, IPAACA_LOG_LEVEL_ERROR, IPAACA_LOG_LEVEL_WARNING, IPAACA_LOG_LEVEL_INFO, IPAACA_LOG_LEVEL_DEBUG, IPAACA_LOG_LEVEL_NONE
 IPAACA_MEMBER_VAR_EXPORT extern unsigned int __ipaaca_static_option_log_level;
 
+/// RSB host to connect to (defaults to "" = do not set, use global config)
+IPAACA_MEMBER_VAR_EXPORT extern std::string __ipaaca_static_option_rsb_host;
+/// RSB port to connect to (defaults to "" = do not set, use global config)
+IPAACA_MEMBER_VAR_EXPORT extern std::string __ipaaca_static_option_rsb_port;
+
 IPAACA_MEMBER_VAR_EXPORT Lock& logger_lock();
 
 #ifdef WIN32

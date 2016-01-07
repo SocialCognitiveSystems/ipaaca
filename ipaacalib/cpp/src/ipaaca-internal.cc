@@ -97,6 +97,16 @@ IPAACA_EXPORT void Initializer::dump_current_default_config()//{{{
 }//}}}
 IPAACA_EXPORT void Initializer::auto_configure_rsb()//{{{
 {
+	// set RSB host and port iff provided using cmdline arguments
+	if (__ipaaca_static_option_rsb_host!="") {
+		IPAACA_INFO("Overriding RSB host with " << __ipaaca_static_option_rsb_host)
+		setenv("RSB_TRANSPORT_SPREAD_HOST", __ipaaca_static_option_rsb_host.c_str(), 1);
+	}
+	if (__ipaaca_static_option_rsb_port!="") {
+		IPAACA_INFO("Overriding RSB port with " << __ipaaca_static_option_rsb_port)
+		setenv("RSB_TRANSPORT_SPREAD_PORT", __ipaaca_static_option_rsb_port.c_str(), 1);
+	}
+	
 	const char* plugin_path = getenv("RSB_PLUGINS_CPP_PATH");
 	if (!plugin_path) {
 #ifdef WIN32
