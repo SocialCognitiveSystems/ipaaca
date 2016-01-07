@@ -76,8 +76,8 @@ IPAACA_EXPORT std::string __ipaaca_static_option_default_payload_type("JSON");
 IPAACA_EXPORT std::string __ipaaca_static_option_default_channel("default");
 IPAACA_EXPORT unsigned int __ipaaca_static_option_log_level(IPAACA_LOG_LEVEL_WARNING);
 
-IPAACA_EXPORT std::string __ipaaca_static_option_rsb_host("");
-IPAACA_EXPORT std::string __ipaaca_static_option_rsb_port("");
+IPAACA_EXPORT std::string __ipaaca_static_option_rsb_spread_host("");
+IPAACA_EXPORT std::string __ipaaca_static_option_rsb_spread_port("");
 
 } // of namespace ipaaca
 

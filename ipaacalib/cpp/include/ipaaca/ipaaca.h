@@ -210,9 +210,9 @@ IPAACA_MEMBER_VAR_EXPORT extern std::string __ipaaca_static_option_default_chann
 IPAACA_MEMBER_VAR_EXPORT extern unsigned int __ipaaca_static_option_log_level;
 
 /// RSB host to connect to (defaults to "" = do not set, use global config)
-IPAACA_MEMBER_VAR_EXPORT extern std::string __ipaaca_static_option_rsb_host;
+IPAACA_MEMBER_VAR_EXPORT extern std::string __ipaaca_static_option_rsb_spread_host;
 /// RSB port to connect to (defaults to "" = do not set, use global config)
-IPAACA_MEMBER_VAR_EXPORT extern std::string __ipaaca_static_option_rsb_port;
+IPAACA_MEMBER_VAR_EXPORT extern std::string __ipaaca_static_option_rsb_spread_port;
 
 IPAACA_MEMBER_VAR_EXPORT Lock& logger_lock();
 
