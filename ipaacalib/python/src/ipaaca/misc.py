@@ -4,7 +4,7 @@
 #  "Incremental Processing Architecture
 #   for Artificial Conversational Agents".
 #
-# Copyright (c) 2009-2014 Social Cognitive Systems Group
+# Copyright (c) 2009-2016 Social Cognitive Systems Group
 #                         CITEC, Bielefeld University
 #
 # http://opensource.cit-ec.de/projects/ipaaca/
@@ -124,6 +124,16 @@ class IpaacaArgumentParser(argparse.ArgumentParser):
 			rsb_logger.removeHandler(__GENERIC_NO_LOG_HANDLER)
 			rsb_logger.setLevel(level=values)
 
+	class IpaacaRSBSpreadHost(argparse.Action):
+
+		def __call__(self, parser, namespace, values, option_string=None):
+			ipaaca.defaults.IPAACA_DEFAULT_RSB_SPREAD_HOST = values
+
+	class IpaacaRSBSpreadPort(argparse.Action):
+
+		def __call__(self, parser, namespace, values, option_string=None):
+			ipaaca.defaults.IPAACA_DEFAULT_RSB_SPREADPORT = values
+
 	def __init__(self, prog=None, usage=None, description=None, epilog=None,
 			parents=[], formatter_class=argparse.HelpFormatter,
 			prefix_chars='-', fromfile_prefix_chars=None, 
@@ -136,6 +146,7 @@ class IpaacaArgumentParser(argparse.ArgumentParser):
 			conflict_handler=conflict_handler, add_help=add_help)
 
 	def _add_ipaaca_lib_arguments(self):
+		# CMD-arguments for ipaaca
 		ipaacalib_group = self.add_argument_group('IPAACA library arguments')
 		ipaacalib_group.add_argument(
 			'--ipaaca-payload-type', 
@@ -157,6 +168,7 @@ class IpaacaArgumentParser(argparse.ArgumentParser):
 			choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG'],
 			dest='_ipaaca_logging_level_',
 			help="enable IPAACA logging with threshold")
+		# CMD-arguments for rsb
 		rsblib_group = self.add_argument_group('RSB library arguments')
 		rsblib_group.add_argument(
 			'--rsb-enable-logging', 
@@ -164,6 +176,20 @@ class IpaacaArgumentParser(argparse.ArgumentParser):
 			choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG'],
 			dest='_ipaaca_rsb_enable_logging_',
 			help="enable RSB logging with threshold")
+		rsblib_group.add_argument(
+			'--rsb-spread-host', 
+			action=self.IpaacaRSBSpreadHost,
+			default=None,
+			dest='_ipaaca_rsb_set_spread_host_',
+			metavar='HOST',
+			help="set RSB spread host")
+		rsblib_group.add_argument(
+			'--rsb-spread-port', 
+			action=self.IpaacaRSBSpreadPort,
+			default=None,
+			dest='_ipaaca_rsb_set_spread_port_',
+			metavar='PORT',
+			help="set RSB spread port")
 
 	def parse_args(self, args=None, namespace=None):
 		self._add_ipaaca_lib_arguments() # Add ipaaca-args just before parsing

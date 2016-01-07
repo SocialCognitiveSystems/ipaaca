@@ -4,7 +4,7 @@
 #  "Incremental Processing Architecture
 #   for Artificial Conversational Agents".
 #
-# Copyright (c) 2009-2014 Social Cognitive Systems Group
+# Copyright (c) 2009-2016 Social Cognitive Systems Group
 #                         CITEC, Bielefeld University
 #
 # http://opensource.cit-ec.de/projects/ipaaca/
@@ -32,6 +32,7 @@
 
 from __future__ import division, print_function
 
+import os
 import threading
 
 import rsb
@@ -51,7 +52,13 @@ __RSB_INITIALIZED = False
 
 
 def initialize_ipaaca_rsb_if_needed():
-	'''Register own RSB Converters and initialise RSB from default config file.'''
+	"""Initialise rsb if not yet initialise.
+
+	   * Register own RSB onverters.
+	   * Initialise RSB from enviroment variables, rsb config file, or
+	     from default values for RSB spread host and port (via
+	     ipaaca.defaults or ipaaca.misc.IpaacaArgumentParser).
+	"""
 	global __RSB_INITIALIZED
 	with __RSB_INITIALIZER_LOCK:
 		if __RSB_INITIALIZED:
@@ -93,7 +100,16 @@ def initialize_ipaaca_rsb_if_needed():
 			rsb.converter.registerGlobalConverter(
 				rsb.converter.ProtocolBufferConverter(
 					messageClass=ipaaca_pb2.IURetraction))
-		
-			rsb.__defaultParticipantConfig = rsb.ParticipantConfig.fromDefaultSources()
+
+			if ipaaca.defaults.IPAACA_DEFAULT_RSB_SPREAD_HOST is not None:
+				os.environ['RSB_TRANSPORT_SPREAD_HOST'] = str(
+						ipaaca.defaults.IPAACA_DEFAULT_RSB_SPREAD_HOST)
+
+			if ipaaca.defaults.IPAACA_DEFAULT_RSB_SPREAD_PORT is not None:
+				os.environ['RSB_TRANSPORT_SPREAD_PORT'] = str(
+						ipaaca.defaults.IPAACA_DEFAULT_RSB_SPREAD_PORT)
+
+			rsb.__defaultParticipantConfig = \
+					rsb.ParticipantConfig.fromDefaultSources()
 
 			__RSB_INITIALIZED = True

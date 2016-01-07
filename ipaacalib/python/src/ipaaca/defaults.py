@@ -4,7 +4,7 @@
 #  "Incremental Processing Architecture
 #   for Artificial Conversational Agents".
 #
-# Copyright (c) 2009-2014 Social Cognitive Systems Group
+# Copyright (c) 2009-2016 Social Cognitive Systems Group
 #                         CITEC, Bielefeld University
 #
 # http://opensource.cit-ec.de/projects/ipaaca/
@@ -33,6 +33,11 @@
 IPAACA_DEFAULT_CHANNEL = 'default'
 
 IPAACA_LOGGER_NAME = 'ipaaca'
+
 IPAACA_DEFAULT_LOGGING_LEVEL = 'WARNING'
 
 IPAACA_DEFAULT_IU_PAYLOAD_TYPE = 'JSON' # one of ipaaca.iu.IUPayloadType
+
+IPAACA_DEFAULT_RSB_SPREAD_HOST = None
+
+IPAACA_DEFAULT_RSB_SPREAD_PORT = None
