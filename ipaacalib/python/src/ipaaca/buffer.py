@@ -157,6 +157,7 @@ class Buffer(object):
 		participant_config -- RSB configuration
 		'''
 		super(Buffer, self).__init__()
+		ipaaca.initialize_ipaaca_rsb_if_needed()
 		self._owning_component_name = owning_component_name
 		self._channel = channel if channel is not None else ipaaca.defaults.IPAACA_DEFAULT_CHANNEL
 		self._participant_config = rsb.ParticipantConfig.fromDefaultSources() if participant_config is None else participant_config

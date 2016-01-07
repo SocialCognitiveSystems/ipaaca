@@ -32,6 +32,8 @@
 
 from __future__ import division, print_function
 
+import threading
+
 import rsb
 import rsb.converter
 
@@ -44,46 +46,54 @@ from ipaaca.misc import enable_logging, IpaacaArgumentParser
 from ipaaca.payload import Payload
 
 
-def initialize_ipaaca_rsb():
-	''''Register own RSB Converters and initialise RSB from default config file.'''
-	rsb.converter.registerGlobalConverter(
-		ipaaca.converter.IntConverter(
-			wireSchema="int32",
-			dataType=int))
+__RSB_INITIALIZER_LOCK = threading.Lock()
+__RSB_INITIALIZED = False
 
-	rsb.converter.registerGlobalConverter(
-		ipaaca.converter.IUConverter(
-			wireSchema="ipaaca-iu",
-			dataType=IU))
 
-	rsb.converter.registerGlobalConverter(
-		ipaaca.converter.MessageConverter(
-			wireSchema="ipaaca-messageiu",
-			dataType=Message))
+def initialize_ipaaca_rsb_if_needed():
+	'''Register own RSB Converters and initialise RSB from default config file.'''
+	global __RSB_INITIALIZED
+	with __RSB_INITIALIZER_LOCK:
+		if __RSB_INITIALIZED:
+			return
+		else:
+			rsb.converter.registerGlobalConverter(
+				ipaaca.converter.IntConverter(
+					wireSchema="int32",
+					dataType=int))
+		
+			rsb.converter.registerGlobalConverter(
+				ipaaca.converter.IUConverter(
+					wireSchema="ipaaca-iu",
+					dataType=IU))
+		
+			rsb.converter.registerGlobalConverter(
+				ipaaca.converter.MessageConverter(
+					wireSchema="ipaaca-messageiu",
+					dataType=Message))
+		
+			rsb.converter.registerGlobalConverter(
+				ipaaca.converter.IULinkUpdateConverter(
+					wireSchema="ipaaca-iu-link-update",
+					dataType=converter.IULinkUpdate))
+		
+			rsb.converter.registerGlobalConverter(
+				ipaaca.converter.IUPayloadUpdateConverter(
+					wireSchema="ipaaca-iu-payload-update",
+					dataType=converter.IUPayloadUpdate))
+		
+			rsb.converter.registerGlobalConverter(
+				rsb.converter.ProtocolBufferConverter(
+					messageClass=ipaaca_pb2.IUCommission))
+		
+			rsb.converter.registerGlobalConverter(
+				rsb.converter.ProtocolBufferConverter(
+					messageClass=ipaaca_pb2.IUResendRequest))
+		
+			rsb.converter.registerGlobalConverter(
+				rsb.converter.ProtocolBufferConverter(
+					messageClass=ipaaca_pb2.IURetraction))
+		
+			rsb.__defaultParticipantConfig = rsb.ParticipantConfig.fromDefaultSources()
 
-	rsb.converter.registerGlobalConverter(
-		ipaaca.converter.IULinkUpdateConverter(
-			wireSchema="ipaaca-iu-link-update",
-			dataType=converter.IULinkUpdate))
-
-	rsb.converter.registerGlobalConverter(
-		ipaaca.converter.IUPayloadUpdateConverter(
-			wireSchema="ipaaca-iu-payload-update",
-			dataType=converter.IUPayloadUpdate))
-
-	rsb.converter.registerGlobalConverter(
-		rsb.converter.ProtocolBufferConverter(
-			messageClass=ipaaca_pb2.IUCommission))
-
-	rsb.converter.registerGlobalConverter(
-		rsb.converter.ProtocolBufferConverter(
-			messageClass=ipaaca_pb2.IUResendRequest))
-
-	rsb.converter.registerGlobalConverter(
-		rsb.converter.ProtocolBufferConverter(
-			messageClass=ipaaca_pb2.IURetraction))
-
-	rsb.__defaultParticipantConfig = rsb.ParticipantConfig.fromDefaultSources()
-
-# Initialise module
-initialize_ipaaca_rsb()
+			__RSB_INITIALIZED = True
