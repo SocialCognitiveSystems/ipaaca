@@ -44,10 +44,10 @@ public class IpaacaLogger {
 
 	private static OutputBuffer ob;
 	private static final Object lock = new Object();
-	
+
 	private static boolean SEND_IPAACA_LOGS = true;
 	private static String MODULE_NAME = "???";
-	
+
 	private static void initializeOutBuffer() {
 		synchronized (lock) {
 			if (ob == null) {
@@ -55,13 +55,13 @@ public class IpaacaLogger {
 			}
 		}
 	}
-	
+
 	public static void setModuleName(String name) {
 		synchronized (lock) {
 			MODULE_NAME = name;
 		}
 	}
-	
+
 	public static void setLogFileName(String fileName, String logMode) {
 		initializeOutBuffer();
 		LocalMessageIU msg = new LocalMessageIU("log");
@@ -74,19 +74,19 @@ public class IpaacaLogger {
 					logMode.equals("timestamp")) {
 				pl.put("existing", logMode);
 			} else {
-				
+
 				return;
 			}
 		}
 		ob.add(msg);
 	}
-	
+
 	public static void sendIpaacaLogs(boolean flag) {
 		synchronized (lock) {
 			SEND_IPAACA_LOGS = flag;
 		}
 	}
-	
+
 	private static void logConsole(String level, String text, float now, String function, String thread) {
 		for(String line: text.split("\n")) {
 			   System.out.println("[" + level + "] " + thread + " " + function + " " + line);
@@ -94,7 +94,7 @@ public class IpaacaLogger {
 			   thread = StringUtils.leftPad("", thread.length(), ' ');
 		}
 	}
-	
+
 	private static void logIpaaca(String level, String text, float now, String function, String thread) {
 		initializeOutBuffer();
 		LocalMessageIU msg = new LocalMessageIU("log");
@@ -110,16 +110,20 @@ public class IpaacaLogger {
 		ob.add(msg);
 	}
 
+	private static String getCallerName() {
+		String function = Thread.currentThread().getStackTrace()[3].getClassName();
+		function += "." + Thread.currentThread().getStackTrace()[3].getMethodName();
+		return function;
+	}
+
 	public static void logError(String msg) {
-		String function = Thread.currentThread().getStackTrace()[2].getMethodName();
-		logError(msg, System.currentTimeMillis(), function);		
+		logError(msg, System.currentTimeMillis(), getCallerName());
 	}
-	
+
 	public static void logError(String msg, float now) {
-		String function = Thread.currentThread().getStackTrace()[2].getMethodName();
-		logError(msg, now, function);	
+		logError(msg, now, getCallerName());
 	}
-	
+
 	private static void logError(String msg, float now, String callerName) {
 		String thread = Thread.currentThread().getName();
 		if (SEND_IPAACA_LOGS) {
@@ -127,59 +131,56 @@ public class IpaacaLogger {
 		}
 		logConsole("ERROR", msg, now, callerName, thread);
 	}
-	
+
+
 	public static void logWarn(String msg) {
-		String function = Thread.currentThread().getStackTrace()[2].getMethodName();
-		logWarn(msg, System.currentTimeMillis(), function);		
+		logWarn(msg, System.currentTimeMillis(), getCallerName());
 	}
-	
+
 	public static void logWarn(String msg, float now) {
-		String function = Thread.currentThread().getStackTrace()[2].getMethodName();
-		logWarn(msg, now, function);		
+		logWarn(msg, now, getCallerName());
 	}
-	
+
 	private static void logWarn(String msg, float now, String callerName) {
 		String thread = Thread.currentThread().getName();
 		if (SEND_IPAACA_LOGS) {
-			logIpaaca("WARN", msg, now, "???", thread);
+			logIpaaca("WARN", msg, now, callerName, thread);
 		}
-		logConsole("WARN", msg, now, "???", thread);
+		logConsole("WARN", msg, now, callerName, thread);
 	}
-	
+
+
 	public static void logInfo(String msg) {
-		String function = Thread.currentThread().getStackTrace()[2].getMethodName();
-		logInfo(msg, System.currentTimeMillis(), function);		
+		logInfo(msg, System.currentTimeMillis(), getCallerName());
 	}
-	
+
 	public static void logInfo(String msg, float now) {
-		String function = Thread.currentThread().getStackTrace()[2].getMethodName();
-		logInfo(msg, now, function);		
+		logInfo(msg, now, getCallerName());
 	}
-	
+
 	private static void logInfo(String msg, float now, String callerName) {
 		String thread = Thread.currentThread().getName();
 		if (SEND_IPAACA_LOGS) {
-			logIpaaca("INFO", msg, now, "???", thread);
+			logIpaaca("INFO", msg, now, callerName, thread);
 		}
-		logConsole("INFO", msg, now, "???", thread);
+		logConsole("INFO", msg, now, callerName, thread);
 	}
 
+
 	public static void logDebug(String msg) {
-		String function = Thread.currentThread().getStackTrace()[2].getMethodName();
-		logDebug(msg, System.currentTimeMillis(), function);		
+		logDebug(msg, System.currentTimeMillis(), getCallerName());
 	}
-	
+
 	public static void logDebug(String msg, float now) {
-		String function = Thread.currentThread().getStackTrace()[2].getMethodName();
-		logDebug(msg, now, function);		
+		logDebug(msg, now, getCallerName());
 	}
-	
+
 	private static void logDebug(String msg, float now, String callerName) {
 		String thread = Thread.currentThread().getName();
 		if (SEND_IPAACA_LOGS) {
-			logIpaaca("DEBUG", msg, now, "???", thread);
+			logIpaaca("DEBUG", msg, now, callerName, thread);
 		}
-		logConsole("DEBUG", msg, now, "???", thread);
+		logConsole("DEBUG", msg, now, callerName, thread);
 	}
-	
+
 }
