@@ -117,7 +117,11 @@ def LOG_IPAACA(lvl, text, now=0.0, fn='???', thread='???'):
 
 
 def LOG_CONSOLE(lvlstr, msg, fn_markup='[38;5;142m', msg_markup='', now=0.0, fn='???', thread='???'):
-	for line in msg.split('\n'):
+	if isinstance(msg, basestring):
+		lines = msg.split('\n')
+	else:
+		lines = [msg]
+	for line in lines:
 		text = lvlstr+' '+thread+' '+fn_markup+fn+'[m'+' '+msg_markup+unicode(line)+'[m'
 		print(text)
 		fn = ' '*len(fn)
