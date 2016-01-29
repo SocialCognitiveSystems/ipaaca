@@ -46,6 +46,7 @@ import ipaaca
 
 __all__ = [
 	'logger_send_ipaaca_logs',
+	'logger_set_log_filename',
 	'logger_set_module_name',
 	'LOG_DEBUG',
 	'LOG_INFO',
@@ -113,7 +114,12 @@ def LOG_IPAACA(lvl, text, now=0.0, fn='???', thread='???'):
 				'thread': thread,
 				'uuid': uid,
 				'text': text,}
-		OUTPUT_BUFFER.add(msg)
+		try:
+			OUTPUT_BUFFER.add(msg)
+		except Exception, e:
+			LOG_ERROR('Caught an exception while logging via ipaaca. '
+				+ ' str(e); ' 
+				+ traceback.format_exc())
 
 
 def LOG_CONSOLE(lvlstr, msg, fn_markup='[38;5;142m', msg_markup='', now=0.0, fn='???', thread='???'):
