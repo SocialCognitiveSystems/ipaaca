@@ -1,0 +1,132 @@
+package ipaaca.protobuf;
+
+
+message ProtocolInformation {
+	// The IPAACA-protobuf protocol version
+	optional string protocol_version = 1 [default = "3.0"];
+
+	// Authentication token 
+	optional string auth_token = 2 [default = "no-auth"];
+}
+
+
+message IU {
+
+	// Is this a persistent `IU` or an evanescent `Message`?
+	enum IUMode {
+		PERSISTENT = 0;
+		EVANESCENT = 1;
+	}
+
+	required ProtocolInformation protocol = 1;
+	
+	// Immutable fields
+	required string uid = 2;
+	required IUMode mode = 3;
+	// Full identifier of the OutputBuffer that owns this IU
+	required string owner = 4;
+
+	// Mutable field with special treatment
+	required uint32 revision = 5;
+
+	// Actual data in this IU.
+	repeated LinkSet links = 6;
+	repeated DictionaryItem metadata = 7;
+	repeated DictionaryItem payload = 8;
+}
+
+
+// IURequests initiate re-sending of an persistent IU on a private
+// scope between the requester and the creator of the IU.
+message IURequest {
+
+	required ProtocolInformation protocol = 1;
+
+	required string uid = 2;
+	required string hidden_scope_name = 3;
+}
+
+
+message IUUpdate {
+
+	required ProtocolInformation protocol = 1;
+
+	required string update_id = 2;
+	required string uid = 3;
+
+	// The revision number of the IU when the changes were performed
+	required uint32 revision_to_be_updated = 4;
+
+	// The initiator of the updates
+	required string initiator = 5;
+
+	// The actual updates
+	optional LinkChanges links = 6;
+	optional DictionaryChanges metadate = 7;
+	optional DictionaryChanges payload = 8;
+}
+
+
+message IURevisionUpdate {
+
+	required ProtocolInformation protocol =1 ;
+
+	required string uid = 2;
+	optional string update_id = 3 [default = ""];
+	required string new_revision = 4;
+}
+
+
+// Transactions bundle changes to the IU-network in a single indivisible
+// operation. It can comprise
+//     (1) publication of new IUs,
+//     (2) updates of existing IUs.
+// Open questions:
+//     * Does order matter?
+//     * What happens if one of the operations fails?
+message Transaction {
+
+	required ProtocolInformation protocol = 1;
+
+	repeated IU added_ius = 2;
+	repeated IUUpdate updates = 3;
+}
+
+
+// DictionaryItems consist of a string `key` and a string `value`, which
+// is a serialised JSON object.
+message DictionaryItem {
+	required string key = 1;
+	required string value = 2;
+}
+
+
+// Changes to a dictionary can be only be performed on the first level,
+// not inside JSON objects. Possible changes are
+//    (1) adding a new DictionaryItem,
+//    (2) updating the value of an existing DictionaryItem,
+//    (3) removal of a DictionaryItem.
+message DictionaryChanges {
+	repeated DictionaryItem added_or_updated_items = 1;
+	repeated string keys_to_remove = 2;
+}
+
+
+// LinkSets between IUs consist of a string `type` (e.g., "grounded_in")
+// and a set (implemented as a list) of target strings, which should be
+// full IU identifiers.
+message LinkSet {
+	required string type = 1;
+	repeated string target = 2;
+}
+
+
+// Change of links can be
+//    (1) targets that should be added to the set of targets of a
+//        certain type, 
+//    (2) targets that should be removed from the set of targets of a 
+//        certain type.
+message LinkChanges {
+	repeated LinkSet targets_to_add = 1;
+	repeated LinkSet targets_to_delete = 2;
+}
