@@ -3,9 +3,8 @@ package ipaaca.protobuf;
 
 message ProtocolInformation {
 	// The IPAACA-protobuf protocol version
-	optional string protocol_version = 1 [default = "3.0"];
-
-	// Authentication token 
+	optional string version = 1 [default = "3.0"];
+	// Authentication token
 	optional string auth_token = 2 [default = "no-auth"];
 }
 
@@ -18,21 +17,29 @@ message IU {
 		EVANESCENT = 1;
 	}
 
-	required ProtocolInformation protocol = 1;
-	
+	optional ProtocolInformation protocol = 1;
+	optional IUMode mode = 4 [default = PERSISTENT];
+
 	// Immutable fields
-	required string uid = 2;
-	required IUMode mode = 3;
-	// Full identifier of the OutputBuffer that owns this IU
-	required string owner = 4;
+	required string iu_id = 2;
+	required string category = 3;
+	required string owner = 5;
 
 	// Mutable field with special treatment
-	required uint32 revision = 5;
+	optional uint32 revision = 6 [default = 0];
 
 	// Actual data in this IU.
-	repeated LinkSet links = 6;
-	repeated DictionaryItem metadata = 7;
-	repeated DictionaryItem payload = 8;
+
+	// A JSON string containing link information (by convention
+	// the first level is a JSON object { ... } and all values are lists
+	// of strings).
+	repeated string links = 7;
+	// A JSON string containing metadata information (by convention
+	// the first level is a JSON object { ... }).
+	repeated string metadata = 8;
+	// A JSON string containting the payload data (by convention
+	// the first level is a JSON object { ... }).
+	repeated string payload = 9;
 }
 
 
@@ -40,93 +47,101 @@ message IU {
 // scope between the requester and the creator of the IU.
 message IURequest {
 
-	required ProtocolInformation protocol = 1;
+	optional ProtocolInformation protocol = 1;
 
-	required string uid = 2;
+	// IU id 
+	required string iu_id = 2;
 	required string hidden_scope_name = 3;
 }
 
 
+// IUUpdate messages are send by OutputBuffers to communicate changes
+// to an IU. It may result from changes which the component holding
+// the OutputBuffer made itself, or as a result of a successful
+// IUUpdateRequest made via the InputBuffer of another component.
 message IUUpdate {
 
-	required ProtocolInformation protocol = 1;
+	optional ProtocolInformation protocol = 1;
 
 	required string update_id = 2;
-	required string uid = 3;
+	required string iu_id = 3;
+
+	// The revision number of the IU when the changes were performed
+	required uint32 new_revision = 4;
+
+	// The initiator of the updates
+	required string initiator_id = 5;
+
+	// The actual updates
+	repeated JSONChange links = 6;
+	repeated JSONChange metadata = 7;
+	repeated JSONChange payload = 8;
+}
+
+
+// IUUpdateRequest messages are send by InputBuffers that want to make
+// changes to IUs they hold. IUUpdateRequests may fail.
+message IUUpdateRequest {
+
+	optional ProtocolInformation protocol = 1;
+
+	required string update_id = 2;
+	required string iu_id = 3;
 
 	// The revision number of the IU when the changes were performed
 	required uint32 revision_to_be_updated = 4;
 
 	// The initiator of the updates
-	required string initiator = 5;
+	required string initiator_id = 5;
 
 	// The actual updates
-	optional LinkChanges links = 6;
-	optional DictionaryChanges metadate = 7;
-	optional DictionaryChanges payload = 8;
+	repeated JSONChange links = 6;
+	repeated JSONChange metadata = 7;
+	repeated JSONChange payload = 8;
 }
 
 
 message IURevisionUpdate {
 
-	required ProtocolInformation protocol =1 ;
+	optional ProtocolInformation protocol = 1;
 
-	required string uid = 2;
+	required string iu_id = 2;
 	optional string update_id = 3 [default = ""];
 	required string new_revision = 4;
 }
 
 
-// Transactions bundle changes to the IU-network in a single indivisible
-// operation. It can comprise
-//     (1) publication of new IUs,
-//     (2) updates of existing IUs.
-// Open questions:
-//     * Does order matter?
-//     * What happens if one of the operations fails?
+// Transactions bundle a list of TransactionItems that should be
+// performed as one atomic operation.
 message Transaction {
+	optional ProtocolInformation protocol = 1;
+	repeated TransactionItem items = 2;
+}
 
-	required ProtocolInformation protocol = 1;
-
-	repeated IU added_ius = 2;
-	repeated IUUpdate updates = 3;
+// TransactionsItems are changes to the IU-network. It can comprise of
+// (1) the publication of a new IU, or (2) an update of an existing IU.
+// Due to restrictions of protobuf, both fields are set as "repeated",
+// although each is rather considered "optional". A TransactionsItem is
+// considered to be valid iff one of the two fields is an empty array
+// and the other an array of length 1.
+message TransactionItem {
+	// Contains exactly one IU to be published.
+	repeated IU added_iu = 1;
+	// Contains exactly one IUUpdate to be performed.
+	repeated IUUpdate update = 2;
 }
 
 
-// DictionaryItems consist of a string `key` and a string `value`, which
-// is a serialised JSON object.
-message DictionaryItem {
-	required string key = 1;
-	required string value = 2;
-}
-
-
-// Changes to a dictionary can be only be performed on the first level,
-// not inside JSON objects. Possible changes are
-//    (1) adding a new DictionaryItem,
-//    (2) updating the value of an existing DictionaryItem,
-//    (3) removal of a DictionaryItem.
-message DictionaryChanges {
-	repeated DictionaryItem added_or_updated_items = 1;
-	repeated string keys_to_remove = 2;
-}
-
-
-// LinkSets between IUs consist of a string `type` (e.g., "grounded_in")
-// and a set (implemented as a list) of target strings, which should be
-// full IU identifiers.
-message LinkSet {
-	required string type = 1;
-	repeated string target = 2;
-}
-
-
-// Change of links can be
-//    (1) targets that should be added to the set of targets of a
-//        certain type, 
-//    (2) targets that should be removed from the set of targets of a 
-//        certain type.
-message LinkChanges {
-	repeated LinkSet targets_to_add = 1;
-	repeated LinkSet targets_to_delete = 2;
+message JSONChange {
+	// Path to the object that is being added/changed. This string
+	// contains a JSON array containing strings (for keys in objects)
+	// and/or integers for indices into lists.
+	// Examples: '["data", 41]'; '["user", "name"]'
+	required string path = 1;
+	// If is_deletion is true, the object at the specified path will
+	// be deleted.
+	optional bool is_deletion = 3 [default = false];
+	// The value that will be set at the specified path (a JSON
+	// string), this is ignored if is_deletion is true.
+	optional string value = 2 [default = ""];
 }
