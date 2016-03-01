@@ -223,6 +223,21 @@ IPAACA_MEMBER_VAR_EXPORT Lock& logger_lock();
 #define LOG_IPAACA_CONSOLE(msg) { ipaaca::Locker logging_locker(ipaaca::logger_lock()); timeval logging_tim; gettimeofday(&logging_tim, NULL); double logging_t1=logging_tim.tv_sec+(logging_tim.tv_usec/1000000.0); std::cout << "[LOG] " << std::setprecision(15) << logging_t1 << " : " << msg << std::endl; }
 #endif
 
+#ifdef WIN32
+#define IPAACA_SIMPLE_TIMER_BEGIN(N) ;
+#define IPAACA_SIMPLE_TIMER_END(N, NAME) LOG_IPAACA_CONSOLE(NAME << " - time elapsed: Windows - IMPLEMENT ME")
+#else
+/// use IPAACA_SIMPLE_TIMER_BEGIN(mysymbol) to start time profiling at a line in code
+/// Several blocks can be defined in the same stack frame if different symbols are chosen
+#define IPAACA_SIMPLE_TIMER_BEGIN(N) struct timeval _ipaaca_timer_tvstart_ ## N; \
+	gettimeofday(&_ipaaca_timer_tvstart_ ## N, NULL);
+/// use IPAACA_SIMPLE_TIMER_END(mysymbol, "message") to print time elapsed since correpsonding _BEGIN
+#define IPAACA_SIMPLE_TIMER_END(N, NAME) struct timeval _ipaaca_timer_tvend_ ## N; \
+	gettimeofday(&_ipaaca_timer_tvend_ ## N, NULL); \
+	long _ipaaca_timer_usecs_ ## N = (_ipaaca_timer_tvend_ ## N.tv_sec*1000000 + _ipaaca_timer_tvend_ ## N.tv_usec) - (_ipaaca_timer_tvstart_ ## N.tv_sec*1000000 + _ipaaca_timer_tvstart_ ## N.tv_usec); \
+	LOG_IPAACA_CONSOLE(NAME << " - ̨́us elapsed: " << _ipaaca_timer_usecs_ ## N)
+#endif
+
 #include <ipaaca/ipaaca-payload.h>
 #include <ipaaca/ipaaca-buffers.h>
 #include <ipaaca/ipaaca-ius.h>
