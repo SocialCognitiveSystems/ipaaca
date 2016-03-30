@@ -1,13 +1,5 @@
 package ipaaca.util;
 
-import ipaaca.AbstractIU;
-import ipaaca.HandlerFunctor;
-import ipaaca.IUEventType;
-import ipaaca.InputBuffer;
-import ipaaca.LocalMessageIU;
-import ipaaca.OutputBuffer;
-import ipaaca.protobuf.Ipaaca.IU;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -17,6 +9,13 @@ import java.util.Map;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableSet;
+
+import ipaaca.AbstractIU;
+import ipaaca.HandlerFunctor;
+import ipaaca.IUEventType;
+import ipaaca.InputBuffer;
+import ipaaca.LocalMessageIU;
+import ipaaca.OutputBuffer;
 
 /**
  * Client to get/set key value pairs on a Blackboard
