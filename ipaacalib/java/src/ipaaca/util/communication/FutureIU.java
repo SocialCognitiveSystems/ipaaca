@@ -34,14 +34,7 @@ public class FutureIU
                 String id = iu.getPayload().get(idKey);
                 if (idVal.equals(id))
                 {
-                    try
-                    {
-                        queue.put(iu);
-                    }
-                    catch (InterruptedException e)
-                    {
-                        Thread.interrupted();
-                    }
+                    queue.offer(iu);                    
                 }
             }
         }, ImmutableSet.of(category));

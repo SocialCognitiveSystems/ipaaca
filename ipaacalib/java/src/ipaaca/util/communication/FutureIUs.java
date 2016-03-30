@@ -40,7 +40,7 @@ public class FutureIUs
             {
                 String id = iu.getPayload().get(idKey);
                 resultsMap.putIfAbsent(id, new ArrayBlockingQueue<AbstractIU>(1));
-                resultsMap.get(id).add(iu);
+                resultsMap.get(id).offer(iu);
             }
         }, ImmutableSet.of(category));
     }
