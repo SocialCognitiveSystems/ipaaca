@@ -65,7 +65,7 @@ public class FutureIU
     }
 
     /**
-     * Wait for at most the given time for the IU and take it (can be done only once)    
+     * Wait for at most the given time for the IU and take it (can be done only once), return null on timeout    
      */
     public AbstractIU take(long timeout, TimeUnit unit) throws InterruptedException
     {
