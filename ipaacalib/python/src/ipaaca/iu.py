@@ -4,7 +4,7 @@
 #  "Incremental Processing Architecture
 #   for Artificial Conversational Agents".
 #
-# Copyright (c) 2009-2014 Social Cognitive Systems Group
+# Copyright (c) 2009-2015 Social Cognitive Systems Group
 #                         CITEC, Bielefeld University
 #
 # http://opensource.cit-ec.de/projects/ipaaca/
@@ -114,7 +114,7 @@ class IUInterface(object):
 			s += k+":'"+unicode(v)+"', "
 		s += "} "
 		s += "links={ "
-		for t,ids in self.get_all_links().items():
+		for t, ids in self.get_all_links().items():
 			s += t+":'"+unicode(ids)+"', "
 		s += "} "
 		s += "}"
@@ -173,9 +173,9 @@ class IUInterface(object):
 		if self._buffer is None:
 			self._payload_type = type
 		else:
-			raise IpaacaException('The IU is already in a buffer, cannot change payload type anymore.')
+			raise ipaaca.exception.IpaacaError('The IU is already in a buffer, cannot change payload type anymore.')
 	payload_type = property(
-		fget=_get_payload_type, 
+		fget=_get_payload_type,
 		fset=_set_payload_type,
 		 doc='Type of the IU payload')
 
@@ -209,7 +209,7 @@ class IUInterface(object):
 		return self._buffer
 	def _set_buffer(self, buffer):
 		if self._buffer is not None:
-			raise IpaacaException('The IU is already in a buffer, cannot move it.')
+			raise ipaaca.exception.IpaacaError('The IU is already in a buffer, cannot move it.')
 		self._buffer = buffer
 	buffer = property(
 			fget=_get_buffer,
@@ -220,7 +220,7 @@ class IUInterface(object):
 		return self._owner_name
 	def _set_owner_name(self, owner_name):
 		if self._owner_name is not None:
-			raise Exception('The IU already has an owner name, cannot change it.')
+			raise ipaaca.exception.IpaacaError('The IU already has an owner name, cannot change it.')
 		self._owner_name = owner_name
 	owner_name = property(
 			fget=_get_owner_name,
@@ -241,7 +241,9 @@ class IU(IUInterface):
 		self._payload = ipaaca.payload.Payload(iu=self)
 
 	def _modify_links(self, is_delta=False, new_links={}, links_to_remove={}, writer_name=None):
-		if self.committed:
+		if self._retracted:
+			raise ipaaca.exception.IURetractedError(self)
+		if self._committed:
 			raise ipaaca.exception.IUCommittedError(self)
 		with self.revision_lock:
 			# modify links locally
@@ -258,7 +260,9 @@ class IU(IUInterface):
 
 	def _modify_payload(self, is_delta=True, new_items={}, keys_to_remove=[], writer_name=None):
 		"""Modify the payload: add or remove items from this payload locally and send update."""
-		if self.committed:
+		if self._retracted:
+			raise ipaaca.exception.IURetractedError(self)
+		if self._committed:
 			raise ipaaca.exception.IUCommittedError(self)
 		with self.revision_lock:
 			# set item locally
@@ -279,23 +283,33 @@ class IU(IUInterface):
 		self._revision += 1
 
 	def _internal_commit(self, writer_name=None):
-		if self.committed:
-			raise ipaaca.exception.IUCommittedError(self)
+		if self._committed:
+			return
+		if self._retracted:
+			raise ipaaca.exception.IURetractedError(self)
 		with self.revision_lock:
-			if not self._committed:
-				self._increase_revision_number()
-				self._committed = True
-				if self.buffer is not None:
-					self.buffer._send_iu_commission(self, writer_name=writer_name)
+			self._increase_revision_number()
+			self._committed = True
+			if self.buffer is not None:
+				self.buffer._send_iu_commission(self, writer_name=writer_name)
 
 	def commit(self):
 		"""Commit to this IU."""
 		return self._internal_commit()
 
+	def retract(self):
+		if self._buffer:
+			self._buffer.remove(self)
+			self._buffer = None
+		else:
+			self._retracted = True
+
 	def _get_payload(self):
 		return self._payload
 	def _set_payload(self, new_pl, writer_name=None):
-		if self.committed:
+		if self._retracted:
+			raise ipaaca.exception.IURetractedError(self)
+		if self._committed:
 			raise ipaaca.exception.IUCommittedError(self)
 		with self.revision_lock:
 			self._increase_revision_number()
@@ -316,7 +330,7 @@ class IU(IUInterface):
 
 	def _set_buffer(self, buffer):
 		if self._buffer is not None:
-			raise Exception('The IU is already in a buffer, cannot move it.')
+			raise ipaaca.exception.IpaacaError('The IU is already in a buffer, cannot move it.')
 		self._buffer = buffer
 		self.owner_name = buffer.unique_name
 		self._payload.owner_name = buffer.unique_name
@@ -364,7 +378,9 @@ class Message(IU):
 		if self.is_published:
 			LOGGER.info('Info: modifying a Message after sending has no global effects')
 		else:
-			if self.committed:
+			if self._retracted:
+				raise ipaaca.exception.IURetractedError(self)
+			if self._committed:
 				raise ipaaca.exception.IUCommittedError(self)
 			with self.revision_lock:
 				self._increase_revision_number()
@@ -385,7 +401,7 @@ class Message(IU):
 
 	def _set_buffer(self, buffer):
 		if self._buffer is not None:
-			raise Exception('The IU is already in a buffer, cannot move it.')
+			raise ipaaca.exception.IpaacaError('The IU is already in a buffer, cannot move it.')
 		self._buffer = buffer
 		self.owner_name = buffer.unique_name
 		self._payload.owner_name = buffer.unique_name
@@ -414,7 +430,6 @@ class RemoteMessage(IUInterface):
 		self._category = category
 		self.owner_name = owner_name
 		self._committed = committed
-		self._retracted = False
 		# NOTE Since the payload is an already-existant Payload which we didn't modify ourselves,
 		#  don't try to invoke any modification checks or network updates ourselves either.
 		#  We are just receiving it here and applying the new data.
@@ -481,7 +496,6 @@ class RemotePushIU(IUInterface):
 		self._category = category
 		self.owner_name = owner_name
 		self._committed = committed
-		self._retracted = False
 		# NOTE Since the payload is an already-existant Payload which we didn't modify ourselves,
 		#  don't try to invoke any modification checks or network updates ourselves either.
 		#  We are just receiving it here and applying the new data.
@@ -490,9 +504,11 @@ class RemotePushIU(IUInterface):
 
 	def _modify_links(self, is_delta=False, new_links={}, links_to_remove={}, writer_name=None):
 		"""Modify the links: add or remove item from this payload remotely and send update."""
-		if self.committed:
+		if self._retracted:
+			raise ipaaca.exception.IURetractedError(self)
+		if self._committed:
 			raise ipaaca.exception.IUCommittedError(self)
-		if self.read_only:
+		if self._read_only:
 			raise ipaaca.exception.IUReadOnlyError(self)
 		requested_update = ipaaca.converter.IULinkUpdate(
 				uid=self.uid,
@@ -510,9 +526,11 @@ class RemotePushIU(IUInterface):
 
 	def _modify_payload(self, is_delta=True, new_items={}, keys_to_remove=[], writer_name=None):
 		"""Modify the payload: add or remove item from this payload remotely and send update."""
-		if self.committed:
+		if self._retracted:
+			raise ipaaca.exception.IURetractedError(self)
+		if self._committed:
 			raise ipaaca.exception.IUCommittedError(self)
-		if self.read_only:
+		if self._read_only:
 			raise ipaaca.exception.IUReadOnlyError(self)
 		requested_update = ipaaca.converter.IUPayloadUpdate(
 				uid=self.uid,
@@ -531,30 +549,32 @@ class RemotePushIU(IUInterface):
 
 	def commit(self):
 		"""Commit to this IU."""
-		if self.read_only:
-			raise ipaaca.exception.IUReadOnlyError(self)
 		if self._committed:
-			# ignore commit requests when already committed
 			return
+		if self._retracted:
+			raise ipaaca.exception.IURetractedError(self)
+		if self._read_only:
+			raise ipaaca.exception.IUReadOnlyError(self)
+		commission_request = ipaaca_pb2.IUCommission()
+		commission_request.uid = self.uid
+		commission_request.revision = self.revision
+		commission_request.writer_name = self.buffer.unique_name
+		remote_server = self.buffer._get_remote_server(self)
+		new_revision = remote_server.commit(commission_request)
+		if new_revision == 0:
+			raise ipaaca.exception.IUUpdateFailedError(self)
 		else:
-			commission_request = ipaaca_pb2.IUCommission()
-			commission_request.uid = self.uid
-			commission_request.revision = self.revision
-			commission_request.writer_name = self.buffer.unique_name
-			remote_server = self.buffer._get_remote_server(self)
-			new_revision = remote_server.commit(commission_request)
-			if new_revision == 0:
-				raise ipaaca.exception.IUUpdateFailedError(self)
-			else:
-				self._revision = new_revision
-				self._committed = True
+			self._revision = new_revision
+			self._committed = True
 
 	def _get_payload(self):
 		return self._payload
 	def _set_payload(self, new_pl):
-		if self.committed:
+		if self._retracted:
+			raise ipaaca.exception.IURetractedError(self)
+		if self._committed:
 			raise ipaaca.exception.IUCommittedError(self)
-		if self.read_only:
+		if self._read_only:
 			raise ipaaca.exception.IUReadOnlyError(self)
 		requested_update = ipaaca.converter.IUPayloadUpdate(
 				uid=self.uid,

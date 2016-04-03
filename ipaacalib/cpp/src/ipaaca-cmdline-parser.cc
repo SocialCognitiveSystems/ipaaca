@@ -3,8 +3,9 @@
  *  "Incremental Processing Architecture
  *   for Artificial Conversational Agents".  
  *
- * Copyright (c) 2009-2013 Sociable Agents Group
- *                         CITEC, Bielefeld University   
+ * Copyright (c) 2009-2015 Social Cognitive Systems Group
+ *                         (formerly the Sociable Agents Group)
+ *                         CITEC, Bielefeld University
  *
  * http://opensource.cit-ec.de/projects/ipaaca/
  * http://purl.org/net/ipaaca
@@ -70,9 +71,7 @@ void CommandLineOptions::dump() {
 	}
 }
 
-//
 // Command line parser implementation
-//
 
 CommandLineParser::CommandLineParser()
 : library_options_handled(true)
@@ -91,6 +90,8 @@ void CommandLineParser::initialize_parser_defaults()
 		add_option("ipaaca-default-channel", 0, true, "default");
 		add_option("ipaaca-enable-logging", 0, true, "WARNING");
 		add_option("rsb-enable-logging", 0, true, "ERROR");
+		add_option("rsb-spread-host", 0, true, ""); // empty = don't set
+		add_option("rsb-spread-port", 0, true, ""); // empty = don't set
 	}
 }
 
@@ -109,6 +110,14 @@ bool CommandLineParser::consume_library_option(const std::string& name, bool exp
 		std::string newch = optarg;
 		IPAACA_DEBUG("Setting default channel " << newch)
 		__ipaaca_static_option_default_channel = newch;
+	} else if (name=="rsb-spread-host") {
+		std::string newhost = optarg;
+		IPAACA_DEBUG("Setting RSB Spread host " << newhost)
+		__ipaaca_static_option_rsb_spread_host = newhost;
+	} else if (name=="rsb-spread-port") {
+		std::string newport = optarg;
+		IPAACA_DEBUG("Setting RSB Spread port " << newport)
+		__ipaaca_static_option_rsb_spread_port = newport;
 	} else if (name=="ipaaca-enable-logging") {
 		std::string level(optarg);
 		if ((level=="NONE") || (level=="SILENT")) {
@@ -173,7 +182,7 @@ void CommandLineParser::add_option(const std::string& optname, char shortoptn, b
 CommandLineOptions::ptr CommandLineParser::parse(int argc, char* const* argv)
 {
 #ifdef WIN32
-	LOG_IPAACA_CONSOLE("IMPLEMENT ME: command line parsing for Windows. (req'd: getopt)")
+	IPAACA_ERROR("IMPLEMENT ME: command line parsing for Windows. (req'd: getopt)")
 	throw NotImplementedError();
 #else
 	IPAACA_DEBUG("")

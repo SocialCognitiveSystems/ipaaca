@@ -49,9 +49,6 @@
 #error "Please do not include this file directly, use ipaaca.h instead"
 #endif
 
-// LAST FIXME LAST
-//typedef boost::shared_ptr<rapidjson::Document> JsonDocPtr;
-
 typedef uint32_t revision_t;
 
 /// Type of the IU event. Realized as an integer to enable bit masks for filters. One of: IU_ADDED, IU_COMMITTED, IU_DELETED, IU_RETRACTED, IU_UPDATED, IU_LINKSUPDATED, IU_MESSAGE
@@ -139,7 +136,7 @@ IPAACA_HEADER_EXPORT class IUPublishedError: public Exception//{{{
 {
 	public:
 		IPAACA_HEADER_EXPORT inline ~IUPublishedError() throw() { }
-		IPAACA_HEADER_EXPORT inline IUPublishedError() { //boost::shared_ptr<IU> iu) {
+		IPAACA_HEADER_EXPORT inline IUPublishedError() {
 			_description = "IUPublishedError";
 		}
 };//}}}
@@ -148,8 +145,17 @@ IPAACA_HEADER_EXPORT class IUCommittedError: public Exception//{{{
 {
 	public:
 		IPAACA_HEADER_EXPORT inline ~IUCommittedError() throw() { }
-		IPAACA_HEADER_EXPORT inline IUCommittedError() { //boost::shared_ptr<IU> iu) {
+		IPAACA_HEADER_EXPORT inline IUCommittedError() {
 			_description = "IUCommittedError";
+		}
+};//}}}
+/// IU had already been retracted
+IPAACA_HEADER_EXPORT class IURetractedError: public Exception//{{{
+{
+	public:
+		IPAACA_HEADER_EXPORT inline ~IURetractedError() throw() { }
+		IPAACA_HEADER_EXPORT inline IURetractedError() {
+			_description = "IURetractedError";
 		}
 };//}}}
 /// Remote IU update failed because it had been modified in the mean time
@@ -157,7 +163,7 @@ IPAACA_HEADER_EXPORT class IUUpdateFailedError: public Exception//{{{
 {
 	public:
 		IPAACA_HEADER_EXPORT inline ~IUUpdateFailedError() throw() { }
-		IPAACA_HEADER_EXPORT inline IUUpdateFailedError() { //boost::shared_ptr<IU> iu) {
+		IPAACA_HEADER_EXPORT inline IUUpdateFailedError() {
 			_description = "IUUpdateFailedError";
 		}
 };//}}}
@@ -166,7 +172,7 @@ IPAACA_HEADER_EXPORT class IUResendRequestFailedError: public Exception//{{{
 {
 	public:
 		IPAACA_HEADER_EXPORT inline ~IUResendRequestFailedError() throw() { }
-		IPAACA_HEADER_EXPORT inline IUResendRequestFailedError() { //boost::shared_ptr<IU> iu) {
+		IPAACA_HEADER_EXPORT inline IUResendRequestFailedError() {
 			_description = "IUResendRequestFailedError";
 		}
 };//}}}
@@ -175,7 +181,7 @@ IPAACA_HEADER_EXPORT class IUReadOnlyError: public Exception//{{{
 {
 	public:
 		IPAACA_HEADER_EXPORT inline ~IUReadOnlyError() throw() { }
-		IPAACA_HEADER_EXPORT inline IUReadOnlyError() { //boost::shared_ptr<IU> iu) {
+		IPAACA_HEADER_EXPORT inline IUReadOnlyError() {
 			_description = "IUReadOnlyError";
 		}
 };//}}}
@@ -184,7 +190,7 @@ IPAACA_HEADER_EXPORT class IUAlreadyInABufferError: public Exception//{{{
 {
 	public:
 		IPAACA_HEADER_EXPORT inline ~IUAlreadyInABufferError() throw() { }
-		IPAACA_HEADER_EXPORT inline IUAlreadyInABufferError() { //boost::shared_ptr<IU> iu) {
+		IPAACA_HEADER_EXPORT inline IUAlreadyInABufferError() {
 			_description = "IUAlreadyInABufferError";
 		}
 };//}}}
@@ -193,7 +199,7 @@ IPAACA_HEADER_EXPORT class IUUnpublishedError: public Exception//{{{
 {
 	public:
 		IPAACA_HEADER_EXPORT inline ~IUUnpublishedError() throw() { }
-		IPAACA_HEADER_EXPORT inline IUUnpublishedError() { //boost::shared_ptr<IU> iu) {
+		IPAACA_HEADER_EXPORT inline IUUnpublishedError() {
 			_description = "IUUnpublishedError";
 		}
 };//}}}
@@ -202,7 +208,7 @@ IPAACA_HEADER_EXPORT class IUAlreadyHasAnUIDError: public Exception//{{{
 {
 	public:
 		IPAACA_HEADER_EXPORT inline ~IUAlreadyHasAnUIDError() throw() { }
-		IPAACA_HEADER_EXPORT inline IUAlreadyHasAnUIDError() { //boost::shared_ptr<IU> iu) {
+		IPAACA_HEADER_EXPORT inline IUAlreadyHasAnUIDError() {
 			_description = "IUAlreadyHasAnUIDError";
 		}
 };//}}}
@@ -211,7 +217,7 @@ IPAACA_HEADER_EXPORT class IUAlreadyHasAnOwnerNameError: public Exception//{{{
 {
 	public:
 		IPAACA_HEADER_EXPORT inline ~IUAlreadyHasAnOwnerNameError() throw() { }
-		IPAACA_HEADER_EXPORT inline IUAlreadyHasAnOwnerNameError() { //boost::shared_ptr<IU> iu) {
+		IPAACA_HEADER_EXPORT inline IUAlreadyHasAnOwnerNameError() {
 			_description = "IUAlreadyHasAnOwnerNameError";
 		}
 };//}}}
@@ -220,7 +226,7 @@ IPAACA_HEADER_EXPORT class UUIDGenerationError: public Exception//{{{
 {
 	public:
 		IPAACA_HEADER_EXPORT inline ~UUIDGenerationError() throw() { }
-		IPAACA_HEADER_EXPORT inline UUIDGenerationError() { //boost::shared_ptr<IU> iu) {
+		IPAACA_HEADER_EXPORT inline UUIDGenerationError() {
 			_description = "UUIDGenerationError";
 		}
 };//}}}
@@ -229,7 +235,7 @@ IPAACA_HEADER_EXPORT class NotImplementedError: public Exception//{{{
 {
 	public:
 		IPAACA_HEADER_EXPORT inline ~NotImplementedError() throw() { }
-		IPAACA_HEADER_EXPORT inline NotImplementedError() { //boost::shared_ptr<IU> iu) {
+		IPAACA_HEADER_EXPORT inline NotImplementedError() {
 			_description = "NotImplementedError";
 		}
 };//}}}
@@ -238,7 +244,7 @@ IPAACA_HEADER_EXPORT class PayloadTypeConversionError: public Exception//{{{
 {
 	public:
 		IPAACA_HEADER_EXPORT inline ~PayloadTypeConversionError() throw() { }
-		IPAACA_HEADER_EXPORT inline PayloadTypeConversionError() { //boost::shared_ptr<IU> iu) {
+		IPAACA_HEADER_EXPORT inline PayloadTypeConversionError() {
 			_description = "PayloadTypeConversionError";
 		}
 };//}}}
@@ -247,7 +253,7 @@ IPAACA_HEADER_EXPORT class PayloadAddressingError: public Exception//{{{
 {
 	public:
 		IPAACA_HEADER_EXPORT inline ~PayloadAddressingError() throw() { }
-		IPAACA_HEADER_EXPORT inline PayloadAddressingError() { //boost::shared_ptr<IU> iu) {
+		IPAACA_HEADER_EXPORT inline PayloadAddressingError() {
 			_description = "PayloadAddressingError";
 		}
 };//}}}
@@ -256,7 +262,7 @@ IPAACA_HEADER_EXPORT class JsonParsingError: public Exception//{{{
 {
 	public:
 		IPAACA_HEADER_EXPORT inline ~JsonParsingError() throw() { }
-		IPAACA_HEADER_EXPORT inline JsonParsingError() { //boost::shared_ptr<IU> iu) {
+		IPAACA_HEADER_EXPORT inline JsonParsingError() {
 			_description = "JsonParsingError";
 		}
 };//}}}
@@ -265,7 +271,7 @@ IPAACA_HEADER_EXPORT class PayloadEntryProxyInvalidatedError: public Exception//
 {
 	public:
 		IPAACA_HEADER_EXPORT inline ~PayloadEntryProxyInvalidatedError() throw() { }
-		IPAACA_HEADER_EXPORT inline PayloadEntryProxyInvalidatedError() { //boost::shared_ptr<IU> iu) {
+		IPAACA_HEADER_EXPORT inline PayloadEntryProxyInvalidatedError() {
 			_description = "PayloadEntryProxyInvalidatedError";
 		}
 };//}}}
@@ -274,7 +280,7 @@ IPAACA_HEADER_EXPORT class PayloadIteratorInvalidError: public Exception//{{{
 {
 	public:
 		IPAACA_HEADER_EXPORT inline ~PayloadIteratorInvalidError() throw() { }
-		IPAACA_HEADER_EXPORT inline PayloadIteratorInvalidError() { //boost::shared_ptr<IU> iu) {
+		IPAACA_HEADER_EXPORT inline PayloadIteratorInvalidError() {
 			_description = "PayloadIteratorInvalidError";
 		}
 };//}}}
@@ -291,11 +297,18 @@ IPAACA_HEADER_EXPORT class Initializer
 		/// Initialize the backend [DEPRECATED] (old name, use initialize_backend() instead)
 		[[deprecated("Use initialize_backend() instead")]]
 		IPAACA_HEADER_EXPORT static void initialize_ipaaca_rsb_if_needed();
-		/// Explicitly initialize the backend. No effect if already initialized. Automatically called during first Buffer construction.
+		/// Explicitly initialize the backend (usually not required). No effect if already initialized. Automatically called during first Buffer construction.
 		IPAACA_HEADER_EXPORT static void initialize_backend();
 		IPAACA_HEADER_EXPORT static bool initialized();
 		IPAACA_HEADER_EXPORT static void dump_current_default_config();
 	protected:
+		/** Perform rsb pre-setup before the implicit initialization
+		 * (when first instantiating something). Pre-setup includes
+		 * finding the RSB plugin dir, looking through several parent
+		 * directories for a path "deps/lib/rsb*"/plugins. The path
+		 * can also be set directly (env var RSB_PLUGINS_CPP_PATH),
+		 * which disables the automatic search.
+		 */
 		IPAACA_HEADER_EXPORT static void auto_configure_rsb();
 		IPAACA_MEMBER_VAR_EXPORT static bool _initialized;
 };
@@ -323,10 +336,8 @@ IPAACA_HEADER_EXPORT class Initializer
 IPAACA_HEADER_EXPORT class CommandLineOptions {
 	public:
 		IPAACA_HEADER_EXPORT inline CommandLineOptions()
-		//: _unconsumed_argc(0), _unconsumed_argv(nullptr)
 		{ }
 		IPAACA_HEADER_EXPORT inline ~CommandLineOptions() {
-			//if (_unconsumed_argv) delete[] _unconsumed_argv;
 		}
 		IPAACA_MEMBER_VAR_EXPORT std::map<std::string, std::string> param_opts;
 		IPAACA_MEMBER_VAR_EXPORT std::map<std::string, bool> param_set;
@@ -338,13 +349,7 @@ IPAACA_HEADER_EXPORT class CommandLineOptions {
 		IPAACA_HEADER_EXPORT bool is_set(const std::string& o);
 		IPAACA_HEADER_EXPORT void dump();
 	public:
-		//IPAACA_HEADER_EXPORT inline int unconsumed_argc() { return _unconsumed_argc; }
-		//IPAACA_HEADER_EXPORT inline char** unconsumed_argv() { return _unconsumed_argv; }
-	protected:
-		//IPAACA_MEMBER_VAR_EXPORT int _unconsumed_argc;
-		//IPAACA_MEMBER_VAR_EXPORT char** _unconsumed_argv;
-	public:
-	typedef boost::shared_ptr<CommandLineOptions> ptr;
+		typedef boost::shared_ptr<CommandLineOptions> ptr;
 };
 
 /**
@@ -398,7 +403,8 @@ class CommandLineParser {
 		 * The remaining options are packaged into a CommandLineOptions object.
 		 */
 		IPAACA_HEADER_EXPORT CommandLineOptions::ptr parse(int argc, char* const* argv);
-	typedef boost::shared_ptr<CommandLineParser> ptr;
+	public:
+		typedef boost::shared_ptr<CommandLineParser> ptr;
 };
 //}}}
 // in ipaaca-string-utils.cc

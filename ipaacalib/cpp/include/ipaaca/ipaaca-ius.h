@@ -95,6 +95,8 @@ IPAACA_HEADER_EXPORT class IUInterface {//{{{
 		IPAACA_HEADER_EXPORT void _add_and_remove_links(const LinkMap& add, const LinkMap& remove) { _links._add_and_remove_links(add, remove); }
 		IPAACA_HEADER_EXPORT void _replace_links(const LinkMap& links) { _links._replace_links(links); }
 	public:
+		/// Return whether IU has been retracted
+		IPAACA_HEADER_EXPORT inline bool retracted() const { return _retracted; }
 		/// Return whether IU has already been published (is in a Buffer).
 		IPAACA_HEADER_EXPORT inline bool is_published() { return (_buffer != 0); }
 		/// Return auto-generated UID string (set during IU construction)
@@ -174,7 +176,6 @@ IPAACA_HEADER_EXPORT class IU: public IUInterface {//{{{
 		IPAACA_HEADER_EXPORT IU(const std::string& category, IUAccessMode access_mode=IU_ACCESS_PUSH, bool read_only=false, const std::string& payload_type="" ); // __ipaaca_static_option_default_payload_type
 	public:
 		IPAACA_HEADER_EXPORT inline ~IU() {
-			//IPAACA_IMPLEMENT_ME
 		}
 		[[deprecated("Please use the new argument order: category, payload_type, read_only")]]
 		IPAACA_HEADER_EXPORT static boost::shared_ptr<IU> create(const std::string& category, IUAccessMode access_mode, bool read_only=false, const std::string& payload_type="" );
@@ -184,9 +185,6 @@ IPAACA_HEADER_EXPORT class IU: public IUInterface {//{{{
 		IPAACA_HEADER_EXPORT void commit() _IPAACA_OVERRIDE_;
 	protected:
 		IPAACA_HEADER_EXPORT virtual void _modify_links(bool is_delta, const LinkMap& new_links, const LinkMap& links_to_remove, const std::string& writer_name = "") _IPAACA_OVERRIDE_;
-
-		//IPAACA_HEADER_EXPORT virtual void _publish_resend(boost::shared_ptr<IU> iu, const std::string& hidden_scope_name);
-
 		IPAACA_HEADER_EXPORT virtual void _modify_payload(bool is_delta, const std::map<std::string, PayloadDocumentEntry::ptr>& new_items, const std::vector<std::string>& keys_to_remove, const std::string& writer_name = "") _IPAACA_OVERRIDE_;
 	protected:
 		IPAACA_HEADER_EXPORT virtual void _internal_commit(const std::string& writer_name = "");
@@ -217,7 +215,6 @@ IPAACA_HEADER_EXPORT class Message: public IU {//{{{
 		IPAACA_HEADER_EXPORT Message(const std::string& category, IUAccessMode access_mode=IU_ACCESS_MESSAGE, bool read_only=true, const std::string& payload_type="" );
 	public:
 		IPAACA_HEADER_EXPORT inline ~Message() {
-			//IPAACA_IMPLEMENT_ME
 		}
 		[[deprecated("Please use the new argument order: category, payload_type")]]
 		IPAACA_HEADER_EXPORT static boost::shared_ptr<Message> create(const std::string& category, IUAccessMode access_mode, bool read_only=true, const std::string& payload_type="" );
@@ -245,7 +242,6 @@ IPAACA_HEADER_EXPORT class RemotePushIU: public IUInterface {//{{{
 		IPAACA_HEADER_EXPORT static boost::shared_ptr<RemotePushIU> create();
 	public:
 		IPAACA_HEADER_EXPORT inline ~RemotePushIU() {
-			//IPAACA_IMPLEMENT_ME
 		}
 		IPAACA_HEADER_EXPORT inline Payload& payload() _IPAACA_OVERRIDE_ { return _payload; }
 		IPAACA_HEADER_EXPORT inline const Payload& const_payload() const _IPAACA_OVERRIDE_ { return _payload; }
@@ -274,7 +270,6 @@ IPAACA_HEADER_EXPORT class RemoteMessage: public IUInterface {//{{{
 		IPAACA_HEADER_EXPORT static boost::shared_ptr<RemoteMessage> create();
 	public:
 		IPAACA_HEADER_EXPORT inline ~RemoteMessage() {
-			//IPAACA_IMPLEMENT_ME
 		}
 		IPAACA_HEADER_EXPORT inline Payload& payload() _IPAACA_OVERRIDE_ { return _payload; }
 		IPAACA_HEADER_EXPORT inline const Payload& const_payload() const _IPAACA_OVERRIDE_ { return _payload; }
@@ -290,6 +285,7 @@ IPAACA_HEADER_EXPORT class RemoteMessage: public IUInterface {//{{{
 	typedef boost::shared_ptr<RemoteMessage> ptr;
 };//}}}
 
+#ifdef IPAACA_BUILD_MOCK_OBJECTS
 /// Mock IU for testing purposes. [INTERNAL]
 IPAACA_HEADER_EXPORT class FakeIU: public IUInterface {//{{{
 	friend class Buffer;
@@ -318,5 +314,6 @@ IPAACA_HEADER_EXPORT class FakeIU: public IUInterface {//{{{
 	public:
 	typedef boost::shared_ptr<FakeIU> ptr;
 };//}}}
+#endif
 
 #endif

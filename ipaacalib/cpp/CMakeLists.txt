@@ -13,6 +13,9 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DIPAACA_DEBUG_MESSAGES")
 #  !! NOTE: at the moment required in any ipaaca cpp project in Windows !!
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DIPAACA_EXPOSE_FULL_RSB_API")
 
+## use the following line to enable building mock IUs (FakeIU)
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DIPAACA_BUILD_MOCK_OBJECTS")
+
 # find cmake modules locally too
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMakeModules )
 

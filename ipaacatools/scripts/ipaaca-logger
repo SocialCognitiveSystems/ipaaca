@@ -1,10 +1,11 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 # This file is part of IPAACA, the
 #  "Incremental Processing Architecture
 #   for Artificial Conversational Agents".
 #
-# Copyright (c) 2009-2016 Social Cognitive Systems Group
+# Copyright (c) 2009-2015 Social Cognitive Systems Group
 #                         CITEC, Bielefeld University
 #
 # http://opensource.cit-ec.de/projects/ipaaca/
@@ -30,14 +31,39 @@
 # Forschungsgemeinschaft (DFG) in the context of the German
 # Excellence Initiative.
 
-IPAACA_DEFAULT_CHANNEL = 'default'
+from __future__ import division, print_function
 
-IPAACA_LOGGER_NAME = 'ipaaca'
+import sys
+import time
 
-IPAACA_DEFAULT_LOGGING_LEVEL = 'WARNING'
+import ipaaca
+import ipaaca.util.logger as ipaacalog
 
-IPAACA_DEFAULT_IU_PAYLOAD_TYPE = 'JSON' # one of ipaaca.iu.IUPayloadType
 
-IPAACA_DEFAULT_RSB_SPREAD_HOST = None
+def main(log_mode, filename=None):
+	ipaacalog.logger_send_ipaaca_logs(False)
+	il = ipaacalog.LoggerComponent(filename, log_mode)
+	try:
+		while True:
+			time.sleep(1)
+	except KeyboardInterrupt:
+		il.close_logfile()
+		print('Logging-Component closed by keyboard interrupt.')
+		sys.exit(0)
 
-IPAACA_DEFAULT_RSB_SPREAD_PORT = None
+
+if __name__ == '__main__':
+	iap = ipaaca.IpaacaArgumentParser(
+        'ipaaca-logger')
+	iap.add_argument(
+		'-m', '--log-mode', dest='log_mode',
+		choices=ipaacalog.LOG_MODES,
+		default='append',
+		help="set what to do when logfile exists "
+				"(default: 'append'; 'timestamp' adds timestamp in any case)")
+	iap.add_argument(
+		'filename', nargs='?',
+		metavar='FILE',
+		help='set name of logfile')
+	arguments = iap.parse_args()
+	main(arguments.log_mode, arguments.filename)

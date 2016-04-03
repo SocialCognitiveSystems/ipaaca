@@ -105,6 +105,10 @@ public class LocalIU extends AbstractIU
 
         synchronized (revisionLock)
         {
+            if (isRetracted())
+            {
+                throw new IURetractedException(this);
+            }
             if (committed)
             {
                 throw new IUCommittedException(this);
@@ -117,6 +121,22 @@ public class LocalIU extends AbstractIU
                 {
                     outputBuffer.sendIUCommission(this, writerName);
                 }
+            }
+        }
+    }
+
+    private void internalRetract()
+    {
+
+        synchronized (revisionLock)
+        {
+            if (isRetracted())
+                return;
+            increaseRevisionNumber();
+            retracted = true;
+            if (outputBuffer != null)
+            {
+                outputBuffer.sendIURetraction(this);
             }
         }
     }
@@ -148,6 +168,10 @@ public class LocalIU extends AbstractIU
     @Override
     void modifyLinks(boolean isDelta, SetMultimap<String, String> linksToAdd, SetMultimap<String, String> linksToRemove, String writerName)
     {
+        if (isRetracted())
+        {
+            throw new IURetractedException(this);
+        }
         if (isCommitted())
         {
             throw new IUCommittedException(this);
@@ -226,6 +250,10 @@ public class LocalIU extends AbstractIU
             {
                 throw new IUCommittedException(this);
             }
+            if (isRetracted())
+            {
+                throw new IURetractedException(this);
+            }
             increaseRevisionNumber();
             if (isPublished())
             {
@@ -249,6 +277,10 @@ public class LocalIU extends AbstractIU
             {
                 throw new IUCommittedException(this);
             }
+            if (isRetracted())
+            {
+                throw new IURetractedException(this);
+            }
             increaseRevisionNumber();
             if (isPublished())
             {
@@ -270,13 +302,27 @@ public class LocalIU extends AbstractIU
     @Override
     public void commit()
     {
+        if (isRetracted())
+        {
+            throw new IURetractedException(this);
+        }
         internalCommit(null);
     }
 
     @Override
     public void commit(String writerName)
     {
+        if (isRetracted())
+        {
+            throw new IURetractedException(this);
+        }
         internalCommit(writerName);
+    }
+
+    @Override
+    public void retract()
+    {
+        internalRetract();
     }
 
     @Override
@@ -287,6 +333,10 @@ public class LocalIU extends AbstractIU
             if (isCommitted())
             {
                 throw new IUCommittedException(this);
+            }
+            if (isRetracted())
+            {
+                throw new IURetractedException(this);
             }
             increaseRevisionNumber();
             if (isPublished())

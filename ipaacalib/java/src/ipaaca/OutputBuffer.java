@@ -1,9 +1,10 @@
+
 /*
  * This file is part of IPAACA, the
  *  "Incremental Processing Architecture
  *   for Artificial Conversational Agents".
  *
- * Copyright (c) 2009-2013 Sociable Agents Group
+ * Copyright (c) 2009-2015 Social Cognitive Systems Group
  *                         CITEC, Bielefeld University
  *
  * http://opensource.cit-ec.de/projects/ipaaca/
@@ -34,6 +35,7 @@ package ipaaca;
 
 import ipaaca.protobuf.Ipaaca;
 import ipaaca.protobuf.Ipaaca.IUCommission;
+import ipaaca.protobuf.Ipaaca.IURetraction;
 import ipaaca.protobuf.Ipaaca.IUResendRequest;
 import ipaaca.protobuf.Ipaaca.IULinkUpdate;
 import ipaaca.protobuf.Ipaaca.IUPayloadUpdate;
@@ -474,7 +476,21 @@ public class OutputBuffer extends Buffer
     protected void sendIUCommission(AbstractIU iu, String writerName)
     {
         IUCommission iuc = Ipaaca.IUCommission.newBuilder().setUid(iu.getUid()).setRevision(iu.getRevision())
-                .setWriterName(iu.getOwnerName() != null ? iu.getOwnerName() : writerName).build();
+                .setWriterName(writerName == null ? iu.getOwnerName() : writerName).build();
+        Informer<Object> informer = getInformer(iu.getCategory());
+        try
+        {
+            informer.send(iuc);
+        }
+        catch (RSBException e)
+        {
+            throw new RuntimeException(e);
+        }
+    }
+
+    protected void sendIURetraction(AbstractIU iu)
+    {
+        IURetraction iuc = Ipaaca.IURetraction.newBuilder().setUid(iu.getUid()).setRevision(iu.getRevision()).build();
         Informer<Object> informer = getInformer(iu.getCategory());
         try
         {

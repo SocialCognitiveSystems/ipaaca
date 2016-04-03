@@ -1,11 +1,10 @@
 /*
  * This file is part of IPAACA, the
  *  "Incremental Processing Architecture
- *   for Artificial Conversational Agents".
+ *   for Artificial Conversational Agents".  
  *
  * Copyright (c) 2009-2015 Social Cognitive Systems Group
- *                         (formerly the Sociable Agents Group)
- *                         CITEC, Bielefeld University
+ *                         CITEC, Bielefeld University   
  *
  * http://opensource.cit-ec.de/projects/ipaaca/
  * http://purl.org/net/ipaaca
@@ -22,7 +21,7 @@
  * You should have received a copy of the LGPL along with this
  * program. If not, go to http://www.gnu.org/licenses/lgpl.html
  * or write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.  
  *
  * The development of this software was supported by the
  * Excellence Cluster EXC 277 Cognitive Interaction Technology.
@@ -31,31 +30,25 @@
  * Excellence Initiative.
  */
 
+package ipaaca;
+
 /**
- * \file   ipaaca-json.h
- *
- * \brief Header file for JSON tests. [superfluous]
- *
- * Users should not include this file directly, but use ipaaca.h
- *
- * \author Ramin Yaghoubzadeh (ryaghoubzadeh@uni-bielefeld.de)
- * \date   March, 2015
+ * Error indicating that an IU is immutable because it has been retracted.
+ * 
  */
+public class IURetractedException extends RuntimeException
+{
+    private static final long serialVersionUID = 1L;
+    private final AbstractIU iu;
 
-#ifndef __ipaaca_json_H__
-#define __ipaaca_json_H__
+    public AbstractIU getIU()
+    {
+        return iu;
+    }
 
-#include "rapidjson/document.h"
-#include "rapidjson/prettywriter.h"
-#include "rapidjson/filestream.h"
-#include <cstdio>
-
-// Notes:
-//  - From http://stackoverflow.com/questions/10426924/json-root-element
-//    Actually there are two different JSON specifications. RFC 4627 requires a JSON text to be
-//    an object or an array. ECMA-262, 5th edition, section 15.12 does not impose this restriction.
-
-
-
-#endif // __IPAACA_JSON_H__
-
+    public IURetractedException(AbstractIU iu)
+    {
+        super("Writing to IU " + iu.getUid() + " failed -- it has been retracted.");
+        this.iu = iu;
+    }
+}

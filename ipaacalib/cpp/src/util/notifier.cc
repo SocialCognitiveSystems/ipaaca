@@ -3,8 +3,9 @@
  *  "Incremental Processing Architecture
  *   for Artificial Conversational Agents".  
  *
- * Copyright (c) 2009-2013 Sociable Agents Group
- *                         CITEC, Bielefeld University   
+ * Copyright (c) 2009-2015 Social Cognitive Systems Group
+ *                         (formerly the Sociable Agents Group)
+ *                         CITEC, Bielefeld University
  *
  * http://opensource.cit-ec.de/projects/ipaaca/
  * http://purl.org/net/ipaaca
@@ -29,7 +30,16 @@
  * Forschungsgemeinschaft (DFG) in the context of the German
  * Excellence Initiative.
  */
- 
+
+/**
+ * \file   util/notifier.cc
+ *
+ * \brief Component notification (i.e. module-level introspection).
+ *
+ * \author Ramin Yaghoubzadeh (ryaghoubzadeh@uni-bielefeld.de)
+ * \date   March, 2015
+ */
+
 #include <ipaaca/util/notifier.h>
 
 namespace ipaaca {
@@ -71,20 +81,19 @@ ComponentNotifier::ptr ComponentNotifier::create(const std::string& componentNam
 
 void ComponentNotifier::handle_iu_event(IUInterface::ptr iu, IUEventType event_type, bool local)
 {
-	//std::cout << "handle_iu_event: got an event" << std::endl;
 	if ((event_type == IU_ADDED) || (event_type == IU_UPDATED) || (event_type == IU_MESSAGE)) {
 		Locker locker(lock);
+		IPAACA_DEBUG("Received a componentNotify")
 		std::string cName = iu->payload()[_IPAACA_COMP_NOTIF_NAME];
 		std::string cState = iu->payload()[_IPAACA_COMP_NOTIF_STATE];
 		if (cName != name) {
-			//std::cout << " handle_iu_event: calling notification handlers" << std::endl;
 			// call all registered notification handlers
 			for (std::vector<IUEventHandlerFunction>::iterator it = _handlers.begin(); it != _handlers.end(); ++it) {
 				(*it)(iu, event_type, local);
 			}
 			// send own info only if the remote component is a newly initialized one
 			if (cState=="new") {
-				//std::cout << " handle_iu_event: Submitting own notification to new remote end" << std::endl;
+				//IPAACA_DEBUG("Submitting own componentNotify for new remote component")
 				submit_notify(_IPAACA_COMP_NOTIF_STATE_OLD);
 			}
 		}
@@ -106,7 +115,7 @@ void ComponentNotifier::submit_notify(const std::string& current_state)
 	iu->payload()[_IPAACA_COMP_NOTIF_SEND_CATS] = send_categories;
 	iu->payload()[_IPAACA_COMP_NOTIF_RECV_CATS] = recv_categories;
 	out_buf->add(iu);
-	//LOG_IPAACA_CONSOLE( "Sending a ComponentNotify: " << name << " " << function << " " << current_state << " " << send_categories << " " << recv_categories )
+	IPAACA_DEBUG( "Sending a componentNotify: " << name << ": " << current_state << " (" << function << ", " << send_categories << ", " << recv_categories << ")" )
 }
 
 void ComponentNotifier::initialize() {

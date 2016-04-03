@@ -4,7 +4,7 @@
 #  "Incremental Processing Architecture
 #   for Artificial Conversational Agents".
 #
-# Copyright (c) 2009-2014 Social Cognitive Systems Group
+# Copyright (c) 2009-2016 Social Cognitive Systems Group
 #                         CITEC, Bielefeld University
 #
 # http://opensource.cit-ec.de/projects/ipaaca/
@@ -32,6 +32,9 @@
 
 from __future__ import division, print_function
 
+import os
+import threading
+
 import rsb
 import rsb.converter
 
@@ -44,46 +47,69 @@ from ipaaca.misc import enable_logging, IpaacaArgumentParser
 from ipaaca.payload import Payload
 
 
-def initialize_ipaaca_rsb():
-	''''Register own RSB Converters and initialise RSB from default config file.'''
-	rsb.converter.registerGlobalConverter(
-		ipaaca.converter.IntConverter(
-			wireSchema="int32",
-			dataType=int))
+__RSB_INITIALIZER_LOCK = threading.Lock()
+__RSB_INITIALIZED = False
 
-	rsb.converter.registerGlobalConverter(
-		ipaaca.converter.IUConverter(
-			wireSchema="ipaaca-iu",
-			dataType=IU))
 
-	rsb.converter.registerGlobalConverter(
-		ipaaca.converter.MessageConverter(
-			wireSchema="ipaaca-messageiu",
-			dataType=Message))
+def initialize_ipaaca_rsb_if_needed():
+	"""Initialise rsb if not yet initialise.
 
-	rsb.converter.registerGlobalConverter(
-		ipaaca.converter.IULinkUpdateConverter(
-			wireSchema="ipaaca-iu-link-update",
-			dataType=converter.IULinkUpdate))
+	   * Register own RSB onverters.
+	   * Initialise RSB from enviroment variables, rsb config file, or
+	     from default values for RSB spread host and port (via
+	     ipaaca.defaults or ipaaca.misc.IpaacaArgumentParser).
+	"""
+	global __RSB_INITIALIZED
+	with __RSB_INITIALIZER_LOCK:
+		if __RSB_INITIALIZED:
+			return
+		else:
+			rsb.converter.registerGlobalConverter(
+				ipaaca.converter.IntConverter(
+					wireSchema="int32",
+					dataType=int))
+		
+			rsb.converter.registerGlobalConverter(
+				ipaaca.converter.IUConverter(
+					wireSchema="ipaaca-iu",
+					dataType=IU))
+		
+			rsb.converter.registerGlobalConverter(
+				ipaaca.converter.MessageConverter(
+					wireSchema="ipaaca-messageiu",
+					dataType=Message))
+		
+			rsb.converter.registerGlobalConverter(
+				ipaaca.converter.IULinkUpdateConverter(
+					wireSchema="ipaaca-iu-link-update",
+					dataType=converter.IULinkUpdate))
+		
+			rsb.converter.registerGlobalConverter(
+				ipaaca.converter.IUPayloadUpdateConverter(
+					wireSchema="ipaaca-iu-payload-update",
+					dataType=converter.IUPayloadUpdate))
+		
+			rsb.converter.registerGlobalConverter(
+				rsb.converter.ProtocolBufferConverter(
+					messageClass=ipaaca_pb2.IUCommission))
+		
+			rsb.converter.registerGlobalConverter(
+				rsb.converter.ProtocolBufferConverter(
+					messageClass=ipaaca_pb2.IUResendRequest))
+		
+			rsb.converter.registerGlobalConverter(
+				rsb.converter.ProtocolBufferConverter(
+					messageClass=ipaaca_pb2.IURetraction))
 
-	rsb.converter.registerGlobalConverter(
-		ipaaca.converter.IUPayloadUpdateConverter(
-			wireSchema="ipaaca-iu-payload-update",
-			dataType=converter.IUPayloadUpdate))
+			if ipaaca.defaults.IPAACA_DEFAULT_RSB_SPREAD_HOST is not None:
+				os.environ['RSB_TRANSPORT_SPREAD_HOST'] = str(
+						ipaaca.defaults.IPAACA_DEFAULT_RSB_SPREAD_HOST)
 
-	rsb.converter.registerGlobalConverter(
-		rsb.converter.ProtocolBufferConverter(
-			messageClass=ipaaca_pb2.IUCommission))
+			if ipaaca.defaults.IPAACA_DEFAULT_RSB_SPREAD_PORT is not None:
+				os.environ['RSB_TRANSPORT_SPREAD_PORT'] = str(
+						ipaaca.defaults.IPAACA_DEFAULT_RSB_SPREAD_PORT)
 
-	rsb.converter.registerGlobalConverter(
-		rsb.converter.ProtocolBufferConverter(
-			messageClass=ipaaca_pb2.IUResendRequest))
+			rsb.__defaultParticipantConfig = \
+					rsb.ParticipantConfig.fromDefaultSources()
 
-	rsb.converter.registerGlobalConverter(
-		rsb.converter.ProtocolBufferConverter(
-			messageClass=ipaaca_pb2.IURetraction))
-
-	rsb.__defaultParticipantConfig = rsb.ParticipantConfig.fromDefaultSources()
-
-# Initialise module
-initialize_ipaaca_rsb()
+			__RSB_INITIALIZED = True

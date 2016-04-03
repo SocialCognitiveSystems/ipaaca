@@ -31,6 +31,7 @@
  * Excellence Initiative.
  */
 
+#ifdef IPAACA_BUILD_MOCK_OBJECTS
 #include <ipaaca/ipaaca.h>
 
 namespace ipaaca {
@@ -62,4 +63,5 @@ IPAACA_EXPORT inline void FakeIU::_apply_retraction() { }
 
 } // of namespace ipaaca
 
+#endif
 

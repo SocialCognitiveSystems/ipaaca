@@ -4,7 +4,7 @@
 #  "Incremental Processing Architecture
 #   for Artificial Conversational Agents".
 #
-# Copyright (c) 2009-2014 Social Cognitive Systems Group
+# Copyright (c) 2009-2015 Social Cognitive Systems Group
 #                         CITEC, Bielefeld University
 #
 # http://opensource.cit-ec.de/projects/ipaaca/
@@ -37,6 +37,9 @@ import threading
 import uuid
 import traceback
 
+import weakref
+import atexit
+
 import rsb
 
 import ipaaca_pb2
@@ -53,6 +56,27 @@ __all__ = [
 ]
 
 LOGGER = ipaaca.misc.get_library_logger()
+
+# set of objects to auto-clean on exit, assumes _teardown() method
+TEARDOWN_OBJECTS = set()
+
+def atexit_cleanup_function():
+	'''Function to call at program exit to auto-clean objects.'''
+	global TEARDOWN_OBJECTS
+	for obj_r in TEARDOWN_OBJECTS:
+		obj = obj_r()
+		if obj is not None: # if weakref still valid
+			obj._teardown()
+atexit.register(atexit_cleanup_function)
+
+def auto_teardown_instances(fn):
+	'''Decorator function for object constructors, to add
+	new instances to the object set to auto-clean at exit.'''
+	def auto_teardown_instances_wrapper(instance, *args, **kwargs):
+		global TEARDOWN_OBJECTS
+		fn(instance, *args, **kwargs)
+		TEARDOWN_OBJECTS.add(weakref.ref(instance))
+	return auto_teardown_instances_wrapper
 
 class IUStore(dict):
 	"""A dictionary storing IUs."""
@@ -133,6 +157,7 @@ class Buffer(object):
 		participant_config -- RSB configuration
 		'''
 		super(Buffer, self).__init__()
+		ipaaca.initialize_ipaaca_rsb_if_needed()
 		self._owning_component_name = owning_component_name
 		self._channel = channel if channel is not None else ipaaca.defaults.IPAACA_DEFAULT_CHANNEL
 		self._participant_config = rsb.ParticipantConfig.fromDefaultSources() if participant_config is None else participant_config
@@ -207,21 +232,33 @@ class InputBuffer(Buffer):
 		self._add_category_listener(str(self._uuid))
 		if category_interests is not None:
 			self.add_category_interests(category_interests)
-
-	def _get_remote_server(self, iu):
+	
+	def _get_remote_server(self, event_or_iu):
 		'''Return (or create, store and return) a remote server.'''
-		_owner = None
-		if hasattr(iu,'owner_name'):
-			_owner = iu.owner_name
-		elif hasattr(iu,'writer_name'):
-			_owner = iu.writer_name
-		if _owner is not None:
-			if _owner in self._remote_server_store:
+		_owner = self._get_owner(event_or_iu)
+		if _owner:
+			try:
 				return self._remote_server_store[_owner]
-			#  TODO remove the str() when unicode is supported (issue #490)
-			remote_server = rsb.createRemoteServer(rsb.Scope(str(_owner)))
-			self._remote_server_store[_owner] = remote_server
-		return remote_server
+			except KeyError:
+				remote_server = rsb.createRemoteServer(rsb.Scope(str(_owner)))
+				self._remote_server_store[_owner] = remote_server
+				return remote_server
+		else:
+			None
+
+	def _get_owner(self, event_or_iu):
+		if hasattr(event_or_iu, 'data'):
+			# is RSB event
+			data = event_or_iu.data
+			if hasattr(data, 'owner_name'):
+				return data.owner_name
+			elif hasattr(data, 'writer_name'):
+				return data.writer_name
+			else:
+				return None
+		else:
+			# is IU
+			return event_or_iu.owner_name
 
 	def _add_category_listener(self, iu_category):
 		'''Create and store a listener on a specific category.'''
@@ -270,9 +307,14 @@ class InputBuffer(Buffer):
 			del self._iu_store[ event.data.uid ]
 		else:
 			if event.data.uid not in self._iu_store:
-				if self._resend_active:
-					# send resend request to remote server
-					self._request_remote_resend(event.data)
+				if (self._resend_active and 
+							not type_ is ipaaca_pb2.IURetraction):
+					# send resend request to remote server, IURetraction is ignored
+					try:
+						self._request_remote_resend(event)
+					except ipaaca.exception.IUResendRequestFailedError:
+						LOGGER.warning('Requesting resend for IU {} failed.'.
+								format(event.data.uid))
 				else:
 					LOGGER.warning("Received an update for an IU which we did not receive before.")
 				return
@@ -283,10 +325,6 @@ class InputBuffer(Buffer):
 				iu._revision = event.data.revision
 				iu._apply_retraction() # for now - just sets the _rectracted flag.
 				self.call_iu_event_handlers(event.data.uid, local=False, event_type=ipaaca.iu.IUEventType.RETRACTED, category=iu.category)
-				# SPECIAL CASE: allow the handlers (which will need to find the IU
-				#  in the buffer) to operate on the IU - then delete it afterwards!
-				# FIXME: for now: retracted == deleted! Think about this later
-				del(self._iu_store[iu.uid])
 			else:
 				if event.data.writer_name == self.unique_name:
 					# Notify only for remotely triggered events;
@@ -325,13 +363,17 @@ class InputBuffer(Buffer):
 		else:
 			self._remove_category_listener(category_interests)
 
-	def _request_remote_resend(self, iu):
-		remote_server = self._get_remote_server(iu)
-		resend_request = ipaaca_pb2.IUResendRequest()
-		resend_request.uid = iu.uid # target iu
-		resend_request.hidden_scope_name = str(self._uuid) # hidden category name
-		remote_revision = remote_server.requestResend(resend_request)
-		if remote_revision == 0:
+	def _request_remote_resend(self, event):
+		remote_server = self._get_remote_server(event)
+		if remote_server:
+			resend_request = ipaaca_pb2.IUResendRequest()
+			resend_request.uid = event.data.uid # target iu
+			resend_request.hidden_scope_name = str(self._uuid) # hidden category name
+			remote_revision = remote_server.requestResend(resend_request)
+			if remote_revision == 0:
+				raise ipaaca.exception.IUResendRequestFailedError()
+		else:
+			# Remote server is not known
 			raise ipaaca.exception.IUResendRequestFailedError()
 
 	def register_handler(self, handler_function, for_event_types=None, for_categories=None):
@@ -364,8 +406,9 @@ class OutputBuffer(Buffer):
 
 	"""An OutputBuffer that holds local IUs."""
 
+	@auto_teardown_instances
 	def __init__(self, owning_component_name, channel=None, participant_config=None):
-		'''Create an Output Buffer.
+		'''Create an OutputBuffer.
 
 		Keyword arguments:
 		owning_component_name -- name of the entity that own this buffer
@@ -381,6 +424,16 @@ class OutputBuffer(Buffer):
 		self._informer_store = {}
 		self._id_prefix = str(owning_component_name)+'-'+str(self._uuid)+'-IU-'
 		self.__iu_id_counter_lock = threading.Lock()
+
+	def _teardown(self):
+		'''OutputBuffer retracts remaining live IUs on teardown'''
+		self._retract_all_internal()
+	def __del__(self):
+		'''Perform teardown (IU retractions) as soon as Buffer is lost.
+		Note that at program exit the teardown might be called
+		twice for live objects (atexit, then del), but the
+		_retract_all_internal method prevents double retractions.'''
+		self._retract_all_internal()
 
 	def _remote_update_links(self, update):
 		'''Apply a remotely requested update to one of the stored IU's links.'''
@@ -479,6 +532,8 @@ class OutputBuffer(Buffer):
 			raise ipaaca.exception.IUPublishedError(iu)
 		if iu.buffer is not None:
 			raise ipaaca.exception.IUPublishedError(iu)
+		if iu.retracted:
+			raise ipaaca.exception.IURetractedError(iu)
 		if iu.access_mode != ipaaca.iu.IUAccessMode.MESSAGE:
 			# Messages are not really stored in the OutputBuffer
 			self._iu_store[iu.uid] = iu
@@ -486,12 +541,12 @@ class OutputBuffer(Buffer):
 		self._publish_iu(iu)
 
 	def remove(self, iu=None, iu_uid=None):
-		'''Remove the iu or an IU corresponding to iu_uid from the OutputBuffer, retracting it from the system.'''
+		'''Retracts an IU and removes it from the OutputBuffer.'''
 		if iu is None:
 			if iu_uid is None:
 				return None
 			else:
-				if iu_uid not in self. _iu_store:
+				if iu_uid not in self._iu_store:
 					raise ipaaca.exception.IUNotFoundError(iu_uid)
 				iu = self._iu_store[iu_uid]
 		# unpublish the IU
@@ -505,12 +560,19 @@ class OutputBuffer(Buffer):
 		informer.publishData(iu)
 
 	def _retract_iu(self, iu):
-		'''Retract (unpublish) an IU.'''
+		'''Retract an IU.'''
+		iu._retracted = True
 		iu_retraction = ipaaca_pb2.IURetraction()
 		iu_retraction.uid = iu.uid
 		iu_retraction.revision = iu.revision
 		informer = self._get_informer(iu._category)
 		informer.publishData(iu_retraction)
+	
+	def _retract_all_internal(self):
+		'''Retract all IUs without removal (for Buffer teardown).'''
+		for iu in self._iu_store.values():
+			if not iu._retracted:
+				self._retract_iu(iu)
 
 	def _send_iu_commission(self, iu, writer_name):
 		'''Send IU commission.

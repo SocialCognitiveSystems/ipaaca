@@ -56,7 +56,7 @@ def event_type_color(typ):
 	return colors.get(typ, '1')
 
 def highlight_if_color(s, c='1'):
-	return s if not arguments.color else '[' + c + 'm' + s +'[m'
+	return s if arguments.color else '[' + c + 'm' + s +'[m'
 
 def pretty_printed_dict(d):
 	s='{\n'
@@ -87,7 +87,7 @@ def pretty_printed_iu_event(iu, event_type, local):
 	s += '\npayload=' + pretty_printed_dict(iu.payload)
 	return s
 
-def my_update_handler(iu, event_type, local):
+def iu_event_handler(iu, event_type, local):
 	if arguments.regex:
 		for cat in arguments.categories: # actually now regexs, not categories
 			if re.match(cat, iu.category):
@@ -96,19 +96,13 @@ def my_update_handler(iu, event_type, local):
 			return
 	print(pretty_printed_iu_event(iu, event_type, local), end='\n\n')
 
-
+def exit(code):
+	if platform.system() == 'Windows':
+		os._exit(code)
+	else:
+		sys.exit(code)
 
 parser = ipaaca.IpaacaArgumentParser(description='Ipaaca IU Sniffer -- Selectively listen to IPAACA traffic')
-parser.add_argument(
-	'-r', '--regex',
-	action='store_true',
-	dest='regex',
-	help='match categories by regular expressions')
-parser.add_argument(
-	'-c', '--color',
-	action='store_true',
-	dest='color',
-	help='colorize output')
 parser.add_argument(
 	'--channels',
 	dest='channels',
@@ -117,12 +111,29 @@ parser.add_argument(
 	nargs='+',
 	help="set the channels to listen on (otherwise 'default')")
 parser.add_argument(
-	'--categories',
+	'-c', '--categories',
 	default=[''],
 	dest='categories',
 	metavar='CATEGORY',
 	nargs='+',
 	help='set categories (or regex patterns) to be matched')
+parser.add_argument(
+	'-e', '--event-types',
+	default=None,
+	dest='event_types',
+	metavar='EVENT-TYPE',
+	nargs='+',
+	help='set event types ({})'.format(' '.join(ipaaca.iu.IUEventType._choices)))
+parser.add_argument(
+	'-r', '--regex',
+	action='store_true',
+	dest='regex',
+	help='match categories by regular expressions')
+parser.add_argument(
+	'--no-color',
+	action='store_true',
+	dest='color',
+	help='do not colorize output')
 parser.add_argument(
 	'--size-limit',
 	default=2048,
@@ -134,37 +145,45 @@ parser.add_argument(
 
 if __name__ == '__main__':
 	arguments = parser.parse_args()
-
 	buffers = {}
+
+	# Create one input buffer for each channel we are listening on
 	for channel in arguments.channels:
 		buffers[channel] = ipaaca.InputBuffer(
 			'IpaacaIUSniffer',
 			category_interests=arguments.categories if not arguments.regex else [''],
 			channel=channel,
 			resend_active=True)
-		buffers[channel].register_handler(my_update_handler)
+		# Check whether the specified event_types are valid
+		if arguments.event_types is not None:
+			for et in arguments.event_types:
+				if et.upper() not in ipaaca.iu.IUEventType._choices:
+					print('ERROR: "{et}" is not a valid IPAACA event type.'.format(et=et.upper()))
+					exit(code=1)
+		buffers[channel].register_handler(
+			iu_event_handler,
+			for_event_types=[et.upper() for et in arguments.event_types] if arguments.event_types is not None else None)
 
-	channellist = 's ' if len(arguments.channels) > 1 else ' '
-	channellist += ', '.join(arguments.channels)
-	
-	print('Listening on channel' + channellist + ' for IU events of ', end='')
+	# Tell user what we are doing
+	print('ipaaca-iu-sniffer listening')
+	print('  * on channel(s): ' + ', '.join(arguments.channels))
+	print('  * for event type(s): ', end='')
+	if arguments.event_types is None:
+		print('any')
+	else:
+		print(', '.join([highlight_if_color(et.upper(), event_type_color(et.upper())) for et in arguments.event_types]))
+	print('  * for category/ies', end='')
 	if arguments.categories == ['']:
-		print('any category ...')
+		print(': any')
 	else:
 		if arguments.regex:
-			print('whose category matches one of the regexes:')
-		else:
-			print('categories:')
-		print('\t' + ', '.join(arguments.categories))
-	print('')
+			print(' that match the regex', end='')
+		print(': ' + ', '.join(arguments.categories))
+
+	# Wait for the user to kill the sniffer
 	try:
 		while True:
 			time.sleep(1)
 	except KeyboardInterrupt:
 		pass
-	
-	if platform.system() == 'Windows':
-		os._exit(0)
-	else:
-		sys.exit(0)
-	
+	exit(code=0)

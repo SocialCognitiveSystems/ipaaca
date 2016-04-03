@@ -53,7 +53,6 @@
  *  forward declarations
  */
 class PayloadDocumentEntry;
-//class PayloadDocumentStore;
 
 class PayloadBatchUpdateLock;
 class PayloadEntryProxy;

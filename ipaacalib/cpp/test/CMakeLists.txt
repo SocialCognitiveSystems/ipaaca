@@ -12,13 +12,16 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DIPAACA_DEBUG_MESSAGES")
 # find cmake modules locally too
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMakeModules)
 
-find_package(Boost COMPONENTS system filesystem thread regex REQUIRED)
+find_package(Boost COMPONENTS system filesystem thread regex unit_test_framework REQUIRED)
 link_directories(${Boost_LIBRARY_DIRS})
 include_directories(${Boost_INCLUDE_DIRS})
 
 find_package(Protobuf REQUIRED)
 link_directories(${PROTOBUF_LIBRARY_DIRS})
 include_directories(${PROTOBUF_INCLUDE_DIRS})
+
+# for boost unit_test to create main()
+add_definitions(-DBOOST_TEST_DYN_LINK)
 
 #set(RSBLIBS rsc rsbcore)
 
@@ -74,4 +77,8 @@ install (
 	LIBRARY DESTINATION lib
 	ARCHIVE DESTINATION lib
 	)
+
+
+enable_testing()
+add_test(TestIpaacaCpp testipaaca)
 

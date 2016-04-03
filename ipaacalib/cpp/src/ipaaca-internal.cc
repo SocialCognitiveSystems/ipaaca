@@ -51,14 +51,9 @@ IPAACA_EXPORT void Initializer::initialize_backend()//{{{
 {
 	if (_initialized) return;
 
-	//IPAACA_INFO("Calling auto_configure_rsb()")
 	auto_configure_rsb();
 
-	// RYT FIXME This configuration stuff has been simply removed in rsb!
-	//ParticipantConfig config = ParticipantConfig::fromConfiguration();
-	//getFactory().setDefaultParticipantConfig(config);
-
-	//IPAACA_INFO("Creating and registering Converters")
+	IPAACA_DEBUG("Creating and registering Converters")
 	boost::shared_ptr<IUConverter> iu_converter(new IUConverter());
 	converterRepository<std::string>()->registerConverter(iu_converter);
 
@@ -84,9 +79,8 @@ IPAACA_EXPORT void Initializer::initialize_backend()//{{{
 	boost::shared_ptr<IntConverter> int_converter(new IntConverter());
 	converterRepository<std::string>()->registerConverter(int_converter);
 
-	//IPAACA_INFO("Initialization complete.")
+	IPAACA_DEBUG("Backend / converter initialization complete.")
 	_initialized = true;
-	//IPAACA_TODO("initialize all converters")
 }//}}}
 IPAACA_EXPORT void Initializer::dump_current_default_config()//{{{
 {
@@ -103,17 +97,23 @@ IPAACA_EXPORT void Initializer::dump_current_default_config()//{{{
 }//}}}
 IPAACA_EXPORT void Initializer::auto_configure_rsb()//{{{
 {
-	// quick hack to iterate through the pwd parents
-	// and find the closest rsb plugin dir
-	//
-	// but only if not yet defined
+	// set RSB host and port iff provided using cmdline arguments
+	if (__ipaaca_static_option_rsb_spread_host!="") {
+		IPAACA_INFO("Overriding RSB Spread host with " << __ipaaca_static_option_rsb_spread_host)
+		setenv("RSB_TRANSPORT_SPREAD_HOST", __ipaaca_static_option_rsb_spread_host.c_str(), 1);
+	}
+	if (__ipaaca_static_option_rsb_spread_port!="") {
+		IPAACA_INFO("Overriding RSB Spread port with " << __ipaaca_static_option_rsb_spread_port)
+		setenv("RSB_TRANSPORT_SPREAD_PORT", __ipaaca_static_option_rsb_spread_port.c_str(), 1);
+	}
+	
 	const char* plugin_path = getenv("RSB_PLUGINS_CPP_PATH");
 	if (!plugin_path) {
 #ifdef WIN32
-		LOG_IPAACA_CONSOLE("WARNING: RSB_PLUGINS_CPP_PATH not set - in Windows it has to be specified.")
+		IPAACA_WARN("WARNING: RSB_PLUGINS_CPP_PATH not set - in Windows it has to be specified.")
 		//throw NotImplementedError();
 #else
-		LOG_IPAACA_CONSOLE("RSB_PLUGINS_CPP_PATH not set; looking here and up to 7 dirs up.")
+		IPAACA_INFO("RSB_PLUGINS_CPP_PATH not set; looking here and up to 7 dirs up.")
 		std::string pathstr = "./";
 		for (int i=0; i<   8 /* depth EIGHT (totally arbitrary..) */  ; i++) {
 			std::string where_str = pathstr+"deps/lib/rsb*/plugins";
@@ -122,7 +122,7 @@ IPAACA_EXPORT void Initializer::auto_configure_rsb()//{{{
 			glob(where, 0, NULL, &g);
 			if (g.gl_pathc>0) {
 				const char* found_path = g.gl_pathv[0];
-				LOG_IPAACA_CONSOLE("Found an RSB plugin dir which will be used automatically: " << found_path)
+				IPAACA_INFO("Found an RSB plugin dir which will be used automatically: " << found_path)
 				setenv("RSB_PLUGINS_CPP_PATH", found_path, 1);
 				break;
 			} // else keep going
@@ -131,7 +131,7 @@ IPAACA_EXPORT void Initializer::auto_configure_rsb()//{{{
 		}
 #endif
 	} else {
-		LOG_IPAACA_CONSOLE("RSB_PLUGINS_CPP_PATH already defined: " << plugin_path)
+		IPAACA_INFO("RSB_PLUGINS_CPP_PATH already defined: " << plugin_path)
 	}
 }//}}}
 
@@ -145,10 +145,7 @@ IPAACA_EXPORT IUConverter::IUConverter()
 
 IPAACA_EXPORT std::string IUConverter::serialize(const AnnotatedData& data, std::string& wire)
 {
-	//std::cout << "serialize" << std::endl;
-	// Ensure that DATA actually holds a datum of the data-type we expect.
 	assert(data.first == getDataType()); // "ipaaca::IU"
-	// NOTE: a dynamic_pointer_cast cannot be used from void*
 	boost::shared_ptr<const IU> obj = boost::static_pointer_cast<const IU> (data.second);
 	boost::shared_ptr<protobuf::IU> pbo(new protobuf::IU());
 	// transfer obj data to pbo
@@ -175,8 +172,6 @@ IPAACA_EXPORT std::string IUConverter::serialize(const AnnotatedData& data, std:
 	for (auto& kv: obj->_payload._document_store) {
 		protobuf::PayloadItem* item = pbo->add_payload();
 		item->set_key(kv.first);
-		//item->set_value( kv.second->to_json_string_representation() );
-		//item->set_type("JSON");
 		IPAACA_DEBUG("Payload type: " << obj->_payload_type)
 		if (obj->_payload_type=="JSON") {
 			item->set_value( kv.second->to_json_string_representation() );
@@ -197,20 +192,16 @@ IPAACA_EXPORT std::string IUConverter::serialize(const AnnotatedData& data, std:
 	pbo->SerializeToString(&wire);
 	switch(obj->access_mode()) {
 		case IU_ACCESS_PUSH:
-			//std::cout << "Requesting to send as ipaaca-iu" << std::endl;
 			return "ipaaca-iu";
 		case IU_ACCESS_MESSAGE:
-			//std::cout << "Requesting to send as ipaaca-messageiu" << std::endl;
 			return "ipaaca-messageiu";
 		default:
-			//std::cout << "Requesting to send as default" << std::endl;
 			return getWireSchema();
 	}
 
 }
 
 IPAACA_EXPORT AnnotatedData IUConverter::deserialize(const std::string& wireSchema, const std::string& wire) {
-	//std::cout << "deserialize" << std::endl;
 	assert(wireSchema == getWireSchema()); // "ipaaca-iu"
 	boost::shared_ptr<protobuf::IU> pbo(new protobuf::IU());
 	pbo->ParseFromString(wire);
@@ -249,7 +240,6 @@ IPAACA_EXPORT AnnotatedData IUConverter::deserialize(const std::string& wireSche
 					ls.insert(pls.targets(j));
 				}
 			}
-			//return std::make_pair(getDataType(), obj);
 			return std::make_pair("ipaaca::RemotePushIU", obj);
 			break;
 			}
@@ -287,12 +277,11 @@ IPAACA_EXPORT AnnotatedData IUConverter::deserialize(const std::string& wireSche
 					ls.insert(pls.targets(j));
 				}
 			}
-			//return std::make_pair(getDataType(), obj);
 			return std::make_pair("ipaaca::RemoteMessage", obj);
 			break;
 			}
 		default:
-			// other cases not handled yet! ( TODO )
+			// no other cases (yet)
 			throw NotImplementedError();
 	}
 }
@@ -307,9 +296,7 @@ IPAACA_EXPORT MessageConverter::MessageConverter()
 
 IPAACA_EXPORT std::string MessageConverter::serialize(const AnnotatedData& data, std::string& wire)
 {
-	// Ensure that DATA actually holds a datum of the data-type we expect.
 	assert(data.first == getDataType()); // "ipaaca::Message"
-	// NOTE: a dynamic_pointer_cast cannot be used from void*
 	boost::shared_ptr<const Message> obj = boost::static_pointer_cast<const Message> (data.second);
 	boost::shared_ptr<protobuf::IU> pbo(new protobuf::IU());
 	// transfer obj data to pbo
@@ -336,8 +323,6 @@ IPAACA_EXPORT std::string MessageConverter::serialize(const AnnotatedData& data,
 	for (auto& kv: obj->_payload._document_store) {
 		protobuf::PayloadItem* item = pbo->add_payload();
 		item->set_key(kv.first);
-		//item->set_value( kv.second->to_json_string_representation() );
-		//item->set_type("JSON");
 		if (obj->_payload_type=="JSON") {
 			item->set_value( kv.second->to_json_string_representation() );
 			item->set_type("JSON");
@@ -361,7 +346,6 @@ IPAACA_EXPORT std::string MessageConverter::serialize(const AnnotatedData& data,
 		case IU_ACCESS_MESSAGE:
 			return "ipaaca-messageiu";
 		default:
-			//std::cout << "Requesting to send as default" << std::endl;
 			return getWireSchema();
 	}
 
@@ -406,7 +390,6 @@ IPAACA_EXPORT AnnotatedData MessageConverter::deserialize(const std::string& wir
 					ls.insert(pls.targets(j));
 				}
 			}
-			//return std::make_pair(getDataType(), obj);
 			return std::make_pair("ipaaca::RemotePushIU", obj);
 			break;
 			}
@@ -443,12 +426,11 @@ IPAACA_EXPORT AnnotatedData MessageConverter::deserialize(const std::string& wir
 					ls.insert(pls.targets(j));
 				}
 			}
-			//return std::make_pair(getDataType(), obj);
 			return std::make_pair("ipaaca::RemoteMessage", obj);
 			break;
 			}
 		default:
-			// other cases not handled yet! ( TODO )
+			// no other cases (yet)
 			throw NotImplementedError();
 	}
 }
@@ -536,7 +518,7 @@ IPAACA_EXPORT IULinkUpdateConverter::IULinkUpdateConverter()
 
 IPAACA_EXPORT std::string IULinkUpdateConverter::serialize(const AnnotatedData& data, std::string& wire)
 {
-	assert(data.first == getDataType()); // "ipaaca::IULinkUpdate"
+	assert(data.first == getDataType());
 	boost::shared_ptr<const IULinkUpdate> obj = boost::static_pointer_cast<const IULinkUpdate> (data.second);
 	boost::shared_ptr<protobuf::IULinkUpdate> pbo(new protobuf::IULinkUpdate());
 	// transfer obj data to pbo
@@ -598,8 +580,7 @@ IPAACA_EXPORT IntConverter::IntConverter()
 
 IPAACA_EXPORT std::string IntConverter::serialize(const AnnotatedData& data, std::string& wire)
 {
-	// Ensure that DATA actually holds a datum of the data-type we expect.
-	assert(data.first == getDataType()); // "int"
+	assert(data.first == getDataType());
 	// NOTE: a dynamic_pointer_cast cannot be used from void*
 	boost::shared_ptr<const int> obj = boost::static_pointer_cast<const int> (data.second);
 	boost::shared_ptr<protobuf::IntMessage> pbo(new protobuf::IntMessage());

@@ -38,6 +38,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import ipaaca.Initializer;
+
 /**
  * Base class for InputBuffer and OutputBuffer.
  */
@@ -85,6 +87,7 @@ public abstract class Buffer
      */
     public Buffer(String owningComponentName)
     {
+        Initializer.initializeIpaacaRsb();
         this.owningComponentName = owningComponentName;
         uniqueName = "undef-" + uuid;
     }

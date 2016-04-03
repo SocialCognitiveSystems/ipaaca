@@ -3,7 +3,7 @@
  *  "Incremental Processing Architecture
  *   for Artificial Conversational Agents".  
  *
- * Copyright (c) 2009-2013 Sociable Agents Group
+ * Copyright (c) 2009-2015 Social Cognitive Systems Group
  *                         CITEC, Bielefeld University   
  *
  * http://opensource.cit-ec.de/projects/ipaaca/

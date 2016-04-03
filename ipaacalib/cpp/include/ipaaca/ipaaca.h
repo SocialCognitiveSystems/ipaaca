@@ -67,9 +67,9 @@ IU payload contents: Payload, PayloadEntryProxy
 #define IPAACA_PROTOCOL_VERSION_MINOR         0
 
 /// running release number of ipaaca-c++
-#define IPAACA_CPP_RELEASE_NUMBER             12
+#define IPAACA_CPP_RELEASE_NUMBER             13
 /// date of last release number increment
-#define IPAACA_CPP_RELEASE_DATE     "2015-01-15"
+#define IPAACA_CPP_RELEASE_DATE     "2015-12-04"
 
 #ifndef __FUNCTION_NAME__
 	#ifdef WIN32   // Windows
@@ -209,6 +209,11 @@ IPAACA_MEMBER_VAR_EXPORT extern std::string __ipaaca_static_option_default_chann
 /// Current console log level (defaults to warning), one of: IPAACA_LOG_LEVEL_CRITICAL, IPAACA_LOG_LEVEL_ERROR, IPAACA_LOG_LEVEL_WARNING, IPAACA_LOG_LEVEL_INFO, IPAACA_LOG_LEVEL_DEBUG, IPAACA_LOG_LEVEL_NONE
 IPAACA_MEMBER_VAR_EXPORT extern unsigned int __ipaaca_static_option_log_level;
 
+/// RSB host to connect to (defaults to "" = do not set, use global config)
+IPAACA_MEMBER_VAR_EXPORT extern std::string __ipaaca_static_option_rsb_spread_host;
+/// RSB port to connect to (defaults to "" = do not set, use global config)
+IPAACA_MEMBER_VAR_EXPORT extern std::string __ipaaca_static_option_rsb_spread_port;
+
 IPAACA_MEMBER_VAR_EXPORT Lock& logger_lock();
 
 #ifdef WIN32
@@ -216,6 +221,21 @@ IPAACA_MEMBER_VAR_EXPORT Lock& logger_lock();
 #else
 // use normal gettimeofday() on POSIX
 #define LOG_IPAACA_CONSOLE(msg) { ipaaca::Locker logging_locker(ipaaca::logger_lock()); timeval logging_tim; gettimeofday(&logging_tim, NULL); double logging_t1=logging_tim.tv_sec+(logging_tim.tv_usec/1000000.0); std::cout << "[LOG] " << std::setprecision(15) << logging_t1 << " : " << msg << std::endl; }
+#endif
+
+#ifdef WIN32
+#define IPAACA_SIMPLE_TIMER_BEGIN(N) ;
+#define IPAACA_SIMPLE_TIMER_END(N, NAME) LOG_IPAACA_CONSOLE(NAME << " - time elapsed: Windows - IMPLEMENT ME")
+#else
+/// use IPAACA_SIMPLE_TIMER_BEGIN(mysymbol) to start time profiling at a line in code
+/// Several blocks can be defined in the same stack frame if different symbols are chosen
+#define IPAACA_SIMPLE_TIMER_BEGIN(N) struct timeval _ipaaca_timer_tvstart_ ## N; \
+	gettimeofday(&_ipaaca_timer_tvstart_ ## N, NULL);
+/// use IPAACA_SIMPLE_TIMER_END(mysymbol, "message") to print time elapsed since correpsonding _BEGIN
+#define IPAACA_SIMPLE_TIMER_END(N, NAME) struct timeval _ipaaca_timer_tvend_ ## N; \
+	gettimeofday(&_ipaaca_timer_tvend_ ## N, NULL); \
+	long _ipaaca_timer_usecs_ ## N = (_ipaaca_timer_tvend_ ## N.tv_sec*1000000 + _ipaaca_timer_tvend_ ## N.tv_usec) - (_ipaaca_timer_tvstart_ ## N.tv_sec*1000000 + _ipaaca_timer_tvstart_ ## N.tv_usec); \
+	LOG_IPAACA_CONSOLE(NAME << " - ̨́us elapsed: " << _ipaaca_timer_usecs_ ## N)
 #endif
 
 #include <ipaaca/ipaaca-payload.h>

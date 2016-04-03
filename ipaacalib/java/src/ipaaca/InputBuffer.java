@@ -33,6 +33,7 @@
 package ipaaca;
 
 import ipaaca.protobuf.Ipaaca.IUCommission;
+import ipaaca.protobuf.Ipaaca.IURetraction;
 import ipaaca.protobuf.Ipaaca.IUResendRequest;
 import ipaaca.protobuf.Ipaaca.IULinkUpdate;
 import ipaaca.protobuf.Ipaaca.IUPayloadUpdate;
@@ -440,6 +441,22 @@ public class InputBuffer extends Buffer
                 iu.applyCommmision();
                 iu.setRevision(iuc.getRevision());
                 callIuEventHandlers(iuc.getUid(), false, IUEventType.COMMITTED, iu.getCategory());
+            }
+            if (event.getData() instanceof IURetraction)
+            {
+                IURetraction iuc = (IURetraction) event.getData();
+                logger.debug("handleIUEvents invoked with an IURetraction: {}", iuc);
+                logger.debug("{}", this.getUniqueName());
+
+                if (!iuStore.containsKey(iuc.getUid()))
+                {
+                    logger.warn("Update message for IU which we did not fully receive before.");
+                }
+                RemotePushIU iu = this.iuStore.get(iuc.getUid());
+                if (iu != null) {
+                    iu.applyRetraction();
+                    callIuEventHandlers(iuc.getUid(), false, IUEventType.RETRACTED, iu.getCategory());
+                }
             }
         }
     }

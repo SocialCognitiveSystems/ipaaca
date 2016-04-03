@@ -87,7 +87,6 @@ IPAACA_EXPORT void SmartLinkMap::_add_and_remove_links(const LinkMap& add, const
 }
 IPAACA_EXPORT void SmartLinkMap::_replace_links(const LinkMap& links)
 {
-	//_links.clear();
 	_links=links;
 }
 IPAACA_EXPORT const LinkSet& SmartLinkMap::get_links(const std::string& key)
