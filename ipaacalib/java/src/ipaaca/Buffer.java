@@ -110,6 +110,11 @@ public abstract class Buffer
     {
         eventHandlers.add(handler);
     }
+    
+    public void removeHandler(IUEventHandler handler)
+    {
+        eventHandlers.remove(handler);
+    }
 
     public void registerHandler(HandlerFunctor func) {
     	IUEventHandler handler;
