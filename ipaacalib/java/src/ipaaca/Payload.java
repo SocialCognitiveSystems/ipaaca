@@ -36,7 +36,10 @@ import ipaaca.protobuf.Ipaaca.PayloadItem;
 
 import org.apache.commons.lang.StringEscapeUtils;
 
+import com.google.common.collect.ImmutableSet;
+
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -49,7 +52,7 @@ import java.util.Set;
  */
 public class Payload implements Map<String, String>
 {
-    private Map<String, String> map = new HashMap<String, String>();
+    private Map<String, String> map = Collections.synchronizedMap(new HashMap<String, String>());
     private final AbstractIU iu;
 
     public Payload(AbstractIU iu)
@@ -82,17 +85,23 @@ public class Payload implements Map<String, String>
     public void set(Map<String, String> newPayload, String writerName)
     {
         iu.setPayload(newPayload, writerName);
-        map.clear();
-        map.putAll(newPayload);
+        synchronized(map)
+        {
+            map.clear();
+            map.putAll(newPayload);
+        }
     }
 
     public void set(List<PayloadItem> newPayload, String writerName)
     {
         iu.handlePayloadSetting(newPayload, writerName);
-        map.clear();
-        for (PayloadItem item : newPayload)
+        synchronized(map)
         {
-            map.put(item.getKey(), pseudoConvertFromJSON(item.getValue(), item.getType()));
+            map.clear();
+            for (PayloadItem item : newPayload)
+            {
+                map.put(item.getKey(), pseudoConvertFromJSON(item.getValue(), item.getType()));
+            }
         }
     }
 
@@ -136,9 +145,12 @@ public class Payload implements Map<String, String>
         return map.containsValue(value);
     }
 
-    public Set<java.util.Map.Entry<String, String>> entrySet()
+    /**
+     * Provides an immutable copy of the entryset of the Payload
+     */
+    public ImmutableSet<java.util.Map.Entry<String, String>> entrySet()
     {
-        return map.entrySet();
+        return ImmutableSet.copyOf(map.entrySet());
     }
 
     public boolean equals(Object o)
