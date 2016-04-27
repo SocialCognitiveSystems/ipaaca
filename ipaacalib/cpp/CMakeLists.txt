@@ -111,7 +111,7 @@ else()
 endif(WIN32)
 
 
-set(LIBS ${LIBS} ${PROTOBUF_LIBRARY} ${Boost_LIBRARIES} ${RSBLIBS})
+set(LIBS ${LIBS} ${PROTOBUF_LIBRARY} ${Boost_LIBRARIES} ${RSBLIBS} pthread)
 
 # Hide the rsb-induced boost-signals warning (FOR NOW)
 set(IPAACA_CXX_DEFINES "${IPAACA_CXX_DEFINES} -DBOOST_SIGNALS_NO_DEPRECATION_WARNING")
