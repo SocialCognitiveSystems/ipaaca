@@ -18,11 +18,11 @@ message IU {
 	}
 
 	optional ProtocolInformation protocol = 1;
-	optional IUMode mode = 4 [default = PERSISTENT];
+	optional IUMode mode = 2 [default = PERSISTENT];
 
 	// Immutable fields
-	required string iu_id = 2;
-	required string category = 3;
+	required string iu_id = 3;
+	required string category = 4;
 	required string owner = 5;
 
 	// Mutable field with special treatment
@@ -33,13 +33,13 @@ message IU {
 	// A JSON string containing link information (by convention
 	// the first level is a JSON object { ... } and all values are lists
 	// of strings).
-	repeated string links = 7;
+	optional string links = 7 [default = "{}"];
 	// A JSON string containing metadata information (by convention
 	// the first level is a JSON object { ... }).
-	repeated string metadata = 8;
+	optional string metadata = 8 [default = "{}"];
 	// A JSON string containting the payload data (by convention
 	// the first level is a JSON object { ... }).
-	repeated string payload = 9;
+	optional string payload = 9 [default = "{}"];
 }
 
 
@@ -63,6 +63,7 @@ message IUUpdate {
 
 	optional ProtocolInformation protocol = 1;
 
+	required string category = 1.5;
 	required string update_id = 2;
 	required string iu_id = 3;
 
@@ -95,27 +96,33 @@ message IUUpdateRequest {
 	required string initiator_id = 5;
 
 	// The actual updates
-	repeated JSONChange links = 6;
-	repeated JSONChange metadata = 7;
 	repeated JSONChange payload = 8;
+	repeated JSONChange links = 6;
+	repeated JSONChange metadata = 7; // needs to be applied last, i.e., commit
 }
 
 
+// IURevisionUpdate confirm that an IUUpdateRequest was successful.
 message IURevisionUpdate {
 
 	optional ProtocolInformation protocol = 1;
 
 	required string iu_id = 2;
-	optional string update_id = 3 [default = ""];
+	required string update_id = 3;
 	required string new_revision = 4;
 }
 
+message TransactionMini {
+	repeated string categories = 1;
+}
 
 // Transactions bundle a list of TransactionItems that should be
 // performed as one atomic operation.
 message Transaction {
-	optional ProtocolInformation protocol = 1;
-	repeated TransactionItem items = 2;
+	repeated string categories = 1;
+	optional ProtocolInformation protocol = 2;
+	required string transaction_id = 3;
+	repeated TransactionItem items = 4;
 }
 
 // TransactionsItems are changes to the IU-network. It can comprise of
@@ -133,6 +140,13 @@ message TransactionItem {
 
 
 message JSONChange {
+
+	enum JSONChangeOperation {
+		OVERWRITE = 0;
+		INSERT = 1;
+		DELETE = 2;
+	}
+
 	// Path to the object that is being added/changed. This string
 	// contains a JSON array containing strings (for keys in objects)
 	// and/or integers for indices into lists.
@@ -140,8 +154,11 @@ message JSONChange {
 	required string path = 1;
 	// If is_deletion is true, the object at the specified path will
 	// be deleted.
-	optional bool is_deletion = 3 [default = false];
+	// delete, overwrite
+	optional JSONChangeOperation operation = 2 [default = OVERWRITE];
+	 //? for indexing on lists when using the INSERT OPERATION, -1 -> EXTEND, [0-inf] INSERT, SLICING? do we need a second param.
+	optional uint32 operation_index_argument = 3;
 	// The value that will be set at the specified path (a JSON
 	// string), this is ignored if is_deletion is true.
-	optional string value = 2 [default = ""];
+	optional string value = 4 [default = ""];
 }
