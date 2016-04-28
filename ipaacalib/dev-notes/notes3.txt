@@ -1,0 +1,25 @@
+
+
+- JSONChange
+	- Operations werden angegeben, incl. Argument. Soll weiteres für ranges übertragen werden
+	- Vermutlich reicht der Satz von Operationen für alle Fälle, die Hoffnung ist, dass man nicht verfügbare Operationen notfalls durch kleine Operationen übertragen
+- Transaction
+	- Transaction wie in ipaaca3.proto definiert, auf eigenem Channel transaction, den jeder Inbuf abonniert, outbufs haben informer
+	- liste der categories die in transaction enthalten sind als erstes element, lazy parsing der vollen Transaction mit prefix-reduzierter protobuf Klasse
+- Handler
+	- Alles wird als transaction in handler gegeben, bereits vorgefiltert mit den Kategorien die im Buffer überhaupt von Interesse sind
+	- Jeder IUEventHandler hat einen lambda filter `lambda iu, update: True` der zum Filtern der enthaltenen TransactionItems verwendet wird, ist gefilterte List > 0, dann call handler
+	- falls Iu noch nicht vorhanden (resend notwendig), habe ein future auf die IU; future ist aber non-blocking by default
+	-> siehe handler3.py
+	- Updates/deltas
+		- Normal Zugriff vielleicht wie auf IU, aber non exception raising
+		- dies müsste es auch für IUs geben?!
+			>>> lambda iu, d: d.payload['test'] == 15 or d.payload['test1'] == 15
+			>>> lambda iu, d: iu.payload_not_fail['test'] == 15 or d.payload['test1'] == 15
+		- Nein, andere Entscheidung: alle Filter werden nur im Handler selbst geprüft. Anders als sonst wird gar nicht mehr gefiltert!!!
+- Revision bleiben wie gehabt
+
+
+lambda iu, d: d.payload['test'] == 15 or d.payload['test1'] == 15
+
+lambda iu, d: iu.payload_not_fail['test'] == 15 or d.payload['test1'] == 15
