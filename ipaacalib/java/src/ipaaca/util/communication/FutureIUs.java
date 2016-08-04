@@ -28,9 +28,9 @@ import ipaaca.InputBuffer;
 public class FutureIUs
 {
     private final InputBuffer inBuffer;
-    private final Map<String,BlockingQueue<AbstractIU>> resultsMap = Collections.synchronizedMap(new HashMap<>());
+    private final Map<String,BlockingQueue<AbstractIU>> resultsMap = Collections.synchronizedMap(new HashMap<String,BlockingQueue<AbstractIU>>());
     
-    public FutureIUs(String category, String idKey)
+    public FutureIUs(String category, final String idKey)
     {
         inBuffer = new InputBuffer("FutureIUs", ImmutableSet.of(category));
         inBuffer.registerHandler(new HandlerFunctor()

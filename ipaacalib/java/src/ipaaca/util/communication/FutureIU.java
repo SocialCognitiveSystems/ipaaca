@@ -25,7 +25,7 @@ public class FutureIU
     private final BlockingQueue<AbstractIU> queue = new ArrayBlockingQueue<AbstractIU>(1);
     private final IUEventHandler handler;
 
-    public FutureIU(String category, String idKey, String idVal, InputBuffer inBuffer)
+    public FutureIU(String category, final String idKey, final String idVal, InputBuffer inBuffer)
     {
         this.inBuffer = inBuffer;
         handler = new IUEventHandler(new HandlerFunctor()
