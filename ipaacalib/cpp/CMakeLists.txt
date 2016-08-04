@@ -93,10 +93,10 @@ else()
 
 	# change for each new rsb version
 	if (DEFINED APPLE)
-		set(RSBLIBS rsc0.11 rsb0.11)
+		set(RSBLIBS rsc0.14 rsb0.14)
 		#set(RSBLIBS rsc0.10 rsb.0.10)
 	else(DEFINED APPLE)
-		set(RSBLIBS ${PROJECT_SOURCE_DIR}/../../deps/lib/librsc0.11.so ${PROJECT_SOURCE_DIR}/../../deps/lib/librsb0.11.so )
+		set(RSBLIBS ${PROJECT_SOURCE_DIR}/../../deps/lib/librsc0.14.so ${PROJECT_SOURCE_DIR}/../../deps/lib/librsb0.14.so )
 		set(LIBS ${LIBS} uuid)
 	endif(DEFINED APPLE)
 	# enhance the default search paths (headers, libs ...)
@@ -123,8 +123,8 @@ set(IPAACA_CXX_DEFINES "${IPAACA_CXX_DEFINES} -D_BSD_SOURCE -DUSE_AV -DMGC_USE_D
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CXX_OLD_CODE_CONVENIENCE_FLAGS} ${IPAACA_CXX_DEFINES}")
 
 # add for for each new rsb version
-include_directories( ${PROJECT_SOURCE_DIR}/../../deps/include/rsc0.11 )
-include_directories( ${PROJECT_SOURCE_DIR}/../../deps/include/rsb0.11 )
+include_directories( ${PROJECT_SOURCE_DIR}/../../deps/include/rsc0.14 )
+include_directories( ${PROJECT_SOURCE_DIR}/../../deps/include/rsb0.14 )
 #include_directories( ${PROJECT_SOURCE_DIR}/../../deps/include/rsc0.10 )
 #include_directories( ${PROJECT_SOURCE_DIR}/../../deps/include/rsb0.10 )
 

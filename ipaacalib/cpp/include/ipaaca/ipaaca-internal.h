@@ -59,14 +59,14 @@
 
 #ifdef IPAACA_EXPOSE_FULL_RSB_API
 
-IPAACA_HEADER_EXPORT class CallbackIUPayloadUpdate: public rsb::patterns::Server::Callback<IUPayloadUpdate, int> {//{{{
+IPAACA_HEADER_EXPORT class CallbackIUPayloadUpdate: public rsb::patterns::LocalServer::Callback<IUPayloadUpdate, int> {//{{{
 	protected:
 		IPAACA_MEMBER_VAR_EXPORT Buffer* _buffer;
 	public:
 		IPAACA_HEADER_EXPORT CallbackIUPayloadUpdate(Buffer* buffer);
 		IPAACA_HEADER_EXPORT boost::shared_ptr<int> call(const std::string& methodName, boost::shared_ptr<IUPayloadUpdate> update);
 };//}}}
-IPAACA_HEADER_EXPORT class CallbackIULinkUpdate: public rsb::patterns::Server::Callback<IULinkUpdate, int> {//{{{
+IPAACA_HEADER_EXPORT class CallbackIULinkUpdate: public rsb::patterns::LocalServer::Callback<IULinkUpdate, int> {//{{{
 	protected:
 		IPAACA_MEMBER_VAR_EXPORT Buffer* _buffer;
 	public:
@@ -74,7 +74,7 @@ IPAACA_HEADER_EXPORT class CallbackIULinkUpdate: public rsb::patterns::Server::C
 	public:
 		IPAACA_HEADER_EXPORT boost::shared_ptr<int> call(const std::string& methodName, boost::shared_ptr<IULinkUpdate> update);
 };//}}}
-IPAACA_HEADER_EXPORT class CallbackIUCommission: public rsb::patterns::Server::Callback<protobuf::IUCommission, int> {//{{{
+IPAACA_HEADER_EXPORT class CallbackIUCommission: public rsb::patterns::LocalServer::Callback<protobuf::IUCommission, int> {//{{{
 	protected:
 		IPAACA_MEMBER_VAR_EXPORT Buffer* _buffer;
 	public:
@@ -82,7 +82,7 @@ IPAACA_HEADER_EXPORT class CallbackIUCommission: public rsb::patterns::Server::C
 	public:
 		IPAACA_HEADER_EXPORT boost::shared_ptr<int> call(const std::string& methodName, boost::shared_ptr<protobuf::IUCommission> update);
 };//}}}
-IPAACA_HEADER_EXPORT class CallbackIUResendRequest: public rsb::patterns::Server::Callback<protobuf::IUResendRequest, int> {//{{{
+IPAACA_HEADER_EXPORT class CallbackIUResendRequest: public rsb::patterns::LocalServer::Callback<protobuf::IUResendRequest, int> {//{{{
 	protected:
 		IPAACA_MEMBER_VAR_EXPORT Buffer* _buffer;
 	public:
@@ -90,7 +90,7 @@ IPAACA_HEADER_EXPORT class CallbackIUResendRequest: public rsb::patterns::Server
 	public:
 		IPAACA_HEADER_EXPORT boost::shared_ptr<int> call(const std::string& methodName, boost::shared_ptr<protobuf::IUResendRequest> update);
 };//}}}
-IPAACA_HEADER_EXPORT class CallbackIURetraction: public rsb::patterns::Server::Callback<protobuf::IURetraction, int> {//{{{
+IPAACA_HEADER_EXPORT class CallbackIURetraction: public rsb::patterns::LocalServer::Callback<protobuf::IURetraction, int> {//{{{
 	protected:
 		IPAACA_MEMBER_VAR_EXPORT Buffer* _buffer;
 	public:

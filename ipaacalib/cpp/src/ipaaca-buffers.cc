@@ -301,10 +301,10 @@ IPAACA_EXPORT OutputBuffer::OutputBuffer(const std::string& basename, const std:
 IPAACA_EXPORT void OutputBuffer::_initialize_server()
 {
 	_server = getFactory().createLocalServer( Scope( _unique_name ) );
-	_server->registerMethod("updatePayload", Server::CallbackPtr(new CallbackIUPayloadUpdate(this)));
-	_server->registerMethod("updateLinks", Server::CallbackPtr(new CallbackIULinkUpdate(this)));
-	_server->registerMethod("commit", Server::CallbackPtr(new CallbackIUCommission(this)));
-	_server->registerMethod("resendRequest", Server::CallbackPtr(new CallbackIUResendRequest(this)));
+	_server->registerMethod("updatePayload", LocalServer::CallbackPtr(new CallbackIUPayloadUpdate(this)));
+	_server->registerMethod("updateLinks", LocalServer::CallbackPtr(new CallbackIULinkUpdate(this)));
+	_server->registerMethod("commit", LocalServer::CallbackPtr(new CallbackIUCommission(this)));
+	_server->registerMethod("resendRequest", LocalServer::CallbackPtr(new CallbackIUResendRequest(this)));
 }
 IPAACA_EXPORT OutputBuffer::ptr OutputBuffer::create(const std::string& basename)
 {

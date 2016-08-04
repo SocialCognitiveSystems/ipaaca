@@ -254,7 +254,7 @@ IPAACA_HEADER_EXPORT class OutputBuffer: public Buffer { //, public boost::enabl
 #ifdef IPAACA_EXPOSE_FULL_RSB_API
 	protected:
 		IPAACA_MEMBER_VAR_EXPORT std::map<std::string, rsb::Informer<rsb::AnyType>::Ptr> _informer_store;
-		IPAACA_MEMBER_VAR_EXPORT rsb::patterns::ServerPtr _server;
+		IPAACA_MEMBER_VAR_EXPORT rsb::patterns::LocalServerPtr _server;
 		IPAACA_HEADER_EXPORT rsb::Informer<rsb::AnyType>::Ptr _get_informer(const std::string& category);
 #endif
 	protected:
