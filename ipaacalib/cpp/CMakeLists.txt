@@ -19,99 +19,25 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DIPAACA_EXPOSE_FULL_RSB_API")
 # find cmake modules locally too
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMakeModules )
 
-if(WIN32) # Check if we are on Windows
-	if(MSVC) # Check if we are using the Visual Studio compiler
-		#set_target_properties(TestProject PROPERTIES LINK_FLAGS_RELEASE "/SUBSYSTEM:WINDOWS")
-		#
-		#   Setup section for Windows build (using precompiled rsb + deps)
-		#
-		#   You need the rsx precompiled archive, even if you build rsb yourself,
-		#   for the dependencies. Make sure to grab the right version (bitness
-		#   and Visual Studio version). Tested with the rsx-0.10 branch.
-		#   Please unpack the rsx archive into the repo dir (where ipaaca also is).
-		#   Then set these environment variables before building rsb or ipaaca:
-		#
-		#   set BOOST_ROOT=%SOA_REPO_DIR%\rsx\boost
-		#   set PROTOBUF_ROOT=%SOA_REPO_DIR%\rsx\protobuf
-		#   set SPREAD_ROOT=%SOA_REPO_DIR%\rsx\spread
-		#
-		#
-		
-		#
-		#  If you want to compile rsb locally, check out the soa project 'rsb', build it
-		#  and use resolve.sh to pull its libraries into this project.
-		#  On the other hand, if you simply want to use the precompiled rsb from inside
-		#  "rsx" (it works but has no debug info), uncomment the following four lines.
-		#
-		include_directories( ${PROJECT_SOURCE_DIR}/../../../rsx/RSC-0.11.0-win32/include/rsc0.11 )
-		include_directories( ${PROJECT_SOURCE_DIR}/../../../rsx/RSB-0.11.2-win32/include/rsb0.11 )
-		link_directories( ${PROJECT_SOURCE_DIR}/../../../rsx/RSC-0.11.0-win32/lib )
-		link_directories( ${PROJECT_SOURCE_DIR}/../../../rsx/RSB-0.11.2-win32/lib )
-		
-		set(RSBLIBS rsc0.11 rsb0.11)
-		set(LIBS ${LIBS} rpcrt4)
-		
-		# Using custom Protobuf script (from rsc) because it honors PROTOBUF_ROOT
-		find_package(ProtocolBuffers REQUIRED)
-		link_directories(${PROTOBUF_LIBRARY_DIRS})
-		include_directories(${PROTOBUF_INCLUDE_DIRS})
-		
-		find_package(Boost COMPONENTS date_time program_options system filesystem thread signals regex REQUIRED)
-		link_directories(${Boost_LIBRARY_DIRS})
-		include_directories(${Boost_INCLUDE_DIRS})
-		
-		# Windows linkage hack: overriding the determined libs to remove boost_thread (causes multiple-definition issues)
-		set(CORRECT_BOOST_LIBS "")
-		foreach(BLIB ${Boost_LIBRARIES})
-			#message(STATUS "Boost lib: ${BLIB}")
-			string(REGEX MATCH "boost_thread[^/]+$" drop_item ${BLIB})
-			if(drop_item)
-				message(STATUS "(Windows hack:) Removing boost_thread library from the linkage list.")
-			else(drop_item)
-				list(APPEND CORRECT_BOOST_LIBS ${BLIB})
-			endif(drop_item)
-		endforeach(BLIB ${Boost_LIBRARIES})
-		set(Boost_LIBRARIES ${CORRECT_BOOST_LIBS})
-		
-	else()
-		message(SEND_ERROR "Unsupported compiler! Please build with MSVC (2010).")
-	endif()
-else()
-	#
-	#
-	# Setup section for Linux or OS X (using 'rsb' soa project)
-	#
-	#
-	find_package(Boost COMPONENTS system filesystem thread regex signals REQUIRED)
-	link_directories(${Boost_LIBRARY_DIRS})
-	include_directories(${Boost_INCLUDE_DIRS})
-	#set(BOOSTLIBS boost_regex-mt boost_date_time-mt boost_program_options-mt boost_thread-mt boost_filesystem-mt boost_signals-mt boost_system-mt)
 
-	find_package(ProtocolBuffers REQUIRED)
-	link_directories(${PROTOBUF_LIBRARY_DIRS})
-	include_directories(${PROTOBUF_INCLUDE_DIRS})
+#
+#
+# Setup section for Linux or OS X (using 'rsb' soa project)
+#
+#
+find_package(Boost COMPONENTS system filesystem thread regex signals REQUIRED)
+link_directories(${Boost_LIBRARY_DIRS})
+include_directories(${Boost_INCLUDE_DIRS})
+#set(BOOSTLIBS boost_regex-mt boost_date_time-mt boost_program_options-mt boost_thread-mt boost_filesystem-mt boost_signals-mt boost_system-mt)
 
-	# change for each new rsb version
-	if (DEFINED APPLE)
-		set(RSBLIBS rsc0.14 rsb0.14)
-		#set(RSBLIBS rsc0.10 rsb.0.10)
-	else(DEFINED APPLE)
-		set(RSBLIBS ${PROJECT_SOURCE_DIR}/../../deps/lib/librsc0.14.so ${PROJECT_SOURCE_DIR}/../../deps/lib/librsb0.14.so )
-		set(LIBS ${LIBS} uuid)
-	endif(DEFINED APPLE)
-	# enhance the default search paths (headers, libs ...)
-	set(CMAKE_PREFIX_PATH ${PROJECT_SOURCE_DIR}:/opt/local:${CMAKE_PREFIX_PATH})
-	# MacPorts compatibility
-	if (DEFINED APPLE)
-		message(STATUS "Adding extra options for building on Mac OS X")
-		set(CXX_DEFINES "${CXX_DEFINES} -D__MACOSX__")
-		link_directories( /opt/local/lib )
-		include_directories( /opt/local/include )
-	endif(DEFINED APPLE)
-endif(WIN32)
+find_package(ProtocolBuffers REQUIRED)
+link_directories(${PROTOBUF_LIBRARY_DIRS})
+include_directories(${PROTOBUF_INCLUDE_DIRS})
 
+FIND_PACKAGE(RSC 0.14 REQUIRED)
+FIND_PACKAGE(RSB 0.14 REQUIRED)
 
-set(LIBS ${LIBS} ${PROTOBUF_LIBRARY} ${Boost_LIBRARIES} ${RSBLIBS} pthread)
+set(LIBS ${LIBS} ${PROTOBUF_LIBRARY} ${Boost_LIBRARIES} ${RSB_LIBRARIES} ${RSC_LIBRARIES} pthread)
 
 # Hide the rsb-induced boost-signals warning (FOR NOW)
 set(IPAACA_CXX_DEFINES "${IPAACA_CXX_DEFINES} -DBOOST_SIGNALS_NO_DEPRECATION_WARNING")
@@ -122,20 +48,26 @@ set(IPAACA_CXX_DEFINES "${IPAACA_CXX_DEFINES} -D_BSD_SOURCE -DUSE_AV -DMGC_USE_D
 # Combine the extra compiler flags
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CXX_OLD_CODE_CONVENIENCE_FLAGS} ${IPAACA_CXX_DEFINES}")
 
-# add for for each new rsb version
-include_directories( ${PROJECT_SOURCE_DIR}/../../deps/include/rsc0.14 )
-include_directories( ${PROJECT_SOURCE_DIR}/../../deps/include/rsb0.14 )
-#include_directories( ${PROJECT_SOURCE_DIR}/../../deps/include/rsc0.10 )
-#include_directories( ${PROJECT_SOURCE_DIR}/../../deps/include/rsb0.10 )
-
 # add include dir for auto-generated headers placed in build/
 include_directories( ${PROJECT_SOURCE_DIR}/build )
 
 # add local include directory
 include_directories( ${PROJECT_SOURCE_DIR}/include )
-# add lib and include directory from pulled dependencies
-include_directories( ${PROJECT_SOURCE_DIR}/../../deps/include )
-link_directories( ${PROJECT_SOURCE_DIR}/../../deps/lib )
+
+INCLUDE_DIRECTORIES(BEFORE SYSTEM
+    ${RSC_INCLUDE_DIRS}
+    ${RSB_INCLUDE_DIRS}
+)
+LINK_DIRECTORIES(
+    ${RSC_LIBRARY_DIRS}
+    ${RSB_LIBRARY_DIRS}
+    ${UUID_LIBRARY_DIRS}
+)
+
+FIND_PACKAGE(PkgConfig REQUIRED)
+pkg_search_module(UUID REQUIRED uuid)
+
+set(LIBS ${LIBS} ${UUID_LIBRARIES})
 
 
 # specify source files for ipaaca (auto-generated ones are in build/ )
@@ -172,8 +104,6 @@ set (JSON_TEST_SOURCE
 	)
 
 
-
-
 # compile all files to "ipaaca" shared library
 add_library(ipaaca SHARED ${SOURCE})
 # and link all the required external libs (found above using find_package etc.)
@@ -186,7 +116,7 @@ set(DEFAULT_BIN_SUBDIR bin)
 set(DEFAULT_LIB_SUBDIR lib)
 set(DEFAULT_DATA_SUBDIR share/data)
 set(DEFAULT_INCLUDE_SUBDIR include)
-set(CMAKE_INSTALL_PREFIX "")
+
 install (
 	TARGETS ipaaca
 	RUNTIME DESTINATION bin
