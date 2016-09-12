@@ -1,0 +1,8 @@
+set(ipaaca_VERSION 2)
+
+@PACKAGE_INIT@
+
+set_and_check(ipaaca_INCLUDE_DIR "@PACKAGE_INCLUDE_INSTALL_DIR@")
+find_library(ipaaca_LIBRARIES ipaaca HINTS "@PACKAGE_LIB_INSTALL_DIR@")
+
+check_required_components(ipaaca)

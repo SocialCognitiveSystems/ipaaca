@@ -140,4 +140,15 @@ install (
 	ARCHIVE DESTINATION lib
 	)
 
+include(CMakePackageConfigHelpers)
+set(INCLUDE_INSTALL_DIR include)
+set(LIB_INSTALL_DIR lib)
+
+configure_package_config_file(ipaacaConfig.cmake.in
+  ${CMAKE_CURRENT_BINARY_DIR}/ipaacaConfig.cmake
+  INSTALL_DESTINATION ${LIB_INSTALL_DIR}/cmake/ipaaca
+  PATH_VARS INCLUDE_INSTALL_DIR LIB_INSTALL_DIR
+  )
+  
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/ipaacaConfig.cmake" DESTINATION lib/cmake/ipaaca)
 
