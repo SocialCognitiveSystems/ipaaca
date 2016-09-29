@@ -46,6 +46,20 @@ from ipaaca.iu import IU, Message, IUAccessMode, IUEventType
 from ipaaca.misc import enable_logging, IpaacaArgumentParser
 from ipaaca.payload import Payload
 
+#
+# ipaaca.exit(int_retval)
+#
+from ipaaca.buffer import atexit_cleanup_function
+def exit(int_retval=0):
+	'''For the time being, this function can be used to
+	circumvent any sys.exit blocks, while at the same time
+	cleaning up the buffers (e.g. retracting IUs).
+	
+	Call once at the end of any python script (or anywhere
+	in lieu of sys.exit() / os._exit(). '''
+	print('ipaaca: cleaning up and exiting with code '+str(int_retval))
+	atexit_cleanup_function()
+	os._exit(int_retval)
 
 __RSB_INITIALIZER_LOCK = threading.Lock()
 __RSB_INITIALIZED = False
