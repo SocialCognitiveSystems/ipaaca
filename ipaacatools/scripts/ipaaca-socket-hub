@@ -1,0 +1,81 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# This file is part of IPAACA, the
+#  "Incremental Processing Architecture
+#   for Artificial Conversational Agents".
+#
+# Copyright (c) 2009-2016 Social Cognitive Systems Group
+#                         CITEC, Bielefeld University
+#
+# http://opensource.cit-ec.de/projects/ipaaca/
+# http://purl.org/net/ipaaca
+#
+# This file may be licensed under the terms of of the
+# GNU Lesser General Public License Version 3 (the ``LGPL''),
+# or (at your option) any later version.
+#
+# Software distributed under the License is distributed
+# on an ``AS IS'' basis, WITHOUT WARRANTY OF ANY KIND, either
+# express or implied. See the LGPL for the specific language
+# governing rights and limitations.
+#
+# You should have received a copy of the LGPL along with this
+# program. If not, go to http://www.gnu.org/licenses/lgpl.html
+# or write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#
+# The development of this software was supported by the
+# Excellence Cluster EXC 277 Cognitive Interaction Technology.
+# The Excellence Cluster EXC 277 is a grant of the Deutsche
+# Forschungsgemeinschaft (DFG) in the context of the German
+# Excellence Initiative.
+
+from __future__ import division, print_function
+
+import os
+import platform
+import sys
+import time
+
+import ipaaca
+
+
+def exit(code):
+	if platform.system() == 'Windows':
+		os._exit(code)
+	else:
+		sys.exit(code)
+
+
+parser = ipaaca.IpaacaArgumentParser(description='Ipaaca Maintainor')
+
+
+if __name__ == '__main__':
+	arguments = parser.parse_args()
+
+	# Warn if user tries to configure a transport other than socket or a
+	# server mode other than server
+	if (ipaaca.defaults.IPAACA_DEFAULT_RSB_TRANSPORT is not None and
+	   		ipaaca.defaults.IPAACA_DEFAULT_RSB_TRANSPORT != 'socket'):
+		print("ERROR: Works only with RSB transport type 'socket'.")
+		exit(1)
+	if (ipaaca.defaults.IPAACA_DEFAULT_RSB_SOCKET_SERVER is not None and
+			ipaaca.defaults.IPAACA_DEFAULT_RSB_SOCKET_SERVER != '1'):
+		print("ERROR: Works only in socket server mode '0'.")
+		exit(1)
+
+	# Configure rsb socket transport
+	ipaaca.defaults.IPAACA_DEFAULT_RSB_TRANSPORT = 'socket'
+	ipaaca.defaults.IPAACA_DEFAULT_RSB_SOCKET_SERVER = '1'
+
+	ob = ipaaca.OutputBuffer("IPAACAMaintainor")
+
+	while True:
+		try:
+			time.sleep(1)
+		except KeyboardInterrupt:
+			decision = raw_input('Shutdown the IPAACA socket transport hub (y/[n])?')
+			if decision in 'yY':
+				break
+	exit(code=0)

@@ -56,7 +56,7 @@ def initialize_ipaaca_rsb_if_needed():
 
 	   * Register own RSB onverters.
 	   * Initialise RSB from enviroment variables, rsb config file, or
-	     from default values for RSB spread host and port (via
+	     from default values for RSB trnasport, host, and port (via
 	     ipaaca.defaults or ipaaca.misc.IpaacaArgumentParser).
 	"""
 	global __RSB_INITIALIZED
@@ -101,13 +101,27 @@ def initialize_ipaaca_rsb_if_needed():
 				rsb.converter.ProtocolBufferConverter(
 					messageClass=ipaaca_pb2.IURetraction))
 
-			if ipaaca.defaults.IPAACA_DEFAULT_RSB_SPREAD_HOST is not None:
-				os.environ['RSB_TRANSPORT_SPREAD_HOST'] = str(
-						ipaaca.defaults.IPAACA_DEFAULT_RSB_SPREAD_HOST)
+			if ipaaca.defaults.IPAACA_DEFAULT_RSB_TRANSPORT is not None:
+				if ipaaca.defaults.IPAACA_DEFAULT_RSB_TRANSPORT == 'spread':
+					os.environ['RSB_TRANSPORT_SPREAD_ENABLED'] = str(1)
+					os.environ['RSB_TRANSPORT_SOCKET_ENABLED'] = str(0)
+				elif ipaaca.defaults.IPAACA_DEFAULT_RSB_TRANSPORT == 'socket':
+					os.environ['RSB_TRANSPORT_SPREAD_ENABLED'] = str(0)
+					os.environ['RSB_TRANSPORT_SOCKET_ENABLED'] = str(1)
+					if ipaaca.defaults.IPAACA_DEFAULT_RSB_SOCKET_SERVER is not None:
+						os.environ['RSB_TRANSPORT_SOCKET_SERVER'] = str(
+							ipaaca.defaults.IPAACA_DEFAULT_RSB_SOCKET_SERVER)
 
-			if ipaaca.defaults.IPAACA_DEFAULT_RSB_SPREAD_PORT is not None:
+			if ipaaca.defaults.IPAACA_DEFAULT_RSB_HOST is not None:
+				os.environ['RSB_TRANSPORT_SPREAD_HOST'] = str(
+					ipaaca.defaults.IPAACA_DEFAULT_RSB_HOST)
+				os.environ['RSB_TRANSPORT_SOCKET_HOST'] = str(
+					ipaaca.defaults.IPAACA_DEFAULT_RSB_HOST)
+			if ipaaca.defaults.IPAACA_DEFAULT_RSB_PORT is not None:
 				os.environ['RSB_TRANSPORT_SPREAD_PORT'] = str(
-						ipaaca.defaults.IPAACA_DEFAULT_RSB_SPREAD_PORT)
+						ipaaca.defaults.IPAACA_DEFAULT_RSB_PORT)
+				os.environ['RSB_TRANSPORT_SOCKET_PORT'] = str(
+						ipaaca.defaults.IPAACA_DEFAULT_RSB_PORT)
 
 			rsb.__defaultParticipantConfig = \
 					rsb.ParticipantConfig.fromDefaultSources()

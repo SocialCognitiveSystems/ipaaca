@@ -124,15 +124,25 @@ class IpaacaArgumentParser(argparse.ArgumentParser):
 			rsb_logger.removeHandler(__GENERIC_NO_LOG_HANDLER)
 			rsb_logger.setLevel(level=values)
 
-	class IpaacaRSBSpreadHost(argparse.Action):
+	class IpaacaRSBHost(argparse.Action):
 
 		def __call__(self, parser, namespace, values, option_string=None):
-			ipaaca.defaults.IPAACA_DEFAULT_RSB_SPREAD_HOST = values
+			ipaaca.defaults.IPAACA_DEFAULT_RSB_HOST = values
 
-	class IpaacaRSBSpreadPort(argparse.Action):
+	class IpaacaRSBPort(argparse.Action):
 
 		def __call__(self, parser, namespace, values, option_string=None):
-			ipaaca.defaults.IPAACA_DEFAULT_RSB_SPREADPORT = values
+			ipaaca.defaults.IPAACA_DEFAULT_RSB_PORT = values
+
+	class IpaacaRSBTransport(argparse.Action):
+
+		def __call__(self, parser, namespace, values, option_string=None):
+			ipaaca.defaults.IPAACA_DEFAULT_RSB_TRANSPORT = values
+
+	class IpaacaRSBSocketServer(argparse.Action):
+
+		def __call__(self, parser, namespace, values, option_string=None):
+			ipaaca.defaults.IPAACA_DEFAULT_RSB_SOCKET_SERVER = values
 
 	def __init__(self, prog=None, usage=None, description=None, epilog=None,
 			parents=[], formatter_class=argparse.HelpFormatter,
@@ -177,19 +187,35 @@ class IpaacaArgumentParser(argparse.ArgumentParser):
 			dest='_ipaaca_rsb_enable_logging_',
 			help="enable RSB logging with threshold")
 		rsblib_group.add_argument(
-			'--rsb-spread-host', 
-			action=self.IpaacaRSBSpreadHost,
+			'--rsb-host', 
+			action=self.IpaacaRSBHost,
 			default=None,
-			dest='_ipaaca_rsb_set_spread_host_',
+			dest='_ipaaca_rsb_set_host_',
 			metavar='HOST',
-			help="set RSB spread host")
+			help="set RSB host")
 		rsblib_group.add_argument(
-			'--rsb-spread-port', 
-			action=self.IpaacaRSBSpreadPort,
+			'--rsb-port', 
+			action=self.IpaacaRSBPort,
 			default=None,
-			dest='_ipaaca_rsb_set_spread_port_',
+			dest='_ipaaca_rsb_set_port_',
 			metavar='PORT',
-			help="set RSB spread port")
+			help="set RSB port")
+		rsblib_group.add_argument(
+			'--rsb-transport', 
+			action=self.IpaacaRSBTransport,
+			default=None,
+			dest='_ipaaca_rsb_set_transport_',
+			choices=['spread', 'socket'],
+			metavar='TRANSPORT',
+			help="set RSB transport")
+		rsblib_group.add_argument(
+			'--rsb-socket-server', 
+			action=self.IpaacaRSBSocketServer,
+			default=None,
+			dest='_ipaaca_rsb_set_socket_server_',
+			choices=['0', '1', 'auto'],
+			metavar='server',
+			help="act as server (only when --rsb-transport=socket)")
 
 	def parse_args(self, args=None, namespace=None):
 		self._add_ipaaca_lib_arguments() # Add ipaaca-args just before parsing
