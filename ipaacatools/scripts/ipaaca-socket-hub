@@ -38,14 +38,17 @@ import platform
 import sys
 import time
 
+import traceback
+
 import ipaaca
 
 
 def exit(code):
-	if platform.system() == 'Windows':
-		os._exit(code)
-	else:
-		sys.exit(code)
+	ipaaca.exit(code)
+	#if platform.system() == 'Windows':
+	#	os._exit(code)
+	#else:
+	#	sys.exit(code)
 
 
 parser = ipaaca.IpaacaArgumentParser(description='Ipaaca Maintainor')
@@ -59,11 +62,11 @@ if __name__ == '__main__':
 	if (ipaaca.defaults.IPAACA_DEFAULT_RSB_TRANSPORT is not None and
 	   		ipaaca.defaults.IPAACA_DEFAULT_RSB_TRANSPORT != 'socket'):
 		print("ERROR: Works only with RSB transport type 'socket'.")
-		exit(1)
+		ipaaca.exit(1)
 	if (ipaaca.defaults.IPAACA_DEFAULT_RSB_SOCKET_SERVER is not None and
 			ipaaca.defaults.IPAACA_DEFAULT_RSB_SOCKET_SERVER != '1'):
 		print("ERROR: Works only in socket server mode '0'.")
-		exit(1)
+		ipaaca.exit(1)
 
 	# Configure rsb socket transport
 	ipaaca.defaults.IPAACA_DEFAULT_RSB_TRANSPORT = 'socket'
@@ -78,4 +81,7 @@ if __name__ == '__main__':
 			decision = raw_input('Shutdown the IPAACA socket transport hub (y/[n])?')
 			if decision in 'yY':
 				break
-	exit(code=0)
+		except Exception, e:
+			print(u'Exception: '+unicode(traceback.format_exc()))
+			ipaaca.exit(1)
+	ipaaca.exit(0)

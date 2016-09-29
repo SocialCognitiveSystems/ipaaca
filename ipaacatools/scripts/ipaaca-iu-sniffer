@@ -97,10 +97,11 @@ def iu_event_handler(iu, event_type, local):
 	print(pretty_printed_iu_event(iu, event_type, local), end='\n\n')
 
 def exit(code):
-	if platform.system() == 'Windows':
-		os._exit(code)
-	else:
-		sys.exit(code)
+	ipaaca.exit(code)
+	#if platform.system() == 'Windows':
+	#	os._exit(code)
+	#else:
+	#	sys.exit(code)
 
 parser = ipaaca.IpaacaArgumentParser(description='Ipaaca IU Sniffer -- Selectively listen to IPAACA traffic')
 parser.add_argument(
@@ -186,4 +187,7 @@ if __name__ == '__main__':
 			time.sleep(1)
 	except KeyboardInterrupt:
 		pass
-	exit(code=0)
+	except Exception, e:
+		print(u'Exception: '+unicode(traceback.format_exc()))
+		ipaaca.exit(1)
+	ipaaca.exit(0)

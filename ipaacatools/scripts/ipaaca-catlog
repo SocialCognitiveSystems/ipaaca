@@ -36,30 +36,37 @@ from __future__ import division, print_function
 
 import sys
 import ipaaca
+import traceback
 
 if __name__=='__main__':
-	iap = ipaaca.IpaacaArgumentParser(
-        'ipaaca-logcat')
-	iap.add_argument(
-		'-s', '--strip-fields',
-		dest='strip', action='store_true',
-		default=False,
-		help='strip leading/trailing whitespace from all fields')
-	iap.add_argument(
-		'-d', '--delimiter',
-		dest='delimiter', nargs=1,
-		default=['\t'],
-		help='field delimiter, interpreted as python unicode string (default \'\\t\')')
-	iap.add_argument(
-		'-f', '--fields',
-		dest='fields', default=['time', 'text'], nargs='+',
-		help='fields to print (defaults: \'time\' \'text\')')
-	arguments = iap.parse_args()
-	delimiter = eval("u'"+arguments.delimiter[0]+"'", {"__builtins__":None}, {} )
-	#print(arguments); sys.exit(1)
-	modify = (lambda s: s.strip()) if arguments.strip else (lambda s: s)
-	#modify = lambda s: type(s).__name__
-	for line in sys.stdin:
-		record = eval(line.strip(), {"__builtins__":None}, {} )
-		print(delimiter.join([modify(unicode(record[f])) for f in arguments.fields]))
+	try:
+		iap = ipaaca.IpaacaArgumentParser('ipaaca-logcat')
+		iap.add_argument(
+			'-s', '--strip-fields',
+			dest='strip', action='store_true',
+			default=False,
+			help='strip leading/trailing whitespace from all fields')
+		iap.add_argument(
+			'-d', '--delimiter',
+			dest='delimiter', nargs=1,
+			default=['\t'],
+			help='field delimiter, interpreted as python unicode string (default \'\\t\')')
+		iap.add_argument(
+			'-f', '--fields',
+			dest='fields', default=['time', 'text'], nargs='+',
+			help='fields to print (defaults: \'time\' \'text\')')
+		arguments = iap.parse_args()
+		delimiter = eval("u'"+arguments.delimiter[0]+"'", {"__builtins__":None}, {} )
+		#print(arguments); sys.exit(1)
+		modify = (lambda s: s.strip()) if arguments.strip else (lambda s: s)
+		#modify = lambda s: type(s).__name__
+		for line in sys.stdin:
+			record = eval(line.strip(), {"__builtins__":None}, {} )
+			print(delimiter.join([modify(unicode(record[f])) for f in arguments.fields]))
+	except (KeyboardInterrupt, SystemExit):
+		pass # ret below
+	except Exception, e:
+		print(u'Exception: '+unicode(traceback.format_exc()))
+		ipaaca.exit(1)
+	ipaaca.exit(0)
 

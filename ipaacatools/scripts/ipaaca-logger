@@ -49,21 +49,28 @@ def main(log_mode, filename=None):
 	except KeyboardInterrupt:
 		il.close_logfile()
 		print('Logging-Component closed by keyboard interrupt.')
-		sys.exit(0)
 
 
 if __name__ == '__main__':
-	iap = ipaaca.IpaacaArgumentParser(
-        'ipaaca-logger')
-	iap.add_argument(
-		'-m', '--log-mode', dest='log_mode',
-		choices=ipaacalog.LOG_MODES,
-		default='append',
-		help="set what to do when logfile exists "
-				"(default: 'append'; 'timestamp' adds timestamp in any case)")
-	iap.add_argument(
-		'filename', nargs='?',
-		metavar='FILE',
-		help='set name of logfile')
-	arguments = iap.parse_args()
-	main(arguments.log_mode, arguments.filename)
+	try:
+		iap = ipaaca.IpaacaArgumentParser(
+			'ipaaca-logger')
+		iap.add_argument(
+			'-m', '--log-mode', dest='log_mode',
+			choices=ipaacalog.LOG_MODES,
+			default='append',
+			help="set what to do when logfile exists "
+					"(default: 'append'; 'timestamp' adds timestamp in any case)")
+		iap.add_argument(
+			'filename', nargs='?',
+			metavar='FILE',
+			help='set name of logfile')
+		arguments = iap.parse_args()
+		main(arguments.log_mode, arguments.filename)
+	except KeyboardInterrupt:
+		pass
+	except Exception, e:
+		print(u'Exception: '+unicode(traceback.format_exc()))
+		ipaaca.exit(1)
+	ipaaca.exit(0)
+
