@@ -49,12 +49,10 @@ import ipaaca.converter
 import ipaaca.iu
 
 
-
 __all__ = [
 	'InputBuffer',
 	'OutputBuffer',
 ]
-
 LOGGER = ipaaca.misc.get_library_logger()
 
 # set of objects to auto-clean on exit, assumes _teardown() method
@@ -214,6 +212,7 @@ class InputBuffer(Buffer):
 
 	"""An InputBuffer that holds remote IUs."""
 
+	@auto_teardown_instances
 	def __init__(self, owning_component_name, category_interests=None, channel=None, participant_config=None, resend_active=False):
 		'''Create an InputBuffer.
 
@@ -275,6 +274,24 @@ class InputBuffer(Buffer):
 			del self._listener_store[iu_category]
 			self._category_interests.remove(iu_category)
 			LOGGER.info("Removed listener in scope /ipaaca/channel/" + str(self._channel) + "/category/ " + iu_category)
+
+	def _teardown(self):
+		'''OutputBuffer retracts remaining live IUs on teardown'''
+		self._deactivate_all_internal()
+
+	def __del__(self):
+		'''Perform teardown as soon as Buffer is lost.'''
+		self._deactivate_all_internal()
+
+	def _deactivate_all_internal(self):
+		'''Deactivate all participants.'''
+		for listener in self._listener_store.values():
+			try:
+				listener.deactivate()
+			except RuntimeError:
+				# Is raised if an already deactivated participant is 
+				# deactivated again
+				pass
 
 	def _handle_iu_events(self, event):
 		'''Dispatch incoming IU events.
@@ -428,12 +445,15 @@ class OutputBuffer(Buffer):
 	def _teardown(self):
 		'''OutputBuffer retracts remaining live IUs on teardown'''
 		self._retract_all_internal()
+		self._deactivate_all_internal()
+
 	def __del__(self):
 		'''Perform teardown (IU retractions) as soon as Buffer is lost.
 		Note that at program exit the teardown might be called
 		twice for live objects (atexit, then del), but the
 		_retract_all_internal method prevents double retractions.'''
 		self._retract_all_internal()
+		self._deactivate_all_internal()
 
 	def _remote_update_links(self, update):
 		'''Apply a remotely requested update to one of the stored IU's links.'''
@@ -573,6 +593,22 @@ class OutputBuffer(Buffer):
 		for iu in self._iu_store.values():
 			if not iu._retracted:
 				self._retract_iu(iu)
+
+	def _deactivate_all_internal(self):
+		'''Deactivate all participants.'''
+		try:
+			self._server.deactivate()
+		except RuntimeError:
+			# Is raised if an already deactivated participant is 
+			# deactivated again
+			pass
+		for informer in self._informer_store.values():
+			try:
+				informer.deactivate()
+			except RuntimeError:
+				# Is raised if an already deactivated participant is 
+				# deactivated again
+				pass
 
 	def _send_iu_commission(self, iu, writer_name):
 		'''Send IU commission.
