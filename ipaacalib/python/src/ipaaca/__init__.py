@@ -38,7 +38,7 @@ import threading
 import rsb
 import rsb.converter
 
-import ipaaca_pb2
+import ipaaca.ipaaca_pb2
 import ipaaca.converter
 from ipaaca.buffer import InputBuffer, OutputBuffer
 from ipaaca.exception import *
@@ -91,15 +91,15 @@ def initialize_ipaaca_rsb_if_needed():
 		
 			rsb.converter.registerGlobalConverter(
 				rsb.converter.ProtocolBufferConverter(
-					messageClass=ipaaca_pb2.IUCommission))
+					messageClass=ipaaca.ipaaca_pb2.IUCommission))
 		
 			rsb.converter.registerGlobalConverter(
 				rsb.converter.ProtocolBufferConverter(
-					messageClass=ipaaca_pb2.IUResendRequest))
+					messageClass=ipaaca.ipaaca_pb2.IUResendRequest))
 		
 			rsb.converter.registerGlobalConverter(
 				rsb.converter.ProtocolBufferConverter(
-					messageClass=ipaaca_pb2.IURetraction))
+					messageClass=ipaaca.ipaaca_pb2.IURetraction))
 
 			if ipaaca.defaults.IPAACA_DEFAULT_RSB_TRANSPORT is not None:
 				if ipaaca.defaults.IPAACA_DEFAULT_RSB_TRANSPORT == 'spread':

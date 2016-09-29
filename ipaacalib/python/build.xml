@@ -7,7 +7,7 @@
      <exec executable="protoc">
         <arg value="--proto_path=../proto" />
         <arg value="../proto/ipaaca.proto" />
-        <arg value="--python_out=build/" />
+		<arg value="--python_out=src/ipaaca/" />
      </exec>
    </target>
 </project>

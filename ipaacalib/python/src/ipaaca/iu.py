@@ -37,7 +37,7 @@ import copy
 import threading
 import uuid
 
-import ipaaca_pb2
+import ipaaca.ipaaca_pb2
 import ipaaca.converter
 import ipaaca.exception
 import ipaaca.misc
@@ -555,7 +555,7 @@ class RemotePushIU(IUInterface):
 			raise ipaaca.exception.IURetractedError(self)
 		if self._read_only:
 			raise ipaaca.exception.IUReadOnlyError(self)
-		commission_request = ipaaca_pb2.IUCommission()
+		commission_request = ipaaca.ipaaca_pb2.IUCommission()
 		commission_request.uid = self.uid
 		commission_request.revision = self.revision
 		commission_request.writer_name = self.buffer.unique_name

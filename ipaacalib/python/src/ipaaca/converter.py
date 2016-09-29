@@ -36,7 +36,7 @@ import collections
 
 import rsb.converter
 
-import ipaaca_pb2
+import ipaaca.ipaaca_pb2
 import ipaaca.defaults
 import ipaaca.exception
 import ipaaca.iu
@@ -68,12 +68,12 @@ class IntConverter(rsb.converter.Converter):
 		super(IntConverter, self).__init__(bytearray, dataType, wireSchema)
 
 	def serialize(self, value):
-		pbo = ipaaca_pb2.IntMessage()
+		pbo = ipaaca.ipaaca_pb2.IntMessage()
 		pbo.value = value
 		return bytearray(pbo.SerializeToString()), self.wireSchema
 
 	def deserialize(self, byte_stream, ws):
-		pbo = ipaaca_pb2.IntMessage()
+		pbo = ipaaca.ipaaca_pb2.IntMessage()
 		pbo.ParseFromString( str(byte_stream) )
 		return pbo.value
 
@@ -107,11 +107,11 @@ class IUConverter(rsb.converter.Converter):
 	'''
 	def __init__(self, wireSchema="ipaaca-iu", dataType=ipaaca.iu.IU):
 		super(IUConverter, self).__init__(bytearray, dataType, wireSchema)
-		self._access_mode = ipaaca_pb2.IU.PUSH
+		self._access_mode = ipaaca.ipaaca_pb2.IU.PUSH
 		self._remote_data_type = ipaaca.iu.RemotePushIU
 
 	def serialize(self, iu):
-		pbo = ipaaca_pb2.IU()
+		pbo = ipaaca.ipaaca_pb2.IU()
 		pbo.access_mode = self._access_mode
 		pbo.uid = iu._uid
 		pbo.revision = iu._revision
@@ -130,7 +130,7 @@ class IUConverter(rsb.converter.Converter):
 		return bytearray(pbo.SerializeToString()), self.wireSchema
 
 	def deserialize(self, byte_stream, ws):
-		pbo = ipaaca_pb2.IU()
+		pbo = ipaaca.ipaaca_pb2.IU()
 		pbo.ParseFromString(str(byte_stream))
 		_payload = {}
 		for entry in pbo.payload:
@@ -158,7 +158,7 @@ class MessageConverter(IUConverter):
 	'''
 	def __init__(self, wireSchema="ipaaca-messageiu", dataType=ipaaca.iu.Message):
 		super(MessageConverter, self).__init__(wireSchema, dataType)
-		self._access_mode = ipaaca_pb2.IU.MESSAGE
+		self._access_mode = ipaaca.ipaaca_pb2.IU.MESSAGE
 		self._remote_data_type = ipaaca.iu.RemoteMessage
 
 
@@ -189,7 +189,7 @@ class IULinkUpdateConverter(rsb.converter.Converter):
 		super(IULinkUpdateConverter, self).__init__(bytearray, dataType, wireSchema)
 
 	def serialize(self, iu_link_update):
-		pbo = ipaaca_pb2.IULinkUpdate()
+		pbo = ipaaca.ipaaca_pb2.IULinkUpdate()
 		pbo.uid = iu_link_update.uid
 		pbo.writer_name = iu_link_update.writer_name
 		pbo.revision = iu_link_update.revision
@@ -207,7 +207,7 @@ class IULinkUpdateConverter(rsb.converter.Converter):
 	def deserialize(self, byte_stream, ws):
 		type = self.getDataType()
 		if type == IULinkUpdate:
-			pbo = ipaaca_pb2.IULinkUpdate()
+			pbo = ipaaca.ipaaca_pb2.IULinkUpdate()
 			pbo.ParseFromString( str(byte_stream) )
 			LOGGER.debug('received an IULinkUpdate for revision '+str(pbo.revision))
 			iu_link_up = IULinkUpdate( uid=pbo.uid, revision=pbo.revision, writer_name=pbo.writer_name, is_delta=pbo.is_delta)
@@ -248,7 +248,7 @@ class IUPayloadUpdateConverter(rsb.converter.Converter):
 		super(IUPayloadUpdateConverter, self).__init__(bytearray, dataType, wireSchema)
 
 	def serialize(self, iu_payload_update):
-		pbo = ipaaca_pb2.IUPayloadUpdate()
+		pbo = ipaaca.ipaaca_pb2.IUPayloadUpdate()
 		pbo.uid = iu_payload_update.uid
 		pbo.writer_name = iu_payload_update.writer_name
 		pbo.revision = iu_payload_update.revision
@@ -262,7 +262,7 @@ class IUPayloadUpdateConverter(rsb.converter.Converter):
 	def deserialize(self, byte_stream, ws):
 		type = self.getDataType()
 		if type == IUPayloadUpdate:
-			pbo = ipaaca_pb2.IUPayloadUpdate()
+			pbo = ipaaca.ipaaca_pb2.IUPayloadUpdate()
 			pbo.ParseFromString( str(byte_stream) )
 			LOGGER.debug('received an IUPayloadUpdate for revision '+str(pbo.revision))
 			iu_up = IUPayloadUpdate( uid=pbo.uid, revision=pbo.revision, payload_type=None, writer_name=pbo.writer_name, is_delta=pbo.is_delta)

@@ -42,7 +42,7 @@ import atexit
 
 import rsb
 
-import ipaaca_pb2
+import ipaaca.ipaaca_pb2
 import ipaaca.defaults
 import ipaaca.exception
 import ipaaca.converter
@@ -308,7 +308,7 @@ class InputBuffer(Buffer):
 		else:
 			if event.data.uid not in self._iu_store:
 				if (self._resend_active and 
-							not type_ is ipaaca_pb2.IURetraction):
+							not type_ is ipaaca.ipaaca_pb2.IURetraction):
 					# send resend request to remote server, IURetraction is ignored
 					try:
 						self._request_remote_resend(event)
@@ -319,7 +319,7 @@ class InputBuffer(Buffer):
 					LOGGER.warning("Received an update for an IU which we did not receive before.")
 				return
 			# an update to an existing IU
-			if type_ is ipaaca_pb2.IURetraction:
+			if type_ is ipaaca.ipaaca_pb2.IURetraction:
 				# IU retraction (cannot be triggered remotely)
 				iu = self._iu_store[event.data.uid]
 				iu._revision = event.data.revision
@@ -330,7 +330,7 @@ class InputBuffer(Buffer):
 					# Notify only for remotely triggered events;
 					# Discard updates that originate from this buffer
 					return
-				if type_ is ipaaca_pb2.IUCommission:
+				if type_ is ipaaca.ipaaca_pb2.IUCommission:
 					# IU commit
 					iu = self._iu_store[event.data.uid]
 					iu._apply_commission()
@@ -366,7 +366,7 @@ class InputBuffer(Buffer):
 	def _request_remote_resend(self, event):
 		remote_server = self._get_remote_server(event)
 		if remote_server:
-			resend_request = ipaaca_pb2.IUResendRequest()
+			resend_request = ipaaca.ipaaca_pb2.IUResendRequest()
 			resend_request.uid = event.data.uid # target iu
 			resend_request.hidden_scope_name = str(self._uuid) # hidden category name
 			remote_revision = remote_server.requestResend(resend_request)
@@ -419,8 +419,8 @@ class OutputBuffer(Buffer):
 		self._server = rsb.createLocalServer(rsb.Scope(self._unique_name))
 		self._server.addMethod('updateLinks', self._remote_update_links, ipaaca.converter.IULinkUpdate, int)
 		self._server.addMethod('updatePayload', self._remote_update_payload, ipaaca.converter.IUPayloadUpdate, int)
-		self._server.addMethod('commit', self._remote_commit, ipaaca_pb2.IUCommission, int)
-		self._server.addMethod('requestResend', self._remote_request_resend, ipaaca_pb2.IUResendRequest, int)
+		self._server.addMethod('commit', self._remote_commit, ipaaca.ipaaca_pb2.IUCommission, int)
+		self._server.addMethod('requestResend', self._remote_request_resend, ipaaca.ipaaca_pb2.IUResendRequest, int)
 		self._informer_store = {}
 		self._id_prefix = str(owning_component_name)+'-'+str(self._uuid)+'-IU-'
 		self.__iu_id_counter_lock = threading.Lock()
@@ -562,7 +562,7 @@ class OutputBuffer(Buffer):
 	def _retract_iu(self, iu):
 		'''Retract an IU.'''
 		iu._retracted = True
-		iu_retraction = ipaaca_pb2.IURetraction()
+		iu_retraction = ipaaca.ipaaca_pb2.IURetraction()
 		iu_retraction.uid = iu.uid
 		iu_retraction.revision = iu.revision
 		informer = self._get_informer(iu._category)
@@ -585,7 +585,7 @@ class OutputBuffer(Buffer):
 		'''
 		# a raw Protobuf object for IUCommission is produced
 		# (unlike updates, where we have an intermediate class)
-		iu_commission = ipaaca_pb2.IUCommission()
+		iu_commission = ipaaca.ipaaca_pb2.IUCommission()
 		iu_commission.uid = iu.uid
 		iu_commission.revision = iu.revision
 		iu_commission.writer_name = iu.owner_name if writer_name is None else writer_name
