@@ -98,13 +98,37 @@ IPAACA_EXPORT void Initializer::dump_current_default_config()//{{{
 IPAACA_EXPORT void Initializer::auto_configure_rsb()//{{{
 {
 	// set RSB host and port iff provided using cmdline arguments
-	if (__ipaaca_static_option_rsb_spread_host!="") {
-		IPAACA_INFO("Overriding RSB Spread host with " << __ipaaca_static_option_rsb_spread_host)
-		setenv("RSB_TRANSPORT_SPREAD_HOST", __ipaaca_static_option_rsb_spread_host.c_str(), 1);
+	if (__ipaaca_static_option_rsb_host!="") {
+		IPAACA_INFO("Overriding RSB host with " << __ipaaca_static_option_rsb_host)
+		setenv("RSB_TRANSPORT_SPREAD_HOST", __ipaaca_static_option_rsb_host.c_str(), 1);
+		setenv("RSB_TRANSPORT_SOCKET_HOST", __ipaaca_static_option_rsb_host.c_str(), 1);
 	}
-	if (__ipaaca_static_option_rsb_spread_port!="") {
-		IPAACA_INFO("Overriding RSB Spread port with " << __ipaaca_static_option_rsb_spread_port)
-		setenv("RSB_TRANSPORT_SPREAD_PORT", __ipaaca_static_option_rsb_spread_port.c_str(), 1);
+	if (__ipaaca_static_option_rsb_port!="") {
+		IPAACA_INFO("Overriding RSB port with " << __ipaaca_static_option_rsb_port)
+		setenv("RSB_TRANSPORT_SPREAD_PORT", __ipaaca_static_option_rsb_port.c_str(), 1);
+		setenv("RSB_TRANSPORT_SOCKET_PORT", __ipaaca_static_option_rsb_port.c_str(), 1);
+	}
+	if (__ipaaca_static_option_rsb_transport!="") {
+		if (__ipaaca_static_option_rsb_transport == "spread") {
+			IPAACA_INFO("Overriding RSB transport mode - using 'spread' ")
+			setenv("RSB_TRANSPORT_SPREAD_ENABLED", "1", 1);
+			setenv("RSB_TRANSPORT_SOCKET_ENABLED", "0", 1);
+		} else if (__ipaaca_static_option_rsb_transport == "socket") {
+			IPAACA_INFO("Overriding RSB transport mode - using 'socket' ")
+			setenv("RSB_TRANSPORT_SPREAD_ENABLED", "0", 1);
+			setenv("RSB_TRANSPORT_SOCKET_ENABLED", "1", 1);
+			if (__ipaaca_static_option_rsb_socketserver!="") {
+				const std::string& srv = __ipaaca_static_option_rsb_socketserver;
+				if ((srv=="1")||(srv=="0")||(srv=="auto")) {
+					IPAACA_INFO("Overriding RSB transport.socket.server with " << srv)
+					setenv("RSB_TRANSPORT_SOCKET_SERVER", srv.c_str(), 1);
+				} else {
+					IPAACA_INFO("Unknown RSB transport.socket.server mode " << srv << " - using config default ")
+				}
+			}
+		} else {
+			IPAACA_INFO("Unknown RSB transport mode " <<  __ipaaca_static_option_rsb_transport << " - using config default ")
+		}
 	}
 	
 	const char* plugin_path = getenv("RSB_PLUGINS_CPP_PATH");
