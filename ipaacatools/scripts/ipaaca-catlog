@@ -38,6 +38,26 @@ import sys
 import ipaaca
 import traceback
 
+def pretty_printed_time(t):
+	if t<0:
+		t = -t
+		sign = '-'
+	else:
+		sign = ' '
+	s = float(t)
+	h = int(s/3600)
+	m = int(s/60) - h*60
+	s -= h*3600 + m*60
+	ms = int((s-int(s))*1000)
+	return sign+'%01d:%02d:%02d.%03d'%(h, m, int(s), ms)
+
+def modify(key, value, strip=False, pretty_printed_times=False, time_offset=0.0):
+	if key=='time':
+		f = float(value.strip()) - time_offset
+		return pretty_printed_time(f) if pretty_printed_times else str(f)
+	else:
+		return value.strip() if strip else value
+
 if __name__=='__main__':
 	try:
 		iap = ipaaca.IpaacaArgumentParser('ipaaca-logcat')
@@ -45,24 +65,36 @@ if __name__=='__main__':
 			'-s', '--strip-fields',
 			dest='strip', action='store_true',
 			default=False,
-			help='strip leading/trailing whitespace from all fields')
+			help='Strip leading/trailing whitespace from all fields')
+		iap.add_argument(
+			'-p', '--pretty-printed-times',
+			dest='pretty_printed_times', action='store_true',
+			default=False,
+			help='Print human-readable times (hh:mm:ss.ms) instead of float seconds')
 		iap.add_argument(
 			'-d', '--delimiter',
 			dest='delimiter', nargs=1,
 			default=['\t'],
 			help='field delimiter, interpreted as python unicode string (default \'\\t\')')
 		iap.add_argument(
+			'-t', '--align-times',
+			dest='align_times', nargs=2,
+			default=['0', '0'],
+			help='Calculate relative output timestamps (default: 0  0 => keep)\nFirst argument is a reference event timestamp from the log file\nSecond argument is the new output time for that same event')
+		iap.add_argument(
 			'-f', '--fields',
 			dest='fields', default=['time', 'text'], nargs='+',
 			help='fields to print (defaults: \'time\' \'text\')')
 		arguments = iap.parse_args()
 		delimiter = eval("u'"+arguments.delimiter[0]+"'", {"__builtins__":None}, {} )
+		ref_t, out_t = float(arguments.align_times[0]), float(arguments.align_times[1])
+		time_offset = ref_t - out_t
 		#print(arguments); sys.exit(1)
-		modify = (lambda s: s.strip()) if arguments.strip else (lambda s: s)
+		#modify = (lambda s: s.strip()) if arguments.strip else (lambda s: s)
 		#modify = lambda s: type(s).__name__
 		for line in sys.stdin:
 			record = eval(line.strip(), {"__builtins__":None}, {} )
-			print(delimiter.join([modify(unicode(record[f])) for f in arguments.fields]))
+			print(delimiter.join([modify(f, unicode(record[f]), arguments.strip, arguments.pretty_printed_times, time_offset) for f in arguments.fields]))
 	except (KeyboardInterrupt, SystemExit):
 		pass # ret below
 	except Exception, e:
