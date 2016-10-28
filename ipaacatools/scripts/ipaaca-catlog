@@ -37,6 +37,7 @@ from __future__ import division, print_function
 import sys
 import ipaaca
 import traceback
+import io
 
 def pretty_printed_time(t):
 	if t<0:
@@ -50,6 +51,91 @@ def pretty_printed_time(t):
 	s -= h*3600 + m*60
 	ms = int((s-int(s))*1000)
 	return sign+'%01d:%02d:%02d.%03d'%(h, m, int(s), ms)
+
+REPLACEMENT_COLORS={
+			'30': 'black',
+			'31': 'red',
+			'32': 'green',
+			'33': 'cyan',
+			'34': 'blue',
+			'35': 'brown',
+			'36': 'magenta',
+			'37': 'grey',
+			'248': 'lightgray',
+			# should add more colors
+		}
+
+def replace_ansi_html(s):
+	r = u''
+	in_esc = False
+	last_color = u''
+	#skip_one_double_wide_bar = False
+	for c in s:
+		if in_esc:
+			if c=='m':
+				in_esc = False
+				itms = last_color.replace('[','').replace(']','').split(';')
+				col = None
+				bold = False
+				if itms[0]=='':
+					r += '</code></font><code>'
+				else:
+					for i in itms:
+						if i=='1':
+							bold = True
+						elif i in REPLACEMENT_COLORS:
+							col = REPLACEMENT_COLORS[i]
+					if col is None:
+						if bold:
+							col = 'grey'
+						else:
+							col = 'black'
+							print('Warning: unknown colors '+str(itms))
+					r += '</code><font color="'+col+'"><code>'
+			else:
+				last_color += c
+		else:
+			#if c in u'▁▂▃▄▅▆▇█':
+			#	if skip_one_double_wide_bar:
+			#		skip_one_double_wide_bar = False
+			#	else:
+			#		r += c
+			#		skip_one_double_wide_bar = True
+			#el
+			if c=='':
+				in_esc = True
+				last_color = ''
+			else:
+				r += c
+	return r
+
+def print_header(formt, fields):
+	s = u''
+	if formt=='html':
+		s += '<html><head><meta charset="UTF-8"><title>flexdiam log view</title></head>\n<body>\n<table width="100%" border="1" bordercolor="lightgray" style="white-space:pre">\n<tr>'
+		for f in fields:
+			s+='<th>'+f+'</th>'
+		s += '</tr>'
+	return s
+
+def print_footer(formt):
+	s = u''
+	if formt=='html':
+		s += '</tr>\n</body>\n</html>'
+	return s
+
+def print_record(data, delimiter, formt):
+	if formt=='html':
+		s = u'<tr>'
+		for d in data:
+			d2 = d.replace('<', '&lt;').replace('>', '&gt;').replace('\n', '<br/>').replace('"', '&quot;')
+			d3 = replace_ansi_html(d2)
+			#s += u'<td><code>' + d2.replace('<', '&lt;').replace('>', '&gt;').replace('\n', '<br/>') + u'</code></td>'
+			s += u'<td><code>' + d3 + u'</code></td>'
+		s += u'</tr>'
+		return s
+	else:
+		return delimiter.join(data)
 
 def modify(key, value, strip=False, pretty_printed_times=False, time_offset=0.0):
 	if key=='time':
@@ -72,6 +158,16 @@ if __name__=='__main__':
 			default=False,
 			help='Print human-readable times (hh:mm:ss.ms) instead of float seconds')
 		iap.add_argument(
+			'--format',
+			dest='format', nargs=1,
+			default=['plain'],
+			help='output format (plain, html) (default plain)')
+		iap.add_argument(
+			'-o', '--output-file',
+			dest='output_file', nargs=1,
+			default=['-'],
+			help='output file name (default \'-\' -> standard terminal output)')
+		iap.add_argument(
 			'-d', '--delimiter',
 			dest='delimiter', nargs=1,
 			default=['\t'],
@@ -92,9 +188,18 @@ if __name__=='__main__':
 		#print(arguments); sys.exit(1)
 		#modify = (lambda s: s.strip()) if arguments.strip else (lambda s: s)
 		#modify = lambda s: type(s).__name__
+		fil = sys.stdout
+		if arguments.output_file[0] != '-':
+			fil = io.open(arguments.output_file[0], 'w', encoding='utf8')
+		fil.write(print_header(arguments.format[0], arguments.fields)+'\n')
 		for line in sys.stdin:
 			record = eval(line.strip(), {"__builtins__":None}, {} )
-			print(delimiter.join([modify(f, unicode(record[f]), arguments.strip, arguments.pretty_printed_times, time_offset) for f in arguments.fields]))
+			data = [modify(f, unicode(record[f]), arguments.strip, arguments.pretty_printed_times, time_offset) for f in arguments.fields]
+			u = print_record(data, delimiter, arguments.format[0])
+			res = u'{}'.format(u) #.decode('utf-8')
+			fil.write(u''+res+'\n' )
+		fil.write(print_footer(arguments.format[0])+'\n')
+		if fil != sys.stdout: fil.close()
 	except (KeyboardInterrupt, SystemExit):
 		pass # ret below
 	except Exception, e:
