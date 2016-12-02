@@ -157,10 +157,16 @@ IU payload contents: Payload, PayloadEntryProxy
 
 #ifdef WIN32
 // for Windows
+//  time
 #include <time.h>
+//  and env
+#define IPAACA_SETENV(k, v) _putenv_s(k, v);
 #else
-// for Linux and OS X
+// for Linux and MacOS
+//  time
 #include <sys/time.h>
+//  and env
+#define IPAACA_SETENV(k, v) setenv(k, v, 1);
 #endif
 
 #include <cstdlib>

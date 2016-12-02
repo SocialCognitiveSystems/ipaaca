@@ -3,6 +3,8 @@ cmake_minimum_required (VERSION 2.6)
 # project name
 project (ipaaca_cpp)
 
+set (CMAKE_CXX_STANDARD 11)
+
 # use C++11 (starting with proto v2 / ipaaca-c++ release 12)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
@@ -43,19 +45,18 @@ if(WIN32) # Check if we are on Windows
 		#  On the other hand, if you simply want to use the precompiled rsb from inside
 		#  "rsx" (it works but has no debug info), uncomment the following four lines.
 		#
-		include_directories( ${PROJECT_SOURCE_DIR}/../../../rsx/RSC-0.11.0-win32/include/rsc0.11 )
-		include_directories( ${PROJECT_SOURCE_DIR}/../../../rsx/RSB-0.11.2-win32/include/rsb0.11 )
-		link_directories( ${PROJECT_SOURCE_DIR}/../../../rsx/RSC-0.11.0-win32/lib )
-		link_directories( ${PROJECT_SOURCE_DIR}/../../../rsx/RSB-0.11.2-win32/lib )
+		include_directories( ${PROJECT_SOURCE_DIR}/../../../rsx/RSC-0.14.5-win32/include/rsc0.14 )
+		include_directories( ${PROJECT_SOURCE_DIR}/../../../rsx/RSB-0.14.2-win32/include/rsb0.14 )
+		link_directories( ${PROJECT_SOURCE_DIR}/../../../rsx/RSC-0.14.5-win32/lib )
+		link_directories( ${PROJECT_SOURCE_DIR}/../../../rsx/RSB-0.14.2-win32/lib )
 		
-		set(RSBLIBS rsc0.11 rsb0.11)
+		#set(RSBLIBS rsc0.14 rsb0.14)
+		set(RSBLIBS ${PROJECT_SOURCE_DIR}/../../../rsx/RSC-0.14.5-win32/rsc0.14.lib  ${PROJECT_SOURCE_DIR}/../../../rsx/RSB-0.14.2-win32/rsb0.14.lib )
 		set(LIBS ${LIBS} rpcrt4)
-		
-		# Using custom Protobuf script (from rsc) because it honors PROTOBUF_ROOT
-		find_package(ProtocolBuffers REQUIRED)
-		link_directories(${PROTOBUF_LIBRARY_DIRS})
-		include_directories(${PROTOBUF_INCLUDE_DIRS})
-		
+
+                set(Boost_USE_STATIC_LIBS ON)
+                set(Boost_USE_MULTITHREADED ON)
+	
 		find_package(Boost COMPONENTS date_time program_options system filesystem thread signals regex REQUIRED)
 		link_directories(${Boost_LIBRARY_DIRS})
 		include_directories(${Boost_INCLUDE_DIRS})
@@ -64,14 +65,22 @@ if(WIN32) # Check if we are on Windows
 		set(CORRECT_BOOST_LIBS "")
 		foreach(BLIB ${Boost_LIBRARIES})
 			#message(STATUS "Boost lib: ${BLIB}")
-			string(REGEX MATCH "boost_thread[^/]+$" drop_item ${BLIB})
-			if(drop_item)
-				message(STATUS "(Windows hack:) Removing boost_thread library from the linkage list.")
-			else(drop_item)
+			##message(STATUS "(Windows hack:) forcing vc110")
+			##string(REPLACE "-vc140" "-vc110" BLIB_CONV ${BLIB})
+			#string(REGEX MATCH "boost_thread[^/]+$" drop_item ${BLIB_CONV})
+			#if(drop_item)
+		#		message(STATUS "(Windows hack:) =====> Removing boost_thread library from the linkage list.")
+		#	else(drop_item)
 				list(APPEND CORRECT_BOOST_LIBS ${BLIB})
-			endif(drop_item)
+		#	endif(drop_item)
 		endforeach(BLIB ${Boost_LIBRARIES})
 		set(Boost_LIBRARIES ${CORRECT_BOOST_LIBS})
+		
+		# Using custom Protobuf script (from rsc) because it honors PROTOBUF_ROOT
+		find_package(ProtocolBuffers REQUIRED)
+		link_directories(${PROTOBUF_LIBRARY_DIRS})
+		include_directories(${PROTOBUF_INCLUDE_DIRS})
+		
 		
 	else()
 		message(SEND_ERROR "Unsupported compiler! Please build with MSVC (2010).")
@@ -111,7 +120,11 @@ else()
 endif(WIN32)
 
 
-set(LIBS ${LIBS} ${PROTOBUF_LIBRARY} ${Boost_LIBRARIES} ${RSBLIBS} pthread)
+set(LIBS ${LIBS} ${PROTOBUF_LIBRARY} ${Boost_LIBRARIES} ${RSBLIBS})
+
+if(!WIN32)
+set(LIBS ${LIBS} pthread)
+endif(!WIN32)
 
 # Hide the rsb-induced boost-signals warning (FOR NOW)
 set(IPAACA_CXX_DEFINES "${IPAACA_CXX_DEFINES} -DBOOST_SIGNALS_NO_DEPRECATION_WARNING")
@@ -179,8 +192,8 @@ add_library(ipaaca SHARED ${SOURCE})
 # and link all the required external libs (found above using find_package etc.)
 target_link_libraries(ipaaca ${LIBS})
 
-add_executable (ipaaca-test-json ${JSON_TEST_SOURCE})
-target_link_libraries (ipaaca-test-json ${LIBS})
+#add_executable (ipaaca-test-json ${JSON_TEST_SOURCE})
+#target_link_libraries (ipaaca-test-json ${LIBS})
 
 set(DEFAULT_BIN_SUBDIR bin)
 set(DEFAULT_LIB_SUBDIR lib)
@@ -203,11 +216,11 @@ install(
 	DESTINATION include/ipaaca/
 	)
 
-install (
-	TARGETS ipaaca-test-json
-	RUNTIME DESTINATION bin
-	LIBRARY DESTINATION lib
-	ARCHIVE DESTINATION lib
-	)
+#install (
+	#TARGETS ipaaca-test-json
+	#RUNTIME DESTINATION bin
+	#LIBRARY DESTINATION lib
+	#ARCHIVE DESTINATION lib
+	#	)
 
 

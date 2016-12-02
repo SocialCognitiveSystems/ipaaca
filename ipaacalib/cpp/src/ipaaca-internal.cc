@@ -100,28 +100,28 @@ IPAACA_EXPORT void Initializer::auto_configure_rsb()//{{{
 	// set RSB host and port iff provided using cmdline arguments
 	if (__ipaaca_static_option_rsb_host!="") {
 		IPAACA_INFO("Overriding RSB host with " << __ipaaca_static_option_rsb_host)
-		setenv("RSB_TRANSPORT_SPREAD_HOST", __ipaaca_static_option_rsb_host.c_str(), 1);
-		setenv("RSB_TRANSPORT_SOCKET_HOST", __ipaaca_static_option_rsb_host.c_str(), 1);
+		IPAACA_SETENV("RSB_TRANSPORT_SPREAD_HOST", __ipaaca_static_option_rsb_host.c_str())
+		IPAACA_SETENV("RSB_TRANSPORT_SOCKET_HOST", __ipaaca_static_option_rsb_host.c_str());
 	}
 	if (__ipaaca_static_option_rsb_port!="") {
 		IPAACA_INFO("Overriding RSB port with " << __ipaaca_static_option_rsb_port)
-		setenv("RSB_TRANSPORT_SPREAD_PORT", __ipaaca_static_option_rsb_port.c_str(), 1);
-		setenv("RSB_TRANSPORT_SOCKET_PORT", __ipaaca_static_option_rsb_port.c_str(), 1);
+		IPAACA_SETENV("RSB_TRANSPORT_SPREAD_PORT", __ipaaca_static_option_rsb_port.c_str());
+		IPAACA_SETENV("RSB_TRANSPORT_SOCKET_PORT", __ipaaca_static_option_rsb_port.c_str());
 	}
 	if (__ipaaca_static_option_rsb_transport!="") {
 		if (__ipaaca_static_option_rsb_transport == "spread") {
 			IPAACA_INFO("Overriding RSB transport mode - using 'spread' ")
-			setenv("RSB_TRANSPORT_SPREAD_ENABLED", "1", 1);
-			setenv("RSB_TRANSPORT_SOCKET_ENABLED", "0", 1);
+			IPAACA_SETENV("RSB_TRANSPORT_SPREAD_ENABLED", "1", 1);
+			IPAACA_SETENV("RSB_TRANSPORT_SOCKET_ENABLED", "0", 1);
 		} else if (__ipaaca_static_option_rsb_transport == "socket") {
 			IPAACA_INFO("Overriding RSB transport mode - using 'socket' ")
-			setenv("RSB_TRANSPORT_SPREAD_ENABLED", "0", 1);
-			setenv("RSB_TRANSPORT_SOCKET_ENABLED", "1", 1);
+			IPAACA_SETENV("RSB_TRANSPORT_SPREAD_ENABLED", "0", 1);
+			IPAACA_SETENV("RSB_TRANSPORT_SOCKET_ENABLED", "1", 1);
 			if (__ipaaca_static_option_rsb_socketserver!="") {
 				const std::string& srv = __ipaaca_static_option_rsb_socketserver;
 				if ((srv=="1")||(srv=="0")||(srv=="auto")) {
 					IPAACA_INFO("Overriding RSB transport.socket.server with " << srv)
-					setenv("RSB_TRANSPORT_SOCKET_SERVER", srv.c_str(), 1);
+					IPAACA_SETENV("RSB_TRANSPORT_SOCKET_SERVER", srv.c_str());
 				} else {
 					IPAACA_INFO("Unknown RSB transport.socket.server mode " << srv << " - using config default ")
 				}
@@ -134,7 +134,7 @@ IPAACA_EXPORT void Initializer::auto_configure_rsb()//{{{
 	const char* plugin_path = getenv("RSB_PLUGINS_CPP_PATH");
 	if (!plugin_path) {
 #ifdef WIN32
-		IPAACA_WARN("WARNING: RSB_PLUGINS_CPP_PATH not set - in Windows it has to be specified.")
+		IPAACA_WARNING("WARNING: RSB_PLUGINS_CPP_PATH not set - in Windows it has to be specified.")
 		//throw NotImplementedError();
 #else
 		IPAACA_INFO("RSB_PLUGINS_CPP_PATH not set; looking here and up to 7 dirs up.")
@@ -147,7 +147,7 @@ IPAACA_EXPORT void Initializer::auto_configure_rsb()//{{{
 			if (g.gl_pathc>0) {
 				const char* found_path = g.gl_pathv[0];
 				IPAACA_INFO("Found an RSB plugin dir which will be used automatically: " << found_path)
-				setenv("RSB_PLUGINS_CPP_PATH", found_path, 1);
+				IPAACA_SETENV("RSB_PLUGINS_CPP_PATH", found_path);
 				break;
 			} // else keep going
 			globfree(&g);

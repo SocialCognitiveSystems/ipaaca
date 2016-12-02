@@ -53,16 +53,16 @@
 
 // casting operators from Value&
 /// 'Smart' type conversions, allowing for some leeway type-wise (e.g. string "1.3" can be successfully cast to double or long). Used by PayloadEntryProxy.
-IPAACA_HEADER_EXPORT template<typename T> T json_value_cast(const rapidjson::Value&);
-IPAACA_HEADER_EXPORT template<typename T> T json_value_cast(const rapidjson::Value* value) { if (!value) return T(); return json_value_cast<T>(*value); }
-IPAACA_HEADER_EXPORT template<> long json_value_cast(const rapidjson::Value&);
-IPAACA_HEADER_EXPORT template<> int json_value_cast(const rapidjson::Value&);
-IPAACA_HEADER_EXPORT template<> double json_value_cast(const rapidjson::Value&);
-IPAACA_HEADER_EXPORT template<> bool json_value_cast(const rapidjson::Value&);
-IPAACA_HEADER_EXPORT template<> std::string json_value_cast(const rapidjson::Value&);
-IPAACA_HEADER_EXPORT template<> std::vector<std::string> json_value_cast(const rapidjson::Value&);
-IPAACA_HEADER_EXPORT template<> std::list<std::string> json_value_cast(const rapidjson::Value&);
-IPAACA_HEADER_EXPORT template<> std::map<std::string, std::string> json_value_cast(const rapidjson::Value&);
+template<typename T> IPAACA_HEADER_EXPORT T json_value_cast(const rapidjson::Value&);
+template<typename T> IPAACA_HEADER_EXPORT T json_value_cast(const rapidjson::Value* value) { if (!value) return T(); return json_value_cast<T>(*value); }
+template<> IPAACA_HEADER_EXPORT long json_value_cast(const rapidjson::Value&);
+template<> IPAACA_HEADER_EXPORT int json_value_cast(const rapidjson::Value&);
+template<> IPAACA_HEADER_EXPORT double json_value_cast(const rapidjson::Value&);
+template<> IPAACA_HEADER_EXPORT bool json_value_cast(const rapidjson::Value&);
+template<> IPAACA_HEADER_EXPORT std::string json_value_cast(const rapidjson::Value&);
+template<> IPAACA_HEADER_EXPORT std::vector<std::string> json_value_cast(const rapidjson::Value&);
+template<> IPAACA_HEADER_EXPORT std::list<std::string> json_value_cast(const rapidjson::Value&);
+template<> IPAACA_HEADER_EXPORT std::map<std::string, std::string> json_value_cast(const rapidjson::Value&);
 
 // helpers to set Value& from various standard types
 //IPAACA_HEADER_EXPORT template<typename T> void pack_into_json_value(rapidjson::Value&, rapidjson::Document::AllocatorType&, T t);
@@ -80,7 +80,7 @@ IPAACA_HEADER_EXPORT void pack_into_json_value(rapidjson::Value&, rapidjson::Doc
 IPAACA_HEADER_EXPORT void pack_into_json_value(rapidjson::Value&, rapidjson::Document::AllocatorType&, const char*);
 // helpers to set Value& from several standard containers containing the above standard types
 /// Setter to store a vector of supported basic types into json value, used by PayloadEntryProxy.
-IPAACA_HEADER_EXPORT template<typename T> void pack_into_json_value(rapidjson::Value& valueobject, rapidjson::Document::AllocatorType& allocator, const std::vector<T>& ts)
+template<typename T> IPAACA_HEADER_EXPORT void pack_into_json_value(rapidjson::Value& valueobject, rapidjson::Document::AllocatorType& allocator, const std::vector<T>& ts)
 {
 	valueobject.SetArray();
 	for (auto& val: ts) {
@@ -90,7 +90,7 @@ IPAACA_HEADER_EXPORT template<typename T> void pack_into_json_value(rapidjson::V
 	}
 }
 /// Setter to store a list of supported basic types into json value, used by PayloadEntryProxy.
-IPAACA_HEADER_EXPORT template<typename T> void pack_into_json_value(rapidjson::Value& valueobject, rapidjson::Document::AllocatorType& allocator, const std::list<T>& ts)
+template<typename T> IPAACA_HEADER_EXPORT void pack_into_json_value(rapidjson::Value& valueobject, rapidjson::Document::AllocatorType& allocator, const std::list<T>& ts)
 {
 	valueobject.SetArray();
 	for (auto& val: ts) {
@@ -100,7 +100,7 @@ IPAACA_HEADER_EXPORT template<typename T> void pack_into_json_value(rapidjson::V
 	}
 }
 /// Setter to store a map of string -> supported basic types into json value, used by PayloadEntryProxy.
-IPAACA_HEADER_EXPORT template<typename T> void pack_into_json_value(rapidjson::Value& valueobject, rapidjson::Document::AllocatorType& allocator, const std::map<std::string, T>& ts)
+template<typename T> IPAACA_HEADER_EXPORT void pack_into_json_value(rapidjson::Value& valueobject, rapidjson::Document::AllocatorType& allocator, const std::map<std::string, T>& ts)
 {
 	valueobject.SetObject();
 	for (auto& val: ts) {
@@ -388,7 +388,7 @@ IPAACA_HEADER_EXPORT class PayloadEntryProxy//{{{
 		IPAACA_HEADER_EXPORT PayloadEntryProxy operator[](const char* key);
 		//
 		/// Set or overwrite some portion of a payload from the point navigated to
-		IPAACA_HEADER_EXPORT template<typename T> PayloadEntryProxy& operator=(T t)
+		template<typename T> IPAACA_HEADER_EXPORT PayloadEntryProxy& operator=(T t)
 		{
 			PayloadDocumentEntry::ptr new_entry = document_entry->clone(); // copy-on-write, no lock required
 			rapidjson::Value& newval = new_entry->get_or_create_nested_value_from_proxy_path(this);
@@ -401,7 +401,7 @@ IPAACA_HEADER_EXPORT class PayloadEntryProxy//{{{
 		/// Value comparison with other proxy contents
 		IPAACA_HEADER_EXPORT inline bool operator!=(const PayloadEntryProxy& otherproxy) { return !operator==(otherproxy); }
 		/// Value comparison with supported basic types
-		IPAACA_HEADER_EXPORT template<typename T> bool operator==(T othervalue)
+		template<typename T> IPAACA_HEADER_EXPORT bool operator==(T othervalue)
 		{
 			if (!json_value) return false;
 			try {
@@ -412,7 +412,7 @@ IPAACA_HEADER_EXPORT class PayloadEntryProxy//{{{
 			}
 		}
 		/// Value comparison with supported basic types
-		IPAACA_HEADER_EXPORT template<typename T> bool operator!=(T othervalue) { return !operator==(othervalue); }
+		template<typename T> IPAACA_HEADER_EXPORT bool operator!=(T othervalue) { return !operator==(othervalue); }
 		/// Value comparison with char* (required to be explicitly added)
 		IPAACA_HEADER_EXPORT inline bool operator==(const char* othervalue)
 		{
@@ -434,7 +434,7 @@ IPAACA_HEADER_EXPORT class PayloadEntryProxy//{{{
 		/// Conversion to bool (explicit or implicit)
 		IPAACA_HEADER_EXPORT operator bool();
 		/// Conversion to uniform std::vector of supported basic type
-		IPAACA_HEADER_EXPORT template<typename Inner> operator std::vector<Inner>() {
+		template<typename Inner> IPAACA_HEADER_EXPORT operator std::vector<Inner>() {
 			if ((!json_value) || (!json_value->IsArray())) throw PayloadAddressingError();
 			std::vector<Inner> result;
 			for (auto it = json_value->Begin(); it != json_value->End(); ++it) {
@@ -443,7 +443,7 @@ IPAACA_HEADER_EXPORT class PayloadEntryProxy//{{{
 			return result;
 		}
 		/// Conversion to uniform std::list of supported basic type
-		IPAACA_HEADER_EXPORT template<typename Inner> operator std::list<Inner>() {
+		template<typename Inner> IPAACA_HEADER_EXPORT operator std::list<Inner>() {
 			if ((!json_value) || (!json_value->IsArray())) throw PayloadAddressingError();
 			std::list<Inner> result;
 			for (auto it = json_value->Begin(); it != json_value->End(); ++it) {
@@ -452,7 +452,7 @@ IPAACA_HEADER_EXPORT class PayloadEntryProxy//{{{
 			return result;
 		}
 		/// Conversion to uniform std::map of string -> supported basic type
-		IPAACA_HEADER_EXPORT template<typename Inner> operator std::map<std::string, Inner>() {
+		template<typename Inner> IPAACA_HEADER_EXPORT operator std::map<std::string, Inner>() {
 			if ((!json_value) || (!json_value->IsObject())) throw PayloadAddressingError();
 			std::map<std::string, Inner> result;
 			for (auto it = json_value->MemberBegin(); it != json_value->MemberEnd(); ++it) {
@@ -475,7 +475,7 @@ IPAACA_HEADER_EXPORT class PayloadEntryProxy//{{{
 		[[deprecated("Use operator bool() instead (i.e. explicit or implicit cast)")]]
 		IPAACA_HEADER_EXPORT bool to_bool();
 		/// Append a supported type to a list-type payload value
-		IPAACA_HEADER_EXPORT template<typename T> void push_back(T t)
+		template<typename T> IPAACA_HEADER_EXPORT void push_back(T t)
 		{
 			if ((!json_value) || (!json_value->IsArray())) throw PayloadAddressingError();
 			PayloadDocumentEntry::ptr new_entry = document_entry->clone(); // copy-on-write, no lock required
@@ -500,7 +500,7 @@ IPAACA_HEADER_EXPORT class PayloadEntryProxy//{{{
 			_payload->set(_key, new_entry);
 		}
 		/// Extend a list-type payload value with a vector containing items of a supported type
-		IPAACA_HEADER_EXPORT template<typename T> void extend(const std::vector<T>& ts)
+		template<typename T> IPAACA_HEADER_EXPORT void extend(const std::vector<T>& ts)
 		{
 			if ((!json_value) || (!json_value->IsArray())) throw PayloadAddressingError();
 			PayloadDocumentEntry::ptr new_entry = document_entry->clone(); // copy-on-write, no lock required
@@ -513,7 +513,7 @@ IPAACA_HEADER_EXPORT class PayloadEntryProxy//{{{
 			_payload->set(_key, new_entry);
 		}
 		/// Extend a list-type payload value with a list containing items of a supported type
-		IPAACA_HEADER_EXPORT template<typename T> void extend(const std::list<T>& ts)
+		template<typename T> IPAACA_HEADER_EXPORT void extend(const std::list<T>& ts)
 		{
 			if ((!json_value) || (!json_value->IsArray())) throw PayloadAddressingError();
 			PayloadDocumentEntry::ptr new_entry = document_entry->clone(); // copy-on-write, no lock required
