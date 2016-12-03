@@ -52,12 +52,15 @@
 
 /// Reentrant lock/mutex class
 #ifdef WIN32
+} // namespace      // namespace hack
 #include <boost/thread/recursive_mutex.hpp>
 #include <boost/thread/thread.hpp>
-IPAACA_HEADER_EXPORT class Lock
+namespace ipaaca {  // namespace hack
+
+class Lock
 {
 	protected:
-		IPAACA_MEMBER_VAR_EXPORT boost::recursive_mutex _mutex;
+		boost::recursive_mutex _mutex;
 	public:
 		IPAACA_HEADER_EXPORT inline Lock() {
 		}
@@ -78,7 +81,7 @@ IPAACA_HEADER_EXPORT class Lock
 };
 #else
 #include <pthread.h>
-IPAACA_HEADER_EXPORT class Lock
+class Lock
 {
 	protected:
 		IPAACA_MEMBER_VAR_EXPORT pthread_mutexattr_t _attrs;
@@ -114,7 +117,7 @@ IPAACA_HEADER_EXPORT class Lock
  *  (i.e.  {}-block) and it will obtain the lock and
  * auto-release in on exiting the stack frame.
  */
-IPAACA_HEADER_EXPORT class Locker
+class Locker
 {
 	protected:
 		IPAACA_MEMBER_VAR_EXPORT Lock* _lock;
@@ -136,7 +139,7 @@ IPAACA_HEADER_EXPORT class Locker
  * \see Locker
  */
 #ifndef WIN32
-IPAACA_HEADER_EXPORT class PthreadMutexLocker
+class PthreadMutexLocker
 {
 	protected:
 		IPAACA_MEMBER_VAR_EXPORT pthread_mutex_t* _lock;

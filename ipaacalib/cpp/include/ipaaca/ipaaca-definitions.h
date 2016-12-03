@@ -87,7 +87,7 @@ IPAACA_HEADER_EXPORT inline std::string iu_event_type_to_str(IUEventType type)
 }
 
 /// IU access mode: PUSH means that updates are broadcast; REMOTE means that reads are RPC calls (currently NOT implemented); MESSAGE means a fire-and-forget message
-IPAACA_HEADER_EXPORT enum IUAccessMode {
+enum IUAccessMode {
 	IU_ACCESS_PUSH,
 	IU_ACCESS_REMOTE,
 	IU_ACCESS_MESSAGE
@@ -99,7 +99,7 @@ IPAACA_HEADER_EXPORT std::string generate_uuid_string();
 /**
  * Exception with string description
  */
-IPAACA_HEADER_EXPORT class Exception: public std::exception//{{{
+class Exception: public std::exception//{{{
 {
 	protected:
 		IPAACA_MEMBER_VAR_EXPORT std::string _description;
@@ -110,7 +110,7 @@ IPAACA_HEADER_EXPORT class Exception: public std::exception//{{{
 			return _description.c_str();
 		}
 };//}}}
-IPAACA_HEADER_EXPORT class Abort: public std::exception//{{{
+class Abort: public std::exception//{{{
 {
 	protected:
 		IPAACA_MEMBER_VAR_EXPORT std::string _description;
@@ -123,7 +123,7 @@ IPAACA_HEADER_EXPORT class Abort: public std::exception//{{{
 };//}}}
 
 /// IU was not found in a buffer
-IPAACA_HEADER_EXPORT class IUNotFoundError: public Exception//{{{
+class IUNotFoundError: public Exception//{{{
 {
 	public:
 		IPAACA_HEADER_EXPORT inline ~IUNotFoundError() throw() { }
@@ -132,7 +132,7 @@ IPAACA_HEADER_EXPORT class IUNotFoundError: public Exception//{{{
 		}
 };//}}}
 /// IU was already published
-IPAACA_HEADER_EXPORT class IUPublishedError: public Exception//{{{
+class IUPublishedError: public Exception//{{{
 {
 	public:
 		IPAACA_HEADER_EXPORT inline ~IUPublishedError() throw() { }
@@ -141,7 +141,7 @@ IPAACA_HEADER_EXPORT class IUPublishedError: public Exception//{{{
 		}
 };//}}}
 /// IU had already been committed to
-IPAACA_HEADER_EXPORT class IUCommittedError: public Exception//{{{
+class IUCommittedError: public Exception//{{{
 {
 	public:
 		IPAACA_HEADER_EXPORT inline ~IUCommittedError() throw() { }
@@ -150,7 +150,7 @@ IPAACA_HEADER_EXPORT class IUCommittedError: public Exception//{{{
 		}
 };//}}}
 /// IU had already been retracted
-IPAACA_HEADER_EXPORT class IURetractedError: public Exception//{{{
+class IURetractedError: public Exception//{{{
 {
 	public:
 		IPAACA_HEADER_EXPORT inline ~IURetractedError() throw() { }
@@ -159,7 +159,7 @@ IPAACA_HEADER_EXPORT class IURetractedError: public Exception//{{{
 		}
 };//}}}
 /// Remote IU update failed because it had been modified in the mean time
-IPAACA_HEADER_EXPORT class IUUpdateFailedError: public Exception//{{{
+class IUUpdateFailedError: public Exception//{{{
 {
 	public:
 		IPAACA_HEADER_EXPORT inline ~IUUpdateFailedError() throw() { }
@@ -168,7 +168,7 @@ IPAACA_HEADER_EXPORT class IUUpdateFailedError: public Exception//{{{
 		}
 };//}}}
 /// Requested resend of old IU due to malformed channel specification
-IPAACA_HEADER_EXPORT class IUResendRequestFailedError: public Exception//{{{
+class IUResendRequestFailedError: public Exception//{{{
 {
 	public:
 		IPAACA_HEADER_EXPORT inline ~IUResendRequestFailedError() throw() { }
@@ -177,7 +177,7 @@ IPAACA_HEADER_EXPORT class IUResendRequestFailedError: public Exception//{{{
 		}
 };//}}}
 /// Write operation failed because IU had been set read-only
-IPAACA_HEADER_EXPORT class IUReadOnlyError: public Exception//{{{
+class IUReadOnlyError: public Exception//{{{
 {
 	public:
 		IPAACA_HEADER_EXPORT inline ~IUReadOnlyError() throw() { }
@@ -186,7 +186,7 @@ IPAACA_HEADER_EXPORT class IUReadOnlyError: public Exception//{{{
 		}
 };//}}}
 /// Buffer::add() failed because the IU had been previously placed in another buffer
-IPAACA_HEADER_EXPORT class IUAlreadyInABufferError: public Exception//{{{
+class IUAlreadyInABufferError: public Exception//{{{
 {
 	public:
 		IPAACA_HEADER_EXPORT inline ~IUAlreadyInABufferError() throw() { }
@@ -195,7 +195,7 @@ IPAACA_HEADER_EXPORT class IUAlreadyInABufferError: public Exception//{{{
 		}
 };//}}}
 /// A request was made that is only valid for an already published IU
-IPAACA_HEADER_EXPORT class IUUnpublishedError: public Exception//{{{
+class IUUnpublishedError: public Exception//{{{
 {
 	public:
 		IPAACA_HEADER_EXPORT inline ~IUUnpublishedError() throw() { }
@@ -204,7 +204,7 @@ IPAACA_HEADER_EXPORT class IUUnpublishedError: public Exception//{{{
 		}
 };//}}}
 /// IU had already been allocated a UID
-IPAACA_HEADER_EXPORT class IUAlreadyHasAnUIDError: public Exception//{{{
+class IUAlreadyHasAnUIDError: public Exception//{{{
 {
 	public:
 		IPAACA_HEADER_EXPORT inline ~IUAlreadyHasAnUIDError() throw() { }
@@ -213,7 +213,7 @@ IPAACA_HEADER_EXPORT class IUAlreadyHasAnUIDError: public Exception//{{{
 		}
 };//}}}
 /// IU had already been allocated an owner name
-IPAACA_HEADER_EXPORT class IUAlreadyHasAnOwnerNameError: public Exception//{{{
+class IUAlreadyHasAnOwnerNameError: public Exception//{{{
 {
 	public:
 		IPAACA_HEADER_EXPORT inline ~IUAlreadyHasAnOwnerNameError() throw() { }
@@ -222,7 +222,7 @@ IPAACA_HEADER_EXPORT class IUAlreadyHasAnOwnerNameError: public Exception//{{{
 		}
 };//}}}
 /// UID generation failed (Windows only)
-IPAACA_HEADER_EXPORT class UUIDGenerationError: public Exception//{{{
+class UUIDGenerationError: public Exception//{{{
 {
 	public:
 		IPAACA_HEADER_EXPORT inline ~UUIDGenerationError() throw() { }
@@ -231,7 +231,7 @@ IPAACA_HEADER_EXPORT class UUIDGenerationError: public Exception//{{{
 		}
 };//}}}
 /// Not implemented (e.g. invalid request parameters via backend)
-IPAACA_HEADER_EXPORT class NotImplementedError: public Exception//{{{
+class NotImplementedError: public Exception//{{{
 {
 	public:
 		IPAACA_HEADER_EXPORT inline ~NotImplementedError() throw() { }
@@ -240,7 +240,7 @@ IPAACA_HEADER_EXPORT class NotImplementedError: public Exception//{{{
 		}
 };//}}}
 /// PayloadEntryProxy requested type conversion failed (including lenient interpretation)
-IPAACA_HEADER_EXPORT class PayloadTypeConversionError: public Exception//{{{
+class PayloadTypeConversionError: public Exception//{{{
 {
 	public:
 		IPAACA_HEADER_EXPORT inline ~PayloadTypeConversionError() throw() { }
@@ -249,7 +249,7 @@ IPAACA_HEADER_EXPORT class PayloadTypeConversionError: public Exception//{{{
 		}
 };//}}}
 /// PayloadEntryProxy was addressed as list when not a list or as map when not a map
-IPAACA_HEADER_EXPORT class PayloadAddressingError: public Exception//{{{
+class PayloadAddressingError: public Exception//{{{
 {
 	public:
 		IPAACA_HEADER_EXPORT inline ~PayloadAddressingError() throw() { }
@@ -258,7 +258,7 @@ IPAACA_HEADER_EXPORT class PayloadAddressingError: public Exception//{{{
 		}
 };//}}}
 /// Malformed json was received for a Payload
-IPAACA_HEADER_EXPORT class JsonParsingError: public Exception//{{{
+class JsonParsingError: public Exception//{{{
 {
 	public:
 		IPAACA_HEADER_EXPORT inline ~JsonParsingError() throw() { }
@@ -267,7 +267,7 @@ IPAACA_HEADER_EXPORT class JsonParsingError: public Exception//{{{
 		}
 };//}}}
 /// PayloadEntryProxy invalidated (unused)
-IPAACA_HEADER_EXPORT class PayloadEntryProxyInvalidatedError: public Exception//{{{
+class PayloadEntryProxyInvalidatedError: public Exception//{{{
 {
 	public:
 		IPAACA_HEADER_EXPORT inline ~PayloadEntryProxyInvalidatedError() throw() { }
@@ -276,7 +276,7 @@ IPAACA_HEADER_EXPORT class PayloadEntryProxyInvalidatedError: public Exception//
 		}
 };//}}}
 /// Iterator over Payload entries was invalidated by an intermediate IU update operation
-IPAACA_HEADER_EXPORT class PayloadIteratorInvalidError: public Exception//{{{
+class PayloadIteratorInvalidError: public Exception//{{{
 {
 	public:
 		IPAACA_HEADER_EXPORT inline ~PayloadIteratorInvalidError() throw() { }
@@ -291,7 +291,7 @@ IPAACA_HEADER_EXPORT class PayloadIteratorInvalidError: public Exception//{{{
  * Unless called manually, it is initialized when ipaaca is first used
  * (i.e. the first Buffer is created).
  */
-IPAACA_HEADER_EXPORT class Initializer
+class Initializer
 {
 	public:
 		/// Initialize the backend [DEPRECATED] (old name, use initialize_backend() instead)
@@ -333,7 +333,7 @@ IPAACA_HEADER_EXPORT class Initializer
  * --rsb-enable-logging <level>    | Set rsb (transport) log level
  *
  */
-IPAACA_HEADER_EXPORT class CommandLineOptions {
+class CommandLineOptions {
 	public:
 		IPAACA_HEADER_EXPORT inline CommandLineOptions()
 		{ }

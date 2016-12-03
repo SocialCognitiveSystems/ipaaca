@@ -58,7 +58,7 @@
  * contains most generic user-space functions.
  *
  */
-IPAACA_HEADER_EXPORT class IUInterface {//{{{
+class IUInterface {//{{{
 	friend class IUConverter;
 	friend class MessageConverter;
 	friend std::ostream& operator<<(std::ostream& os, const IUInterface& obj);
@@ -159,7 +159,7 @@ IPAACA_HEADER_EXPORT class IUInterface {//{{{
  *
  * See IUInterface for a generic description of most user-space member functions.
  */
-IPAACA_HEADER_EXPORT class IU: public IUInterface {//{{{
+class IU: public IUInterface {//{{{
 	friend class Buffer;
 	friend class InputBuffer;
 	friend class OutputBuffer;
@@ -203,7 +203,7 @@ IPAACA_HEADER_EXPORT class IU: public IUInterface {//{{{
  *
  * \see IU, IUInterface
  */
-IPAACA_HEADER_EXPORT class Message: public IU {//{{{
+class Message: public IU {//{{{
 	friend class Buffer;
 	friend class InputBuffer;
 	friend class OutputBuffer;
@@ -229,7 +229,7 @@ IPAACA_HEADER_EXPORT class Message: public IU {//{{{
 };//}}}
 
 /// Copy of a remote IU, received in an InputBuffer. Setter functions call RPC over the backend (RSB). \b Note: Typically handled only as reference in a handler in user space.
-IPAACA_HEADER_EXPORT class RemotePushIU: public IUInterface {//{{{
+class RemotePushIU: public IUInterface {//{{{
 	friend class Buffer;
 	friend class InputBuffer;
 	friend class OutputBuffer;
@@ -257,7 +257,7 @@ IPAACA_HEADER_EXPORT class RemotePushIU: public IUInterface {//{{{
 	typedef boost::shared_ptr<RemotePushIU> ptr;
 };//}}}
 /// Copy of a remote Message, received in an InputBuffer. Setter functions all fail.\b Note: Typically handled only as reference in a handler in user space.
-IPAACA_HEADER_EXPORT class RemoteMessage: public IUInterface {//{{{
+class RemoteMessage: public IUInterface {//{{{
 	friend class Buffer;
 	friend class InputBuffer;
 	friend class OutputBuffer;
@@ -287,7 +287,7 @@ IPAACA_HEADER_EXPORT class RemoteMessage: public IUInterface {//{{{
 
 #ifdef IPAACA_BUILD_MOCK_OBJECTS
 /// Mock IU for testing purposes. [INTERNAL]
-IPAACA_HEADER_EXPORT class FakeIU: public IUInterface {//{{{
+class FakeIU: public IUInterface {//{{{
 	friend class Buffer;
 	friend class InputBuffer;
 	friend class OutputBuffer;
