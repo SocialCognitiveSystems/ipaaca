@@ -45,13 +45,13 @@ if(WIN32) # Check if we are on Windows
 		#  On the other hand, if you simply want to use the precompiled rsb from inside
 		#  "rsx" (it works but has no debug info), uncomment the following four lines.
 		#
-		include_directories( ${PROJECT_SOURCE_DIR}/../../../rsx/RSC-0.14.5-win32/include/rsc0.14 )
-		include_directories( ${PROJECT_SOURCE_DIR}/../../../rsx/RSB-0.14.2-win32/include/rsb0.14 )
-		link_directories( ${PROJECT_SOURCE_DIR}/../../../rsx/RSC-0.14.5-win32/lib )
-		link_directories( ${PROJECT_SOURCE_DIR}/../../../rsx/RSB-0.14.2-win32/lib )
+		include_directories( ${PROJECT_SOURCE_DIR}/../../../rsb-win-scs/include/rsc0.14 )
+		include_directories( ${PROJECT_SOURCE_DIR}/../../../rsb-win-scs/include/rsb0.14 )
+		link_directories( ${PROJECT_SOURCE_DIR}/../../../rsb-win-scs/lib )
+		link_directories( ${PROJECT_SOURCE_DIR}/../../../rsb-win-scs/lib )
 		
-		#set(RSBLIBS rsc0.14 rsb0.14)
-		set(RSBLIBS ${PROJECT_SOURCE_DIR}/../../../rsx/RSC-0.14.5-win32/rsc0.14.lib  ${PROJECT_SOURCE_DIR}/../../../rsx/RSB-0.14.2-win32/rsb0.14.lib )
+		set(RSBLIBS rsc0.14 rsb0.14)
+		#set(RSBLIBS ${PROJECT_SOURCE_DIR}/../../../rsx/RSC-0.14.5-win32/rsc0.14.lib  ${PROJECT_SOURCE_DIR}/../../../rsx/RSB-0.14.2-win32/rsb0.14.lib )
 		set(LIBS ${LIBS} rpcrt4)
 
                 set(Boost_USE_STATIC_LIBS ON)

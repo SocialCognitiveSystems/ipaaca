@@ -11,11 +11,6 @@
    <target name="-proto-no" depends="check-proto-files" unless="pb.present">
       <echo message="Compiling protobuf files" />
       <mkdir dir="${build.dir}/ipaaca" />
-      <exec executable="protoc">
-         <arg value="--proto_path=../proto" />
-         <arg value="../proto/ipaaca.proto" />
-         <arg value="--cpp_out=build/ipaaca/" />
-      </exec>
    </target>
    <target name="-pre-compilation" depends="-proto-yes,-proto-no" />
    <target name="-compilation" depends="-build-setup, -pre-compilation">
@@ -23,6 +18,9 @@
       <cmake srcdir="${cmake.base.dir}"
          bindir="${build.dir}"
          buildtype="Debug">
+         <generator name="Visual Studio 14" platform="windows" buildargs="ALL_BUILD.vcxproj">
+             <variable name="CMAKE_INSTALL_PREFIX" type="PATH" value="../${zip.tmp.dir}" />
+         </generator>
          <generator name="Visual Studio 10" platform="windows" buildargs="ALL_BUILD.vcxproj">
              <variable name="CMAKE_INSTALL_PREFIX" type="PATH" value="../${zip.tmp.dir}" />
          </generator>
