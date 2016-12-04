@@ -111,12 +111,12 @@ IPAACA_EXPORT void Initializer::auto_configure_rsb()//{{{
 	if (__ipaaca_static_option_rsb_transport!="") {
 		if (__ipaaca_static_option_rsb_transport == "spread") {
 			IPAACA_INFO("Overriding RSB transport mode - using 'spread' ")
-			IPAACA_SETENV("RSB_TRANSPORT_SPREAD_ENABLED", "1", 1);
-			IPAACA_SETENV("RSB_TRANSPORT_SOCKET_ENABLED", "0", 1);
+			IPAACA_SETENV("RSB_TRANSPORT_SPREAD_ENABLED", "1");
+			IPAACA_SETENV("RSB_TRANSPORT_SOCKET_ENABLED", "0");
 		} else if (__ipaaca_static_option_rsb_transport == "socket") {
 			IPAACA_INFO("Overriding RSB transport mode - using 'socket' ")
-			IPAACA_SETENV("RSB_TRANSPORT_SPREAD_ENABLED", "0", 1);
-			IPAACA_SETENV("RSB_TRANSPORT_SOCKET_ENABLED", "1", 1);
+			IPAACA_SETENV("RSB_TRANSPORT_SPREAD_ENABLED", "0");
+			IPAACA_SETENV("RSB_TRANSPORT_SOCKET_ENABLED", "1");
 			if (__ipaaca_static_option_rsb_socketserver!="") {
 				const std::string& srv = __ipaaca_static_option_rsb_socketserver;
 				if ((srv=="1")||(srv=="0")||(srv=="auto")) {

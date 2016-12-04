@@ -11,7 +11,12 @@
    <target name="-proto-no" depends="check-proto-files" unless="pb.present">
       <echo message="Compiling protobuf files" />
       <mkdir dir="${build.dir}/ipaaca" />
-   </target>
+      <exec executable="protoc">
+         <arg value="--proto_path=../proto" />
+         <arg value="../proto/ipaaca.proto" />
+         <arg value="--cpp_out=build/ipaaca/" />
+      </exec>
+  </target>
    <target name="-pre-compilation" depends="-proto-yes,-proto-no" />
    <target name="-compilation" depends="-build-setup, -pre-compilation">
       <!-- echo message="Using temporary RSBProtocol_DIR=${cmake.base.dir}/rsc_tmp/share/rsbprotocol0.10" / -->
