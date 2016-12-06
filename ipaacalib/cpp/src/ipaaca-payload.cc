@@ -153,7 +153,7 @@ IPAACA_EXPORT template<> bool json_value_cast(const rapidjson::Value& v)
 {
 	if (v.IsString()) {
 		std::string s = v.GetString();
-		return !((s=="")||(s=="false")||(s=="False")||(s=="0"));
+		return !(s==""); // NEW: only empty string maps to false
 	}
 	if (v.IsBool()) return v.GetBool();
 	if (v.IsNull()) return false;
@@ -162,8 +162,10 @@ IPAACA_EXPORT template<> bool json_value_cast(const rapidjson::Value& v)
 	if (v.IsInt64()) return v.GetInt64() != 0;
 	if (v.IsUint64()) return v.GetUint64() != 0;
 	if (v.IsDouble()) return v.GetDouble() != 0.0;
-	// default: assume "pointer-like" semantics (i.e. objects are TRUE)
-	return true;
+	// NEW: empty structures map to false ('Pythonesque' semantics!)
+	if (v.IsArray()) return v.Size() > 0;
+	if (v.IsObject()) return v.MemberCount() > 0;
+	throw NotImplementedError(); // should never be reached anyway
 }
 //}}}
 
