@@ -450,6 +450,9 @@ IPAACA_EXPORT void Payload::on_lock()
 	Locker locker(_payload_operation_mode_lock);
 	IPAACA_DEBUG("Starting payload batch update mode ...")
 	_update_on_every_change = false;
+	std::stringstream ss;
+	ss << boost::this_thread::get_id();
+	_writing_thread_id = ss.str();
 }
 IPAACA_EXPORT void Payload::on_unlock()
 {
@@ -461,6 +464,7 @@ IPAACA_EXPORT void Payload::on_unlock()
 	_collected_modifications.clear();
 	_collected_removals.clear();
 	IPAACA_DEBUG("... exiting payload batch update mode.")
+	_writing_thread_id = "";
 }
 
 IPAACA_EXPORT void Payload::initialize(boost::shared_ptr<IUInterface> iu)
@@ -497,6 +501,7 @@ IPAACA_EXPORT void Payload::_internal_set(const std::string& k, PayloadDocumentE
 		_batch_update_writer_name = writer_name;
 		_collected_modifications[k] = v;
 		// revoke deletions of this updated key
+		//_collected_removals.erase(k);
 		std::vector<std::string> new_removals;
 		for (auto& rk: _collected_removals) {
 			if (rk!=k) new_removals.push_back(rk);
@@ -517,6 +522,7 @@ IPAACA_EXPORT void Payload::_internal_remove(const std::string& k, const std::st
 		IPAACA_DEBUG("queueing a payload remove operation")
 		_batch_update_writer_name = writer_name;
 		_collected_removals.push_back(k);
+		//_collected_removals.insert(k);
 		// revoke updates of this deleted key
 		_collected_modifications.erase(k);
 	}
@@ -540,6 +546,7 @@ IPAACA_EXPORT void Payload::_internal_replace_all(const std::map<std::string, Pa
 		for (auto& kv: _document_store) {
 			if (! new_contents.count(kv.first)) {
 				_collected_removals.push_back(kv.first);
+				//_collected_removals.insert(kv.first);
 				_collected_modifications.erase(kv.first);
 			}
 		}
@@ -561,6 +568,7 @@ IPAACA_EXPORT void Payload::_internal_merge(const std::map<std::string, PayloadD
 		_batch_update_writer_name = writer_name;
 		for (auto& kv: contents_to_merge) {
 			_collected_modifications[kv.first] = kv.second;
+			//_collected_removals.erase(kv.first); // moved here
 			updated_keys.insert(kv.first);
 		}
 		// revoke deletions of updated keys
@@ -584,6 +592,29 @@ IPAACA_EXPORT void Payload::_internal_merge_and_remove(const std::map<std::strin
 	mark_revision_change();
 }
 IPAACA_EXPORT PayloadDocumentEntry::ptr Payload::get_entry(const std::string& k) {
+	if (! _update_on_every_change) {
+		std::stringstream ss;
+		ss << boost::this_thread::get_id();
+		if (_writing_thread_id == ss.str()) {
+			IPAACA_DEBUG("Payload locked by current thread, looking for payload key in caches first")
+			// in batch mode, read from cached writed first!
+			// case 1: deleted key
+			if (std::find(_collected_removals.begin(), _collected_removals.end(), k) != _collected_removals.end()) {
+				IPAACA_DEBUG("Key removed, returning null")
+				for (auto& cr : _collected_removals) {
+					IPAACA_DEBUG("  cached removal: " << cr)
+				}
+				return PayloadDocumentEntry::create_null();
+			}
+			// case 2: updated key - use last known state!
+			auto it = _collected_modifications.find(k);
+			if (it!=_collected_modifications.end()) {
+				IPAACA_DEBUG("Key updated, returning current version")
+				return it->second;
+			}
+			// case 3: key not in the caches yet, just continue below
+		}
+	}
 	if (_document_store.count(k)>0) return _document_store[k];
 	else return PayloadDocumentEntry::create_null();  // contains Document with 'null' value
 }

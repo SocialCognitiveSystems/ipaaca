@@ -64,19 +64,6 @@ using namespace std;
 
 int batch_update_main(int argc, char** argv)//{{{
 {
-	std::string json_source("[\n\
-	\"old\",\n\
-	[\n\
-		\"str\",\n\
-		null\n\
-	],\n\
-	3,\n\
-	{\n\
-		\"key1\": \"value1\",\n\
-		\"key2\": \"value2\"\n\
-	}\n\
-]");
-	
 	ipaaca::OutputBuffer::ptr ob = ipaaca::OutputBuffer::create("myprog");
 	std::cout << std::endl << "Setting up an IU with initial contents" << std::endl;
 	ipaaca::IU::ptr iu = ipaaca::IU::create("testcategory");
@@ -108,11 +95,17 @@ int batch_update_main(int argc, char** argv)//{{{
 		iu->payload()["g"] = std::vector<std::string>{"g1", "g2"};
 		iu->payload().remove("remove_me");
 		iu->payload()["c"] = "abc123";
+		iu->payload()["testlist"] = std::vector<long> {0, 1, 2, 3, 4, 5};
 	}
 	
-	std::cout << std::endl << "Adding another key 'XYZ' outside batch mode (sniffer -> UPDATED)" << std::endl;
-	iu->payload()["XYZ"] = "blabla";
-	
+	std::cout << std::endl << "Adding another key 'XYZ' and changing testlist to start with 2 1000s (sniffer -> 1x UPDATED)" << std::endl;
+	{
+		ipaaca::Locker locker(iu->payload());
+		iu->payload()["XYZ"] = "testlist should now start with two 1000s";
+		iu->payload()["testlist"][0] = 500;
+		iu->payload()["testlist"][0] = 1000;
+		iu->payload()["testlist"][1] = 1000;
+	}
 	std::cout << std::endl << "Final batch update, wiping most (sniffer should receive a third UPDATED, with 3 keys remaining in the payload)" << std::endl;
 	{
 		ipaaca::Locker locker(iu->payload());

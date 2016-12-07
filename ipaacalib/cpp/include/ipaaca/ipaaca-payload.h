@@ -160,13 +160,15 @@ class Payload: public Lock //{{{
 		IPAACA_MEMBER_VAR_EXPORT Lock _payload_operation_mode_lock; //< enforcing atomicity wrt the bool flag below
 		IPAACA_MEMBER_VAR_EXPORT bool _update_on_every_change; //< true: batch update not active; false: collecting updates (payload locked)
 		IPAACA_MEMBER_VAR_EXPORT std::map<std::string, PayloadDocumentEntry::ptr> _collected_modifications;
-		IPAACA_MEMBER_VAR_EXPORT std::vector<std::string> _collected_removals;
+		IPAACA_MEMBER_VAR_EXPORT std::vector<std::string> _collected_removals; // TODO use set later? cf. IU, too
 		IPAACA_MEMBER_VAR_EXPORT std::string _batch_update_writer_name;
 	protected:
 		/// inherited from ipaaca::Lock, starting batch update collection mode
 		IPAACA_HEADER_EXPORT void on_lock() override;
 		/// inherited from ipaaca::Lock, finishing batch update collection mode
 		IPAACA_HEADER_EXPORT void on_unlock() override;
+		/// thread ID for current write access (to let that thread read from cache and others from old payload)
+		IPAACA_MEMBER_VAR_EXPORT std::string _writing_thread_id;
 	protected:
 		IPAACA_HEADER_EXPORT void initialize(boost::shared_ptr<IUInterface> iu);
 		IPAACA_HEADER_EXPORT inline void _set_owner_name(const std::string& name) { _owner_name = name; }

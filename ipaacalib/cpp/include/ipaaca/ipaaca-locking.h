@@ -51,12 +51,6 @@
 
 
 /// Reentrant lock/mutex class
-#ifdef WIN32
-} // namespace      // namespace hack
-#include <boost/thread/recursive_mutex.hpp>
-#include <boost/thread/thread.hpp>
-namespace ipaaca {  // namespace hack
-
 class Lock
 {
 	protected:
@@ -79,37 +73,6 @@ class Lock
 		IPAACA_HEADER_EXPORT virtual inline void on_unlock() {
 		}
 };
-#else
-#include <pthread.h>
-class Lock
-{
-	protected:
-		IPAACA_MEMBER_VAR_EXPORT pthread_mutexattr_t _attrs;
-		IPAACA_MEMBER_VAR_EXPORT pthread_mutex_t _mutex;
-	public:
-		IPAACA_HEADER_EXPORT inline Lock() {
-			pthread_mutexattr_init(&_attrs);
-			pthread_mutexattr_settype(&_attrs, PTHREAD_MUTEX_RECURSIVE);
-			pthread_mutex_init(&_mutex, &_attrs);
-		}
-		IPAACA_HEADER_EXPORT inline ~Lock() {
-			pthread_mutex_destroy(&_mutex);
-			pthread_mutexattr_destroy(&_attrs);
-		}
-		IPAACA_HEADER_EXPORT inline void lock() {
-			pthread_mutex_lock(&_mutex);
-			on_lock();
-		}
-		IPAACA_HEADER_EXPORT inline void unlock() {
-			on_unlock();
-			pthread_mutex_unlock(&_mutex);
-		}
-		IPAACA_HEADER_EXPORT virtual inline void on_lock() {
-		}
-		IPAACA_HEADER_EXPORT virtual inline void on_unlock() {
-		}
-};
-#endif
 
 /** \brief Stack-based lock holder.
  *
@@ -139,6 +102,7 @@ class Locker
  * \see Locker
  */
 #ifndef WIN32
+#include <pthread.h>
 class PthreadMutexLocker
 {
 	protected:

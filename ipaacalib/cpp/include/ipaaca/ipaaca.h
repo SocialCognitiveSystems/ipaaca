@@ -187,6 +187,9 @@ IU payload contents: Payload, PayloadEntryProxy
 #include <boost/weak_ptr.hpp>
 #include <boost/pointer_cast.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/thread/recursive_mutex.hpp>
+#include <boost/thread/thread.hpp>
+
 #endif
 
 
