@@ -500,6 +500,10 @@ public class InputBuffer extends Buffer
                 {
                     throw new RuntimeException(e);
                 }
+                catch (InterruptedException e)
+                {
+                    throw new RuntimeException(e);
+                }
             if (rRevision == 0)
             {
                 //throw new IUResendFailedException(aiu); // TODO

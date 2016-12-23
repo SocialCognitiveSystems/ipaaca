@@ -55,7 +55,9 @@ import rsb.Informer;
 import rsb.InitializeException;
 import rsb.RSBException;
 import rsb.patterns.DataCallback;
+import rsb.patterns.EventCallback;
 import rsb.patterns.LocalServer;
+import rsb.Event;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.SetMultimap;
@@ -131,7 +133,19 @@ public class OutputBuffer extends Buffer
         this.channel = ipaaca_channel;
     }
 
-    private final class RemoteUpdatePayload extends DataCallback<Integer, IUPayloadUpdate>
+    private final class RemoteUpdatePayload extends EventCallback //DataCallback<Integer, IUPayloadUpdate>
+    {
+        @Override
+        public Event invoke(final Event request) //throws Throwable
+        {
+            logger.debug("remoteUpdate");
+            int result = remoteUpdatePayload((IUPayloadUpdate) request.getData());
+            //System.out.println("remoteUpdatePayload yielded revision "+result);
+            return new Event(Integer.class, new Integer(result));
+        }
+
+    }
+    /*private final class RemoteUpdatePayload extends DataCallback<Integer, IUPayloadUpdate>
     {
         @Override
         public Integer invoke(IUPayloadUpdate data) throws Throwable
@@ -140,39 +154,37 @@ public class OutputBuffer extends Buffer
             return remoteUpdatePayload(data);
         }
 
-    }
+    }*/
 
-    private final class RemoteUpdateLinks extends DataCallback<Integer, IULinkUpdate>
+    private final class RemoteUpdateLinks extends EventCallback // DataCallback<Integer, IULinkUpdate>
     {
         @Override
-        public Integer invoke(IULinkUpdate data) throws Throwable
+        public Event invoke(final Event request) //throws Throwable
         {
             logger.debug("remoteUpdateLinks");
-            return remoteUpdateLinks(data);
+            return new Event(int.class, remoteUpdateLinks((IULinkUpdate) request.getData()));
         }
 
     }
 
-    private final class RemoteCommit extends DataCallback<Integer, IUCommission>
+    private final class RemoteCommit extends EventCallback //DataCallback<Integer, IUCommission>
     {
         @Override
-        public Integer invoke(IUCommission data) throws Throwable
+        public Event invoke(final Event request) //throws Throwable
         {
             logger.debug("remoteCommit");
-            return remoteCommit(data);
+            return new Event(int.class, remoteCommit((IUCommission) request.getData()));
         }
-
     }
 
-    private final class RemoteResendRequest extends DataCallback<Integer, IUResendRequest>
+    private final class RemoteResendRequest extends EventCallback //DataCallback<Integer, IUResendRequest>
     {
         @Override
-        public Integer invoke(IUResendRequest data) throws Throwable
+        public Event invoke(final Event request) //throws Throwable
         {
             logger.debug("remoteResendRequest");
-            return remoteResendRequest(data);
+            return new Event(int.class, remoteResendRequest((IUResendRequest) request.getData()));
         }
-
     }
 
     // def _remote_update_payload(self, update):
@@ -349,7 +361,7 @@ public class OutputBuffer extends Buffer
 	    Informer<Object> informer = getInformer(iu_resend_request_pack.getHiddenScopeName());
             try
             {
-                informer.send(iu);
+                informer.publish(iu);
             }
             catch (RSBException e)
             {
@@ -404,6 +416,10 @@ public class OutputBuffer extends Buffer
         {
             throw new RuntimeException(e);
         }
+        catch (RSBException e)
+        {
+            throw new RuntimeException(e);
+        }
         return informer;
     }
 
@@ -441,7 +457,7 @@ public class OutputBuffer extends Buffer
         Informer<Object> informer = getInformer(iu.getCategory());
         try
         {
-            informer.send(iu);
+            informer.publish(iu);
         }
         catch (RSBException e)
         {
@@ -480,7 +496,7 @@ public class OutputBuffer extends Buffer
         Informer<Object> informer = getInformer(iu.getCategory());
         try
         {
-            informer.send(iuc);
+            informer.publish(iuc);
         }
         catch (RSBException e)
         {
@@ -494,7 +510,7 @@ public class OutputBuffer extends Buffer
         Informer<Object> informer = getInformer(iu.getCategory());
         try
         {
-            informer.send(iuc);
+            informer.publish(iuc);
         }
         catch (RSBException e)
         {
@@ -534,7 +550,7 @@ public class OutputBuffer extends Buffer
         Informer<Object> informer = getInformer(iu.getCategory());
         try
         {
-            informer.send(update);
+            informer.publish(update);
         }
         catch (RSBException e)
         {
@@ -547,7 +563,7 @@ public class OutputBuffer extends Buffer
         Informer<Object> informer = getInformer(iu.getCategory());
         try
         {
-            informer.send(update);
+            informer.publish(update);
         }
         catch (RSBException e)
         {

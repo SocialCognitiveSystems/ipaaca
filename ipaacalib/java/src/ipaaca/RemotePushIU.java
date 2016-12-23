@@ -112,7 +112,9 @@ public class RemotePushIU extends AbstractIU
         int newRevision;
         try
         {
+            //System.out.println("calling remote updatePayload ...");
             newRevision = (Integer) server.call("updatePayload", update);
+            //System.out.println(" ... done");
         }
         catch (RSBException e)
         {
@@ -123,6 +125,10 @@ public class RemotePushIU extends AbstractIU
             throw new RuntimeException(e);
         }
         catch (TimeoutException e)
+        {
+            throw new RuntimeException(e);
+        }
+        catch (InterruptedException e)
         {
             throw new RuntimeException(e);
         }
@@ -178,6 +184,10 @@ public class RemotePushIU extends AbstractIU
         {
             throw new RuntimeException(e);
         }
+        catch (InterruptedException e)
+        {
+            throw new RuntimeException(e);
+        }
         if (newRevision == 0)
         {
             throw new IUUpdateFailedException(this);
@@ -227,6 +237,10 @@ public class RemotePushIU extends AbstractIU
                 throw new RuntimeException(e);
             }
             catch (TimeoutException e)
+            {
+                throw new RuntimeException(e);
+            }
+            catch (InterruptedException e)
             {
                 throw new RuntimeException(e);
             }
@@ -298,6 +312,10 @@ public class RemotePushIU extends AbstractIU
             throw new RuntimeException(e);
         }
         catch (TimeoutException e)
+        {
+            throw new RuntimeException(e);
+        }
+        catch (InterruptedException e)
         {
             throw new RuntimeException(e);
         }
@@ -419,6 +437,10 @@ public class RemotePushIU extends AbstractIU
         {
             throw new RuntimeException(e);
         }
+        catch (InterruptedException e)
+        {
+            throw new RuntimeException(e);
+        }
         if (newRevision == 0)
         {
             throw new IUUpdateFailedException(this);
@@ -470,6 +492,10 @@ public class RemotePushIU extends AbstractIU
             throw new RuntimeException(e);
         }
         catch (TimeoutException e)
+        {
+            throw new RuntimeException(e);
+        }
+        catch (InterruptedException e)
         {
             throw new RuntimeException(e);
         }
