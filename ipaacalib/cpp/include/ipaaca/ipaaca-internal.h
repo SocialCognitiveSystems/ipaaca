@@ -59,44 +59,44 @@
 
 #ifdef IPAACA_EXPOSE_FULL_RSB_API
 
-IPAACA_HEADER_EXPORT class CallbackIUPayloadUpdate: public rsb::patterns::LocalServer::Callback<IUPayloadUpdate, int> {//{{{
+IPAACA_HEADER_EXPORT class CallbackIUPayloadUpdate: public rsb::patterns::LocalServer::Callback<IUPayloadUpdate, uint64_t> {//{{{
 	protected:
 		IPAACA_MEMBER_VAR_EXPORT Buffer* _buffer;
 	public:
 		IPAACA_HEADER_EXPORT CallbackIUPayloadUpdate(Buffer* buffer);
-		IPAACA_HEADER_EXPORT boost::shared_ptr<int> call(const std::string& methodName, boost::shared_ptr<IUPayloadUpdate> update);
+		IPAACA_HEADER_EXPORT boost::shared_ptr<uint64_t> call(const std::string& methodName, boost::shared_ptr<IUPayloadUpdate> update);
 };//}}}
-IPAACA_HEADER_EXPORT class CallbackIULinkUpdate: public rsb::patterns::LocalServer::Callback<IULinkUpdate, int> {//{{{
+IPAACA_HEADER_EXPORT class CallbackIULinkUpdate: public rsb::patterns::LocalServer::Callback<IULinkUpdate, uint64_t> {//{{{
 	protected:
 		IPAACA_MEMBER_VAR_EXPORT Buffer* _buffer;
 	public:
 		IPAACA_HEADER_EXPORT CallbackIULinkUpdate(Buffer* buffer);
 	public:
-		IPAACA_HEADER_EXPORT boost::shared_ptr<int> call(const std::string& methodName, boost::shared_ptr<IULinkUpdate> update);
+		IPAACA_HEADER_EXPORT boost::shared_ptr<uint64_t> call(const std::string& methodName, boost::shared_ptr<IULinkUpdate> update);
 };//}}}
-IPAACA_HEADER_EXPORT class CallbackIUCommission: public rsb::patterns::LocalServer::Callback<protobuf::IUCommission, int> {//{{{
+IPAACA_HEADER_EXPORT class CallbackIUCommission: public rsb::patterns::LocalServer::Callback<protobuf::IUCommission, uint64_t> {//{{{
 	protected:
 		IPAACA_MEMBER_VAR_EXPORT Buffer* _buffer;
 	public:
 		IPAACA_HEADER_EXPORT CallbackIUCommission(Buffer* buffer);
 	public:
-		IPAACA_HEADER_EXPORT boost::shared_ptr<int> call(const std::string& methodName, boost::shared_ptr<protobuf::IUCommission> update);
+		IPAACA_HEADER_EXPORT boost::shared_ptr<uint64_t> call(const std::string& methodName, boost::shared_ptr<protobuf::IUCommission> update);
 };//}}}
-IPAACA_HEADER_EXPORT class CallbackIUResendRequest: public rsb::patterns::LocalServer::Callback<protobuf::IUResendRequest, int> {//{{{
+IPAACA_HEADER_EXPORT class CallbackIUResendRequest: public rsb::patterns::LocalServer::Callback<protobuf::IUResendRequest, uint64_t> {//{{{
 	protected:
 		IPAACA_MEMBER_VAR_EXPORT Buffer* _buffer;
 	public:
 		IPAACA_HEADER_EXPORT CallbackIUResendRequest(Buffer* buffer);
 	public:
-		IPAACA_HEADER_EXPORT boost::shared_ptr<int> call(const std::string& methodName, boost::shared_ptr<protobuf::IUResendRequest> update);
+		IPAACA_HEADER_EXPORT boost::shared_ptr<uint64_t> call(const std::string& methodName, boost::shared_ptr<protobuf::IUResendRequest> update);
 };//}}}
-IPAACA_HEADER_EXPORT class CallbackIURetraction: public rsb::patterns::LocalServer::Callback<protobuf::IURetraction, int> {//{{{
+IPAACA_HEADER_EXPORT class CallbackIURetraction: public rsb::patterns::LocalServer::Callback<protobuf::IURetraction, uint64_t> {//{{{
 	protected:
 		IPAACA_MEMBER_VAR_EXPORT Buffer* _buffer;
 	public:
 		IPAACA_HEADER_EXPORT CallbackIURetraction(Buffer* buffer);
 	public:
-		IPAACA_HEADER_EXPORT boost::shared_ptr<int> call(const std::string& methodName, boost::shared_ptr<protobuf::IURetraction> update);
+		IPAACA_HEADER_EXPORT boost::shared_ptr<uint64_t> call(const std::string& methodName, boost::shared_ptr<protobuf::IURetraction> update);
 };//}}}
 
 IPAACA_HEADER_EXPORT class IUConverter: public rsb::converter::Converter<std::string> {//{{{
@@ -123,12 +123,14 @@ IPAACA_HEADER_EXPORT class IULinkUpdateConverter: public rsb::converter::Convert
 		IPAACA_HEADER_EXPORT std::string serialize(const rsb::AnnotatedData& data, std::string& wire);
 		IPAACA_HEADER_EXPORT rsb::AnnotatedData deserialize(const std::string& wireSchema, const std::string& wire);
 };//}}}
+/*
 IPAACA_HEADER_EXPORT class IntConverter: public rsb::converter::Converter<std::string> {//{{{
 	public:
 		IPAACA_HEADER_EXPORT IntConverter();
 		IPAACA_HEADER_EXPORT std::string serialize(const rsb::AnnotatedData& data, std::string& wire);
 		IPAACA_HEADER_EXPORT rsb::AnnotatedData deserialize(const std::string& wireSchema, const std::string& wire);
 };//}}}
+*/
 #endif
 
 #endif

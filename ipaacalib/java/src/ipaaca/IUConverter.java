@@ -93,7 +93,7 @@ public class IUConverter implements Converter<ByteBuffer>
         {
             accessMode = IU.AccessMode.MESSAGE;
         }
-        IU iu = IU.newBuilder().setUid(iua.getUid()).setRevision(iua.getRevision()).setCategory(iua.getCategory())
+        IU iu = IU.newBuilder().setUid(iua.getUid()).setRevision((int) iua.getRevision()).setCategory(iua.getCategory())
                 .setOwnerName(iua.getOwnerName()).setCommitted(iua.isCommitted()).setAccessMode(accessMode)
                 .setReadOnly(iua.isReadOnly()).setPayloadType("STR").addAllPayload(payloadItems).addAllLinks(links).build();
         String wireFormat = (accessMode == IU.AccessMode.MESSAGE) ? "ipaaca-messageiu" : "ipaaca-iu";

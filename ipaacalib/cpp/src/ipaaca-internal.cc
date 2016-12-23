@@ -76,8 +76,8 @@ IPAACA_EXPORT void Initializer::initialize_backend()//{{{
 	boost::shared_ptr<ProtocolBufferConverter<protobuf::IURetraction> > iu_retraction_converter(new ProtocolBufferConverter<protobuf::IURetraction> ());
 	converterRepository<std::string>()->registerConverter(iu_retraction_converter);
 
-	boost::shared_ptr<IntConverter> int_converter(new IntConverter());
-	converterRepository<std::string>()->registerConverter(int_converter);
+//	boost::shared_ptr<IntConverter> int_converter(new IntConverter());
+//	converterRepository<std::string>()->registerConverter(int_converter);
 
 	IPAACA_DEBUG("Backend / converter initialization complete.")
 	_initialized = true;
@@ -595,6 +595,8 @@ AnnotatedData IULinkUpdateConverter::deserialize(const std::string& wireSchema, 
 }
 
 //}}}
+
+/*
 // IntConverter//{{{
 
 IPAACA_EXPORT IntConverter::IntConverter()
@@ -624,5 +626,6 @@ IPAACA_EXPORT AnnotatedData IntConverter::deserialize(const std::string& wireSch
 }
 
 //}}}
+*/
 
 } // of namespace ipaaca

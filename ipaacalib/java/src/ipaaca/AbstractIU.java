@@ -59,7 +59,7 @@ public abstract class AbstractIU
     protected boolean committed = false;
     protected boolean retracted = false;
     private String uid;
-    protected int revision;
+    protected long revision;
     private boolean readOnly = false;
 
     protected SetMultimap<String, String> links = HashMultimap.create();
@@ -147,7 +147,7 @@ public abstract class AbstractIU
         this.readOnly = readOnly;
     }
 
-    public void setRevision(int revision)
+    public void setRevision(long revision)
     {
         this.revision = revision;
     }
@@ -187,7 +187,7 @@ public abstract class AbstractIU
         return buffer;
     }
 
-    public int getRevision()
+    public long getRevision()
     {
         return revision;
     }

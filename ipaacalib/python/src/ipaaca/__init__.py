@@ -78,10 +78,10 @@ def initialize_ipaaca_rsb_if_needed():
 		if __RSB_INITIALIZED:
 			return
 		else:
-			rsb.converter.registerGlobalConverter(
-				ipaaca.converter.IntConverter(
-					wireSchema="int32",
-					dataType=int))
+			#rsb.converter.registerGlobalConverter(
+			#	ipaaca.converter.IntConverter(
+			#		wireSchema="int32",
+			#		dataType=int))
 		
 			rsb.converter.registerGlobalConverter(
 				ipaaca.converter.IUConverter(

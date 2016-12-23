@@ -80,7 +80,7 @@ class IUConverter;
 class MessageConverter;
 class IUPayloadUpdateConverter;
 class IULinkUpdateConverter;
-class IntConverter;
+//class IntConverter;
 
 class BufferConfiguration;
 class BufferConfigurationBuilder;

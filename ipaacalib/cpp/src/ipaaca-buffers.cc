@@ -163,12 +163,12 @@ IPAACA_EXPORT CallbackIULinkUpdate::CallbackIULinkUpdate(Buffer* buffer): _buffe
 IPAACA_EXPORT CallbackIUCommission::CallbackIUCommission(Buffer* buffer): _buffer(buffer) { }
 IPAACA_EXPORT CallbackIUResendRequest::CallbackIUResendRequest(Buffer* buffer): _buffer(buffer) { }
 
-IPAACA_EXPORT boost::shared_ptr<int> CallbackIUPayloadUpdate::call(const std::string& methodName, boost::shared_ptr<IUPayloadUpdate> update)
+IPAACA_EXPORT boost::shared_ptr<uint64_t> CallbackIUPayloadUpdate::call(const std::string& methodName, boost::shared_ptr<IUPayloadUpdate> update)
 {
 	IUInterface::ptr iui = _buffer->get(update->uid);
 	if (! iui) {
 		IPAACA_WARNING("Remote InBuffer tried to spuriously write non-existent IU " << update->uid)
-		return boost::shared_ptr<int>(new int(0));
+		return boost::shared_ptr<uint64_t>(new uint64_t(0));
 	}
 	IU::ptr iu = boost::static_pointer_cast<IU>(iui);
 	iu->_revision_lock.lock();
@@ -176,19 +176,19 @@ IPAACA_EXPORT boost::shared_ptr<int> CallbackIUPayloadUpdate::call(const std::st
 		IPAACA_WARNING("Remote write operation failed because request was out of date; IU " << update->uid)
 		IPAACA_WARNING(" Referred-to revision was " << update->revision << " while local one is " << iu->_revision)
 		iu->_revision_lock.unlock();
-		return boost::shared_ptr<int>(new int(0));
+		return boost::shared_ptr<uint64_t>(new uint64_t(0));
 	} else if (iu->committed()) {
 		iu->_revision_lock.unlock();
-		return boost::shared_ptr<int>(new int(0));
+		return boost::shared_ptr<uint64_t>(new uint64_t(0));
 	} else if (iu->retracted()) {
 		iu->_revision_lock.unlock();
-		return boost::shared_ptr<int>(new int(0));
+		return boost::shared_ptr<uint64_t>(new uint64_t(0));
 	} else if (iu->committed()) {
 		iu->_revision_lock.unlock();
-		return boost::shared_ptr<int>(new int(0));
+		return boost::shared_ptr<uint64_t>(new uint64_t(0));
 	} else if (iu->retracted()) {
 		iu->_revision_lock.unlock();
-		return boost::shared_ptr<int>(new int(0));
+		return boost::shared_ptr<uint64_t>(new uint64_t(0));
 	}
 	if (update->is_delta) {
 		// FIXME TODO this is an unsolved problem atm: deletions in a delta update are
@@ -204,34 +204,34 @@ IPAACA_EXPORT boost::shared_ptr<int> CallbackIUPayloadUpdate::call(const std::st
 	_buffer->call_iu_event_handlers(iu, true, IU_UPDATED, iu->category());
 	revision_t revision = iu->revision();
 	iu->_revision_lock.unlock();
-	return boost::shared_ptr<int>(new int(revision));
+	return boost::shared_ptr<uint64_t>(new uint64_t(revision));
 }
 
-IPAACA_EXPORT boost::shared_ptr<int> CallbackIULinkUpdate::call(const std::string& methodName, boost::shared_ptr<IULinkUpdate> update)
+IPAACA_EXPORT boost::shared_ptr<uint64_t> CallbackIULinkUpdate::call(const std::string& methodName, boost::shared_ptr<IULinkUpdate> update)
 {
 	IUInterface::ptr iui = _buffer->get(update->uid);
 	if (! iui) {
 		IPAACA_WARNING("Remote InBuffer tried to spuriously write non-existent IU " << update->uid)
-		return boost::shared_ptr<int>(new int(0));
+		return boost::shared_ptr<uint64_t>(new uint64_t(0));
 	}
 	IU::ptr iu = boost::static_pointer_cast<IU>(iui);
 	iu->_revision_lock.lock();
 	if ((update->revision != 0) && (update->revision != iu->_revision)) {
 		IPAACA_WARNING("Remote write operation failed because request was out of date; IU " << update->uid)
 		iu->_revision_lock.unlock();
-		return boost::shared_ptr<int>(new int(0));
+		return boost::shared_ptr<uint64_t>(new uint64_t(0));
 	} else if (iu->committed()) {
 		iu->_revision_lock.unlock();
-		return boost::shared_ptr<int>(new int(0));
+		return boost::shared_ptr<uint64_t>(new uint64_t(0));
 	} else if (iu->retracted()) {
 		iu->_revision_lock.unlock();
-		return boost::shared_ptr<int>(new int(0));
+		return boost::shared_ptr<uint64_t>(new uint64_t(0));
 	} else if (iu->committed()) {
 		iu->_revision_lock.unlock();
-		return boost::shared_ptr<int>(new int(0));
+		return boost::shared_ptr<uint64_t>(new uint64_t(0));
 	} else if (iu->retracted()) {
 		iu->_revision_lock.unlock();
-		return boost::shared_ptr<int>(new int(0));
+		return boost::shared_ptr<uint64_t>(new uint64_t(0));
 	}
 	if (update->is_delta) {
 		iu->modify_links(update->new_links, update->links_to_remove, update->writer_name);
@@ -241,50 +241,50 @@ IPAACA_EXPORT boost::shared_ptr<int> CallbackIULinkUpdate::call(const std::strin
 	_buffer->call_iu_event_handlers(iu, true, IU_LINKSUPDATED, iu->category());
 	revision_t revision = iu->revision();
 	iu->_revision_lock.unlock();
-	return boost::shared_ptr<int>(new int(revision));
+	return boost::shared_ptr<uint64_t>(new uint64_t(revision));
 }
-IPAACA_EXPORT boost::shared_ptr<int> CallbackIUCommission::call(const std::string& methodName, boost::shared_ptr<protobuf::IUCommission> update)
+IPAACA_EXPORT boost::shared_ptr<uint64_t> CallbackIUCommission::call(const std::string& methodName, boost::shared_ptr<protobuf::IUCommission> update)
 {
 	IUInterface::ptr iui = _buffer->get(update->uid());
 	if (! iui) {
 		IPAACA_WARNING("Remote InBuffer tried to spuriously write non-existent IU " << update->uid())
-		return boost::shared_ptr<int>(new int(0));
+		return boost::shared_ptr<uint64_t>(new uint64_t(0));
 	}
 	IU::ptr iu = boost::static_pointer_cast<IU>(iui);
 	iu->_revision_lock.lock();
 	if ((update->revision() != 0) && (update->revision() != iu->_revision)) {
 		IPAACA_WARNING("Remote write operation failed because request was out of date; IU " << update->uid())
 		iu->_revision_lock.unlock();
-		return boost::shared_ptr<int>(new int(0));
+		return boost::shared_ptr<uint64_t>(new uint64_t(0));
 	} else if (iu->committed()) {
 		iu->_revision_lock.unlock();
-		return boost::shared_ptr<int>(new int(0));
+		return boost::shared_ptr<uint64_t>(new uint64_t(0));
 	} else if (iu->retracted()) {
 		iu->_revision_lock.unlock();
-		return boost::shared_ptr<int>(new int(0));
+		return boost::shared_ptr<uint64_t>(new uint64_t(0));
 	} else {
 	}
 	iu->_internal_commit(update->writer_name());
 	_buffer->call_iu_event_handlers(iu, true, IU_LINKSUPDATED, iu->category());
 	revision_t revision = iu->revision();
 	iu->_revision_lock.unlock();
-	return boost::shared_ptr<int>(new int(revision));
+	return boost::shared_ptr<uint64_t>(new uint64_t(revision));
 }
-IPAACA_EXPORT boost::shared_ptr<int> CallbackIUResendRequest::call(const std::string& methodName, boost::shared_ptr<protobuf::IUResendRequest> update)
+IPAACA_EXPORT boost::shared_ptr<uint64_t> CallbackIUResendRequest::call(const std::string& methodName, boost::shared_ptr<protobuf::IUResendRequest> update)
 {
 	IUInterface::ptr iui = _buffer->get(update->uid());
 	if (! iui) {
 		IPAACA_WARNING("Remote InBuffer tried to spuriously write non-existent IU " << update->uid())
-		return boost::shared_ptr<int>(new int(0));
+		return boost::shared_ptr<uint64_t>(new uint64_t(0));
 	}
 	IU::ptr iu = boost::static_pointer_cast<IU>(iui);
 	if ((update->has_hidden_scope_name() == true)&&(update->hidden_scope_name().compare("") != 0)){
 		revision_t revision = iu->revision();
 		_buffer->_publish_iu_resend(iu, update->hidden_scope_name());
-		return boost::shared_ptr<int>(new int(revision));
+		return boost::shared_ptr<uint64_t>(new uint64_t(revision));
 	} else {
 		revision_t revision = 0;
-		return boost::shared_ptr<int>(new int(revision));
+		return boost::shared_ptr<uint64_t>(new uint64_t(revision));
 	}
 }
 //}}}

@@ -205,7 +205,7 @@ public class LocalIU extends AbstractIU
                     removeSet.add(LinkSet.newBuilder().setType(entry.getKey()).addAllTargets(entry.getValue()).build());
                 }
                 outputBuffer.sendIULinkUpdate(this,
-                        IULinkUpdate.newBuilder().setUid(getUid()).setRevision(getRevision()).setWriterName(wName).setIsDelta(isDelta)
+                        IULinkUpdate.newBuilder().setUid(getUid()).setRevision((int) getRevision()).setWriterName(wName).setIsDelta(isDelta)
                                 .addAllNewLinks(addSet).addAllLinksToRemove(removeSet).build());
             }
         }
@@ -260,7 +260,7 @@ public class LocalIU extends AbstractIU
                 // send update to remote holders
                 PayloadItem newItem = PayloadItem.newBuilder().setKey(key).setValue(value).setType("STR")
                         .build();
-                IUPayloadUpdate update = IUPayloadUpdate.newBuilder().setUid(getUid()).setRevision(getRevision()).setIsDelta(true)
+                IUPayloadUpdate update = IUPayloadUpdate.newBuilder().setUid(getUid()).setRevision((int) getRevision()).setIsDelta(true)
                         .setWriterName(writer == null ? getOwnerName() : writer).addNewItems(newItem).build();
                 getOutputBuffer().sendIUPayloadUpdate(this, update);
             }
@@ -284,7 +284,7 @@ public class LocalIU extends AbstractIU
             increaseRevisionNumber();
             if (isPublished())
             {
-            	Builder builder = IUPayloadUpdate.newBuilder().setUid(getUid()).setRevision(getRevision()).setIsDelta(true)
+            	Builder builder = IUPayloadUpdate.newBuilder().setUid(getUid()).setRevision((int) getRevision()).setIsDelta(true)
                         .setWriterName(writer == null ? getOwnerName() : writer);
             	for (Map.Entry<? extends String, ? extends String> item : newItems.entrySet())
             	{
@@ -342,7 +342,7 @@ public class LocalIU extends AbstractIU
             if (isPublished())
             {
                 // send update to remote holders
-                IUPayloadUpdate update = IUPayloadUpdate.newBuilder().setUid(getUid()).setRevision(getRevision()).setIsDelta(true)
+                IUPayloadUpdate update = IUPayloadUpdate.newBuilder().setUid(getUid()).setRevision((int) getRevision()).setIsDelta(true)
                         .setWriterName(writer == null ? getOwnerName() : writer).addKeysToRemove((String) key).build();
                 getOutputBuffer().sendIUPayloadUpdate(this, update);
             }
@@ -355,7 +355,7 @@ public class LocalIU extends AbstractIU
     {
         if (isPublished())
         {
-            IUPayloadUpdate update = IUPayloadUpdate.newBuilder().setUid(getUid()).setRevision(getRevision()).setIsDelta(false)
+            IUPayloadUpdate update = IUPayloadUpdate.newBuilder().setUid(getUid()).setRevision((int) getRevision()).setIsDelta(false)
                     .setWriterName(writerName == null ? getOwnerName() : writerName).addAllNewItems(newPayload).build();
             getOutputBuffer().sendIUPayloadUpdate(this, update);
         }

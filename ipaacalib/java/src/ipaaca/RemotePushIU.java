@@ -104,16 +104,16 @@ public class RemotePushIU extends AbstractIU
             throw new IUReadOnlyException(this);
         }
         PayloadItem newItem = PayloadItem.newBuilder().setKey(key).setValue(value).setType("STR").build();
-        IUPayloadUpdate update = IUPayloadUpdate.newBuilder().setIsDelta(true).setUid(getUid()).setRevision(getRevision())
+        IUPayloadUpdate update = IUPayloadUpdate.newBuilder().setIsDelta(true).setUid(getUid()).setRevision((int) getRevision())
                 .setWriterName(getBuffer().getUniqueName()).addNewItems(newItem).build();
 
         RemoteServer server = getInputBuffer().getRemoteServer(this);
         logger.debug("Remote server has methods {}", server.getMethods());
-        int newRevision;
+        long newRevision;
         try
         {
             //System.out.println("calling remote updatePayload ...");
-            newRevision = (Integer) server.call("updatePayload", update);
+            newRevision = (Long) server.call("updatePayload", update);
             //System.out.println(" ... done");
         }
         catch (RSBException e)
@@ -154,7 +154,7 @@ public class RemotePushIU extends AbstractIU
         {
             throw new IUReadOnlyException(this);
         }
-        Builder builder = IUPayloadUpdate.newBuilder().setUid(getUid()).setRevision(getRevision()).setIsDelta(true)
+        Builder builder = IUPayloadUpdate.newBuilder().setUid(getUid()).setRevision((int) getRevision()).setIsDelta(true)
                 .setWriterName(getBuffer().getUniqueName());
         for (Map.Entry<? extends String, ? extends String> item : newItems.entrySet())
         {
@@ -167,10 +167,10 @@ public class RemotePushIU extends AbstractIU
 
         RemoteServer server = getInputBuffer().getRemoteServer(this);
         logger.debug("Remote server has methods {}", server.getMethods());
-        int newRevision;
+        long newRevision;
         try
         {
-            newRevision = (Integer) server.call("updatePayload", update);
+            newRevision = (Long) server.call("updatePayload", update);
         }
         catch (RSBException e)
         {
@@ -220,13 +220,13 @@ public class RemotePushIU extends AbstractIU
         }
         else
         {
-            IUCommission iuc = Ipaaca.IUCommission.newBuilder().setUid(getUid()).setRevision(getRevision())
+            IUCommission iuc = Ipaaca.IUCommission.newBuilder().setUid(getUid()).setRevision((int) getRevision())
                     .setWriterName(getBuffer().getUniqueName()).build();
             RemoteServer server = inputBuffer.getRemoteServer(this);
-            int newRevision;
+            long newRevision;
             try
             {
-                newRevision = (Integer) server.call("commit", iuc);
+                newRevision = (Long) server.call("commit", iuc);
             }
             catch (RSBException e)
             {
@@ -295,13 +295,13 @@ public class RemotePushIU extends AbstractIU
             throw new IUReadOnlyException(this);
         }
 
-        IUPayloadUpdate iuu = IUPayloadUpdate.newBuilder().setRevision(getRevision()).setIsDelta(false).setUid(getUid())
+        IUPayloadUpdate iuu = IUPayloadUpdate.newBuilder().setRevision((int) getRevision()).setIsDelta(false).setUid(getUid())
                 .addAllNewItems(newItems).setWriterName(getBuffer() != null ? getBuffer().getUniqueName() : "").build();
         RemoteServer server = inputBuffer.getRemoteServer(this);
-        int newRevision;
+        long newRevision;
         try
         {
-            newRevision = (Integer) server.call("updatePayload", iuu);
+            newRevision = (Long) server.call("updatePayload", iuu);
         }
         catch (RSBException e)
         {
@@ -417,13 +417,13 @@ public class RemotePushIU extends AbstractIU
         {
             throw new IUReadOnlyException(this);
         }
-        IUPayloadUpdate update = IUPayloadUpdate.newBuilder().setIsDelta(true).setUid(getUid()).setRevision(getRevision())
+        IUPayloadUpdate update = IUPayloadUpdate.newBuilder().setIsDelta(true).setUid(getUid()).setRevision((int) getRevision())
                 .setWriterName(getBuffer().getUniqueName()).addKeysToRemove((String) key).build();
         RemoteServer server = getInputBuffer().getRemoteServer(this);
-        int newRevision;
+        long newRevision;
         try
         {
-            newRevision = (Integer) server.call("updatePayload", update);
+            newRevision = (Long) server.call("updatePayload", update);
         }
         catch (RSBException e)
         {
@@ -477,11 +477,11 @@ public class RemotePushIU extends AbstractIU
         }
 
         IULinkUpdate update = IULinkUpdate.newBuilder().addAllLinksToRemove(removeLinkSet).addAllNewLinks(newLinkSet).setIsDelta(isDelta)
-                .setWriterName(getBuffer() != null ? getBuffer().getUniqueName() : "").setUid(getUid()).setRevision(getRevision()).build();
-        int newRevision;
+                .setWriterName(getBuffer() != null ? getBuffer().getUniqueName() : "").setUid(getUid()).setRevision((int) getRevision()).build();
+        long newRevision;
         try
         {
-            newRevision = (Integer) server.call("updateLinks", update);
+            newRevision = (Long) server.call("updateLinks", update);
         }
         catch (RSBException e)
         {

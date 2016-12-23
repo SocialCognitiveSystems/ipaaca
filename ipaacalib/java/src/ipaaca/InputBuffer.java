@@ -483,10 +483,10 @@ public class InputBuffer extends Buffer
             rServer = getRemoteServer(writerName);
         if ((rServer != null)&&(uid != null)) {
             IUResendRequest iurr = IUResendRequest.newBuilder().setUid(uid).setHiddenScopeName(hiddenScopeName).build();
-            int rRevision = 0;
+            long rRevision = 0;
             try
                 {
-                    rRevision = (Integer) rServer.call("resendRequest", iurr);
+                    rRevision = (Long) rServer.call("resendRequest", iurr);
                 }
                 catch (RSBException e)
                 {

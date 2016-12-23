@@ -133,22 +133,22 @@ public class OutputBuffer extends Buffer
         this.channel = ipaaca_channel;
     }
 
-    private final class RemoteUpdatePayload extends EventCallback //DataCallback<Integer, IUPayloadUpdate>
+    private final class RemoteUpdatePayload extends EventCallback //DataCallback<Long, IUPayloadUpdate>
     {
         @Override
         public Event invoke(final Event request) //throws Throwable
         {
             logger.debug("remoteUpdate");
-            int result = remoteUpdatePayload((IUPayloadUpdate) request.getData());
+            long result = remoteUpdatePayload((IUPayloadUpdate) request.getData());
             //System.out.println("remoteUpdatePayload yielded revision "+result);
-            return new Event(Integer.class, new Integer(result));
+            return new Event(Long.class, new Long(result));
         }
 
     }
-    /*private final class RemoteUpdatePayload extends DataCallback<Integer, IUPayloadUpdate>
+    /*private final class RemoteUpdatePayload extends DataCallback<Long, IUPayloadUpdate>
     {
         @Override
-        public Integer invoke(IUPayloadUpdate data) throws Throwable
+        public Long invoke(IUPayloadUpdate data) throws Throwable
         {
             logger.debug("remoteUpdate");
             return remoteUpdatePayload(data);
@@ -156,34 +156,34 @@ public class OutputBuffer extends Buffer
 
     }*/
 
-    private final class RemoteUpdateLinks extends EventCallback // DataCallback<Integer, IULinkUpdate>
+    private final class RemoteUpdateLinks extends EventCallback // DataCallback<Long, IULinkUpdate>
     {
         @Override
         public Event invoke(final Event request) //throws Throwable
         {
             logger.debug("remoteUpdateLinks");
-            return new Event(int.class, remoteUpdateLinks((IULinkUpdate) request.getData()));
+            return new Event(Long.class, new Long(remoteUpdateLinks((IULinkUpdate) request.getData())));
         }
 
     }
 
-    private final class RemoteCommit extends EventCallback //DataCallback<Integer, IUCommission>
+    private final class RemoteCommit extends EventCallback //DataCallback<Long, IUCommission>
     {
         @Override
         public Event invoke(final Event request) //throws Throwable
         {
             logger.debug("remoteCommit");
-            return new Event(int.class, remoteCommit((IUCommission) request.getData()));
+            return new Event(Long.class, new Long(remoteCommit((IUCommission) request.getData())));
         }
     }
 
-    private final class RemoteResendRequest extends EventCallback //DataCallback<Integer, IUResendRequest>
+    private final class RemoteResendRequest extends EventCallback //DataCallback<Long, IUResendRequest>
     {
         @Override
         public Event invoke(final Event request) //throws Throwable
         {
             logger.debug("remoteResendRequest");
-            return new Event(int.class, remoteResendRequest((IUResendRequest) request.getData()));
+            return new Event(Long.class, new Long(remoteResendRequest((IUResendRequest) request.getData())));
         }
     }
 
@@ -211,7 +211,7 @@ public class OutputBuffer extends Buffer
      * Apply a remotely requested update to one of the stored IUs.
      * @return 0 if not updated, IU version number otherwise
      */
-    int remoteUpdatePayload(IUPayloadUpdate update)
+    long remoteUpdatePayload(IUPayloadUpdate update)
     {
         if (!iuStore.containsKey(update.getUid()))
         {
@@ -256,7 +256,7 @@ public class OutputBuffer extends Buffer
      * Apply a remotely requested update to one of the stored IUs.
      * @return 0 if not updated, IU version number otherwise
      */
-    int remoteUpdateLinks(IULinkUpdate update)
+    long remoteUpdateLinks(IULinkUpdate update)
     {
         if (!iuStore.containsKey(update.getUid()))
         {
@@ -319,7 +319,7 @@ public class OutputBuffer extends Buffer
     /**
      * Apply a remotely requested commit to one of the stored IUs.
      */
-    private int remoteCommit(IUCommission iuc)
+    private long remoteCommit(IUCommission iuc)
     {
         if (!iuStore.containsKey(iuc.getUid()))
         {
@@ -348,7 +348,7 @@ public class OutputBuffer extends Buffer
     /*
      * Resend an requested iu over the specific hidden channel. (dlw) TODO
      */
-    private int remoteResendRequest(IUResendRequest iu_resend_request_pack)
+    private long remoteResendRequest(IUResendRequest iu_resend_request_pack)
     {
         if (!iuStore.containsKey(iu_resend_request_pack.getUid()))
         {
@@ -491,7 +491,7 @@ public class OutputBuffer extends Buffer
      */
     protected void sendIUCommission(AbstractIU iu, String writerName)
     {
-        IUCommission iuc = Ipaaca.IUCommission.newBuilder().setUid(iu.getUid()).setRevision(iu.getRevision())
+        IUCommission iuc = Ipaaca.IUCommission.newBuilder().setUid(iu.getUid()).setRevision((int) iu.getRevision())
                 .setWriterName(writerName == null ? iu.getOwnerName() : writerName).build();
         Informer<Object> informer = getInformer(iu.getCategory());
         try
@@ -506,7 +506,7 @@ public class OutputBuffer extends Buffer
 
     protected void sendIURetraction(AbstractIU iu)
     {
-        IURetraction iuc = Ipaaca.IURetraction.newBuilder().setUid(iu.getUid()).setRevision(iu.getRevision()).build();
+        IURetraction iuc = Ipaaca.IURetraction.newBuilder().setUid(iu.getUid()).setRevision((int) iu.getRevision()).build();
         Informer<Object> informer = getInformer(iu.getCategory());
         try
         {
