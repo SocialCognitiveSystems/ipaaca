@@ -54,7 +54,7 @@ public class InputBufferTest
         iu.setOwnerName("owner");
         iu.setReadOnly(false);
         iu.setRevision(1);
-        informer.send(iu);
+        informer.publish(iu);
         
         Thread.sleep(1000);
         AbstractIU iuIn = inBuffer.getIU("uid1");

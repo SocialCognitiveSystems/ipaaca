@@ -183,7 +183,7 @@ public class ComponentPushCommunicationIntegrationTest
     	payloadUpdate.put("chunk12", "item2");
     	payloadUpdate.put("chunk13", "item3");
     	payloadUpdate.put("chunk14", "item4");
-    	int oldRev = iuIn.getRevision();
+    	long oldRev = iuIn.getRevision();
     	localIU.getPayload().merge(payloadUpdate);
     	Thread.sleep(200);
     	assertEquals(oldRev + 1, iuIn.getRevision());
@@ -197,7 +197,7 @@ public class ComponentPushCommunicationIntegrationTest
     	payloadUpdate2.put("chunk22", "item6");
     	payloadUpdate2.put("chunk13", "item3-changed");
     	payloadUpdate2.put("chunk14", "item4-changed");
-    	int oldRev2 = iuIn.getRevision();
+    	long oldRev2 = iuIn.getRevision();
     	iuIn.getPayload().merge(payloadUpdate2);
     	Thread.sleep(200);
     	assertEquals(oldRev2 + 1, localIU.getRevision());
