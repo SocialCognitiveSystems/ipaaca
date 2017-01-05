@@ -87,8 +87,7 @@ public class BlackboardIntegrationTest
         bb.put("key3","value3");
         Thread.sleep(200);
         bbc.put("key3","value4");
-        verify(mockListener,times(1)).update();   // RY: why was this set to 2 before?? 1 update is local
-                                                  // changed to one (one is also emitted atm)
+        verify(mockListener,times(2)).update();
     }
     
     @Test
