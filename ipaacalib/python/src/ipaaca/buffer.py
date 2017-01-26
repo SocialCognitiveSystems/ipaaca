@@ -386,7 +386,7 @@ class InputBuffer(Buffer):
 			resend_request = ipaaca.ipaaca_pb2.IUResendRequest()
 			resend_request.uid = event.data.uid # target iu
 			resend_request.hidden_scope_name = str(self._uuid) # hidden category name
-			remote_revision = remote_server.requestResend(resend_request)
+			remote_revision = remote_server.resendRequest(resend_request)
 			if remote_revision == 0:
 				raise ipaaca.exception.IUResendRequestFailedError()
 		else:
@@ -437,7 +437,7 @@ class OutputBuffer(Buffer):
 		self._server.addMethod('updateLinks', self._remote_update_links, ipaaca.converter.IULinkUpdate, int)
 		self._server.addMethod('updatePayload', self._remote_update_payload, ipaaca.converter.IUPayloadUpdate, int)
 		self._server.addMethod('commit', self._remote_commit, ipaaca.ipaaca_pb2.IUCommission, int)
-		self._server.addMethod('requestResend', self._remote_request_resend, ipaaca.ipaaca_pb2.IUResendRequest, int)
+		self._server.addMethod('resendRequest', self._remote_request_resend, ipaaca.ipaaca_pb2.IUResendRequest, int)
 		self._informer_store = {}
 		self._id_prefix = str(owning_component_name)+'-'+str(self._uuid)+'-IU-'
 		self.__iu_id_counter_lock = threading.Lock()
