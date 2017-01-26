@@ -62,14 +62,14 @@ IU payload contents: Payload, PayloadEntryProxy
 #define __ipaaca_h_INCLUDED__
 
 /// ipaaca/IU/RSB protocol major version number
-#define IPAACA_PROTOCOL_VERSION_MAJOR         2
+#define IPAACA_PROTOCOL_VERSION_MAJOR         3
 /// ipaaca/IU/RSB protocol minor version number
 #define IPAACA_PROTOCOL_VERSION_MINOR         0
 
 /// running release number of ipaaca-c++
-#define IPAACA_CPP_RELEASE_NUMBER             13
+#define IPAACA_CPP_RELEASE_NUMBER             15
 /// date of last release number increment
-#define IPAACA_CPP_RELEASE_DATE     "2015-12-04"
+#define IPAACA_CPP_RELEASE_DATE     "2017-01-26"
 
 #ifndef __FUNCTION_NAME__
 	#ifdef WIN32   // Windows
