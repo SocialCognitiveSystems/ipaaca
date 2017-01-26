@@ -184,6 +184,23 @@ set (JSON_TEST_SOURCE
 	build/ipaaca/ipaaca.pb.cc
 	)
 
+set (TESTER_SOURCE
+	src/ipaaca-tester.cc    # main
+	src/ipaaca.cc
+	src/ipaaca-buffers.cc
+	src/ipaaca-fake.cc
+	src/ipaaca-internal.cc
+	src/ipaaca-iuinterface.cc
+	src/ipaaca-locking.cc
+	src/ipaaca-links.cc
+	src/ipaaca-payload.cc
+	src/ipaaca-cmdline-parser.cc
+	src/ipaaca-string-utils.cc
+	# more stuff going beyond the fake test case
+	src/ipaaca-ius.cc
+	build/ipaaca/ipaaca.pb.cc
+	)
+
 
 
 
@@ -195,13 +212,16 @@ target_link_libraries(ipaaca ${LIBS})
 add_executable (ipaaca-test-json ${JSON_TEST_SOURCE})
 target_link_libraries (ipaaca-test-json ${LIBS})
 
+add_executable (ipaaca-tester-cpp ${TESTER_SOURCE})
+target_link_libraries (ipaaca-tester-cpp ${LIBS})
+
 set(DEFAULT_BIN_SUBDIR bin)
 set(DEFAULT_LIB_SUBDIR lib)
 set(DEFAULT_DATA_SUBDIR share/data)
 set(DEFAULT_INCLUDE_SUBDIR include)
 set(CMAKE_INSTALL_PREFIX "")
 install (
-	TARGETS ipaaca
+	TARGETS ipaaca ipaaca-test-json ipaaca-tester-cpp
 	RUNTIME DESTINATION bin
 	LIBRARY DESTINATION lib
 	ARCHIVE DESTINATION lib
@@ -214,13 +234,6 @@ install(
 install(
 	FILES build/ipaaca/ipaaca.pb.h
 	DESTINATION include/ipaaca/
-	)
-
-install (
-	TARGETS ipaaca-test-json
-	RUNTIME DESTINATION bin
-	LIBRARY DESTINATION lib
-	ARCHIVE DESTINATION lib
 	)
 
 
