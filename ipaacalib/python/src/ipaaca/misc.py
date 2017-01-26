@@ -69,6 +69,21 @@ class IpaacaLoggingHandler(logging.Handler):
 		msg = str(record.msg.format(record.args))
 		print(meta + msg)
 
+class RSBLoggingHandler(logging.Handler):
+	'''A logging handler that prints to stdout, RSB version.'''
+
+	def __init__(self, prefix='IPAACA', level=logging.NOTSET):
+		logging.Handler.__init__(self, level)
+		self._prefix = prefix
+
+	def emit(self, record):
+		meta = '[%s: %s] ' % (self._prefix, str(record.levelname))
+		try:
+			msg = str(record.msg % record.args)
+		except:
+			msg = str(record.msg) + ' WITH ARGS: ' + str(record.args)
+		print(meta + msg)
+
 
 class GenericNoLoggingHandler(logging.Handler):
 	'''A logging handler that produces no output'''
@@ -80,21 +95,21 @@ def get_library_logger():
 	return logging.getLogger(ipaaca.defaults.IPAACA_LOGGER_NAME)
 
 
-__IPAACA_LOGGING_HANDLER = IpaacaLoggingHandler('IPAACA')
-__GENERIC_NO_LOG_HANDLER = GenericNoLoggingHandler()
+_IPAACA_LOGGING_HANDLER = IpaacaLoggingHandler('IPAACA')
+_GENERIC_NO_LOG_HANDLER = GenericNoLoggingHandler()
 
 # By default, suppress library logging
 # - for IPAACA
-get_library_logger().addHandler(__GENERIC_NO_LOG_HANDLER)
+get_library_logger().addHandler(_GENERIC_NO_LOG_HANDLER)
 # - for RSB
-logging.getLogger('rsb').addHandler(__GENERIC_NO_LOG_HANDLER)
+logging.getLogger('rsb').addHandler(_GENERIC_NO_LOG_HANDLER)
 
 
 def enable_logging(level=None):
 	'''Enable ipaaca's 'library-wide logging.'''
 	ipaaca_logger = get_library_logger()
-	ipaaca_logger.addHandler(__IPAACA_LOGGING_HANDLER)
-	ipaaca_logger.removeHandler(__GENERIC_NO_LOG_HANDLER)
+	ipaaca_logger.addHandler(_IPAACA_LOGGING_HANDLER)
+	ipaaca_logger.removeHandler(_GENERIC_NO_LOG_HANDLER)
 	ipaaca_logger.setLevel(level=level if level is not None else
 		ipaaca.defaults.IPAACA_DEFAULT_LOGGING_LEVEL)
 
@@ -120,8 +135,8 @@ class IpaacaArgumentParser(argparse.ArgumentParser):
 
 		def __call__(self, parser, namespace, values, option_string=None):
 			rsb_logger = logging.getLogger('rsb')
-			rsb_logger.addHandler(IpaacaLoggingHandler('RSB'))
-			rsb_logger.removeHandler(__GENERIC_NO_LOG_HANDLER)
+			rsb_logger.addHandler(RSBLoggingHandler('RSB'))
+			rsb_logger.removeHandler(_GENERIC_NO_LOG_HANDLER)
 			rsb_logger.setLevel(level=values)
 
 	class IpaacaRSBHost(argparse.Action):
