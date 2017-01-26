@@ -77,6 +77,9 @@ int batch_update_main(int argc, char** argv)//{{{
 	std::cout << std::endl << "Publishing IU (sniffer should receive one ADDED)" << std::endl;
 	ob->add(iu);
 	
+	std::cout << "Waiting 5 sec" << std::endl;
+	sleep(5);
+	
 	std::cout << std::endl << "Batch-writing some stuff (sniffer should receive a single UPDATED)" << std::endl;
 	{
 		ipaaca::Locker locker(iu->payload());
@@ -119,6 +122,8 @@ int batch_update_main(int argc, char** argv)//{{{
 		std::cout << "  " << it.first << " -> " << it.second << std::endl;
 	}
 	
+	std::cout << "Waiting 2 sec" << std::endl;
+	sleep(2);
 	return 0;
 }
 //}}}
