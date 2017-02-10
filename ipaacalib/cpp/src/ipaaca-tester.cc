@@ -48,7 +48,7 @@
 #include <cstdio>
 #include <iomanip>
 
-#ifdef WIN32
+#if _WIN32 || _WIN64
 	double get_time_as_secs() { return 0.0; } // TODO implement time function for Windows when required
 #else
 	#include <sys/time.h>

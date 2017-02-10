@@ -38,7 +38,7 @@ namespace ipaaca {
 // UUID generation
 IPAACA_EXPORT std::string generate_uuid_string()//{{{
 {
-#ifdef WIN32
+#if _WIN32 || _WIN64
 	// Windows
 	UUID uuid;
 	RPC_STATUS stat;

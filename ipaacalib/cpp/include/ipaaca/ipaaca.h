@@ -72,20 +72,20 @@ IU payload contents: Payload, PayloadEntryProxy
 #define IPAACA_CPP_RELEASE_DATE     "2017-01-26"
 
 #ifndef __FUNCTION_NAME__
-	#ifdef WIN32   // Windows
+	#if _WIN32 || _WIN64   // Windows
 		#define __FUNCTION_NAME__   __FUNCTION__
 	#else          // POSIX
 		#define __FUNCTION_NAME__   __func__
 	#endif
 #endif
 
-#ifdef WIN32
+#if _WIN32 || _WIN64
 	#define IPAACA_SYSTEM_DEPENDENT_CLASS_NAME(c) "class "##c
 #else
 	#define IPAACA_SYSTEM_DEPENDENT_CLASS_NAME(c) c
 #endif
 
-#ifdef WIN32
+#if _WIN32 || _WIN64
 	#if defined(ipaaca_EXPORTS)
 		#define  IPAACA_EXPORT
 		#define  IPAACA_HEADER_EXPORT __declspec(dllexport)
@@ -155,7 +155,7 @@ IU payload contents: Payload, PayloadEntryProxy
 // for logger
 #include <iomanip>
 
-#ifdef WIN32
+#if _WIN32 || _WIN64
 // for Windows
 //  time
 #include <time.h>
@@ -172,7 +172,7 @@ IU payload contents: Payload, PayloadEntryProxy
 #include <cstdlib>
 
 
-#ifdef WIN32
+#if _WIN32 || _WIN64
 #include <rpc.h>
 #else
 #include <uuid/uuid.h>
@@ -230,14 +230,14 @@ IPAACA_MEMBER_VAR_EXPORT extern std::string __ipaaca_static_option_rsb_socketser
 
 IPAACA_MEMBER_VAR_EXPORT Lock& logger_lock();
 
-#ifdef WIN32
+#if _WIN32 || _WIN64
 #define LOG_IPAACA_CONSOLE(msg) { ipaaca::Locker logging_locker(ipaaca::logger_lock()); std::time_t result = std::time(NULL); std::cout << "[LOG] " << std::asctime(std::localtime(&result)) << " : " << msg << std::endl; }
 #else
 // use normal gettimeofday() on POSIX
 #define LOG_IPAACA_CONSOLE(msg) { ipaaca::Locker logging_locker(ipaaca::logger_lock()); timeval logging_tim; gettimeofday(&logging_tim, NULL); double logging_t1=logging_tim.tv_sec+(logging_tim.tv_usec/1000000.0); std::cout << "[LOG] " << std::setprecision(15) << logging_t1 << " : " << msg << std::endl; }
 #endif
 
-#ifdef WIN32
+#if _WIN32 || _WIN64
 #define IPAACA_SIMPLE_TIMER_BEGIN(N) ;
 #define IPAACA_SIMPLE_TIMER_END(N, NAME) LOG_IPAACA_CONSOLE(NAME << " - time elapsed: Windows - IMPLEMENT ME")
 #else

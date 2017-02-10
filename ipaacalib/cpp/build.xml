@@ -23,7 +23,7 @@
       <cmake srcdir="${cmake.base.dir}"
          bindir="${build.dir}"
          buildtype="Debug">
-         <generator name="Visual Studio 14" platform="windows" buildargs="ALL_BUILD.vcxproj">
+         <generator name="Visual Studio 14 Win64" platform="windows" buildtype="Release" buildargs="ALL_BUILD.vcxproj">
              <variable name="CMAKE_INSTALL_PREFIX" type="PATH" value="../${zip.tmp.dir}" />
          </generator>
          <generator name="Visual Studio 10" platform="windows" buildargs="ALL_BUILD.vcxproj">

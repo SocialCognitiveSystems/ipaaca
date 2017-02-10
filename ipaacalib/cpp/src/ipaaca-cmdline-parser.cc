@@ -33,7 +33,9 @@
 
 #include <ipaaca/ipaaca.h>
 
-#ifndef WIN32
+#if _WIN32 || _WIN64
+  // no getopt
+#else
 #include <getopt.h>
 #endif
 
@@ -191,7 +193,7 @@ void CommandLineParser::add_option(const std::string& optname, char shortoptn, b
 
 CommandLineOptions::ptr CommandLineParser::parse(int argc, char* const* argv)
 {
-#ifdef WIN32
+#if _WIN32 || _WIN64
 	IPAACA_ERROR("IMPLEMENT ME: command line parsing for Windows. (req'd: getopt)")
 	throw NotImplementedError();
 #else

@@ -101,7 +101,9 @@ class Locker
  *
  * \see Locker
  */
-#ifndef WIN32
+#if _WIN32 || _WIN64
+ // nothing for Windows
+#else
 #include <pthread.h>
 class PthreadMutexLocker
 {

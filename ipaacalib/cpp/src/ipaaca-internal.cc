@@ -133,8 +133,24 @@ IPAACA_EXPORT void Initializer::auto_configure_rsb()//{{{
 	
 	const char* plugin_path = getenv("RSB_PLUGINS_CPP_PATH");
 	if (!plugin_path) {
-#ifdef WIN32
-		IPAACA_WARNING("WARNING: RSB_PLUGINS_CPP_PATH not set - in Windows it has to be specified.")
+#if _WIN32 || _WIN64
+		const char* soa_repo_dir = getenv("SOA_REPO_DIR");
+		if (!soa_repo_dir) {
+			IPAACA_WARNING("WARNING: RSB_PLUGINS_CPP_PATH not set (and SOA_REPO_DIR not set) - in Windows, no further plugin search is made!")
+		} else {
+			std::stringstream path_s;
+			for (const char c: std::string(soa_repo_dir)) {
+				path_s << c;
+				if (c=='\\') path_s << c; // reduplicate backslashes for the RSB env var
+			}
+#if _WIN64
+			path_s << "\\\\rsb-win-scs_64bit\\\\bin";
+#else
+			path_s << "\\\\rsb-win-scs_32bit\\\\bin";
+#endif
+			IPAACA_WARNING("Caution: RSB_PLUGINS_CPP_PATH not set, inferred from SOA_REPO_DIR: " << path_s.str())
+			IPAACA_SETENV("RSB_PLUGINS_CPP_PATH", path_s.str().c_str());
+		}
 		//throw NotImplementedError();
 #else
 		IPAACA_INFO("RSB_PLUGINS_CPP_PATH not set; looking here and up to 7 dirs up.")

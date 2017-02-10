@@ -45,10 +45,10 @@ if(WIN32) # Check if we are on Windows
 		#  On the other hand, if you simply want to use the precompiled rsb from inside
 		#  "rsx" (it works but has no debug info), uncomment the following four lines.
 		#
-		include_directories( ${PROJECT_SOURCE_DIR}/../../../rsb-win-scs/include/rsc0.14 )
-		include_directories( ${PROJECT_SOURCE_DIR}/../../../rsb-win-scs/include/rsb0.14 )
-		link_directories( ${PROJECT_SOURCE_DIR}/../../../rsb-win-scs/lib )
-		link_directories( ${PROJECT_SOURCE_DIR}/../../../rsb-win-scs/lib )
+		include_directories( ${PROJECT_SOURCE_DIR}/../../../rsb-win-scs_64bit/include/rsc0.14 )
+		include_directories( ${PROJECT_SOURCE_DIR}/../../../rsb-win-scs_64bit/include/rsb0.14 )
+		link_directories( ${PROJECT_SOURCE_DIR}/../../../rsb-win-scs_64bit/lib )
+		link_directories( ${PROJECT_SOURCE_DIR}/../../../rsb-win-scs_64bit/lib )
 		
 		set(RSBLIBS rsc0.14 rsb0.14)
 		#set(RSBLIBS ${PROJECT_SOURCE_DIR}/../../../rsx/RSC-0.14.5-win32/rsc0.14.lib  ${PROJECT_SOURCE_DIR}/../../../rsx/RSB-0.14.2-win32/rsb0.14.lib )
@@ -83,7 +83,7 @@ if(WIN32) # Check if we are on Windows
 		
 		
 	else()
-		message(SEND_ERROR "Unsupported compiler! Please build with MSVC (2010).")
+		message(SEND_ERROR "Unsupported compiler! Please build with MSVC 14.0 (Visual Studio 2015).")
 	endif()
 else()
 	#
