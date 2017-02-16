@@ -123,10 +123,13 @@ endif(WIN32)
 set(LIBS ${LIBS} ${PROTOBUF_LIBRARY} ${Boost_LIBRARIES} ${RSBLIBS})
 
 if(!WIN32)
-set(LIBS ${LIBS} pthread)
+	message(STATUS "Adding extra options for building on POSIX")
+	set(LIBS ${LIBS} pthread)
 	if (DEFINED APPLE)
+		message(STATUS " - no flag needed on Mac")
 		# no special care required for our Apple clang thing
 	else()
+		message(STATUS " - extra flag for Linux")
 		# needs -lpthread AND -pthread
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
 	endif()
