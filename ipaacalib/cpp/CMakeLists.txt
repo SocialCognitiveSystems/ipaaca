@@ -124,6 +124,12 @@ set(LIBS ${LIBS} ${PROTOBUF_LIBRARY} ${Boost_LIBRARIES} ${RSBLIBS})
 
 if(!WIN32)
 set(LIBS ${LIBS} pthread)
+	if (DEFINED APPLE)
+		# no special care required for our Apple clang thing
+	else()
+		# needs -lpthread AND -pthread
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
+	endif()
 endif(!WIN32)
 
 # Hide the rsb-induced boost-signals warning (FOR NOW)
