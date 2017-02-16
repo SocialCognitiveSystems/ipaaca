@@ -122,18 +122,16 @@ endif(WIN32)
 
 set(LIBS ${LIBS} ${PROTOBUF_LIBRARY} ${Boost_LIBRARIES} ${RSBLIBS})
 
-if(!WIN32)
-	message(STATUS "Adding extra options for building on POSIX")
-	set(LIBS ${LIBS} pthread)
+if(NOT DEFINED WIN32)
 	if (DEFINED APPLE)
-		message(STATUS " - no flag needed on Mac")
-		# no special care required for our Apple clang thing
+		message(STATUS "No extra pthread flags needed on Mac")
 	else()
-		message(STATUS " - extra flag for Linux")
+		message(STATUS "Adding extra pthread flags for Linux")
 		# needs -lpthread AND -pthread
+		set(LIBS ${LIBS} pthread)
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
 	endif()
-endif(!WIN32)
+endif(NOT DEFINED WIN32)
 
 # Hide the rsb-induced boost-signals warning (FOR NOW)
 set(IPAACA_CXX_DEFINES "${IPAACA_CXX_DEFINES} -DBOOST_SIGNALS_NO_DEPRECATION_WARNING")
