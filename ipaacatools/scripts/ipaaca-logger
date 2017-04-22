@@ -52,6 +52,7 @@ def main(log_mode, filename=None):
 
 
 if __name__ == '__main__':
+	import traceback
 	try:
 		iap = ipaaca.IpaacaArgumentParser(
 			'ipaaca-logger')
