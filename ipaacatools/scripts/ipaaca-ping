@@ -5,6 +5,7 @@ import time
 
 class PingSender(object):
 	def __init__(self):
+		self.pings = []
 		self.times = []
 		self.ob = ipaaca.OutputBuffer('IpaacaPing')
 		self.ob.register_handler(self.iu_event_handler)
@@ -20,8 +21,12 @@ class PingSender(object):
 			estimated_clock_skew = receiver_recv_t - locally_estimated_receiver_recv_t
 			self.times.append(estimated_clock_skew)
 			average_clock_difference = sum(self.times) / len(self.times)
+			self.pings.append(500.0 * round_trip_t)
+			average_estimated_single_trip = sum(self.pings) / len(self.pings)
 			print('Received ping reply')
-			print('  round trip time [ms]: %0.3f'%(1000.0 * round_trip_t))
+			print('  measured round trip time [ms]: %0.3f'%(1000.0 * round_trip_t))
+			print('  estimated single trip [ms]: %0.3f'%(500.0 * round_trip_t))
+			print('  averaged single trip [ms]: %0.3f'%(average_estimated_single_trip))
 			print('  estimated system clock difference [s]: %0.3f'%(average_clock_difference))
 
 	def send_ping(self):
