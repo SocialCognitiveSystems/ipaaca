@@ -36,6 +36,9 @@ class PingSender(object):
 		self.ob.add(iu)
 
 
+iap = ipaaca.IpaacaArgumentParser('ipaaca-ping')
+arguments = iap.parse_args()
+
 ps = PingSender()
 while True:
 	ps.send_ping()

@@ -8,6 +8,9 @@ def iu_event_handler(iu, event_type, local):
 		iu.payload['receiver_local_t'] = time.time()
 		print('Sent IPAACA ping reply')
 
+iap = ipaaca.IpaacaArgumentParser('ipaaca-pong')
+arguments = iap.parse_args()
+
 ib = ipaaca.InputBuffer('IpaacaPong', ['ipaacaPing'])
 ib.register_handler(iu_event_handler)
 
