@@ -1,0 +1,39 @@
+#!/usr/bin/env python
+
+import ipaaca
+import time
+
+class PingSender(object):
+	def __init__(self):
+		self.times = []
+		self.ob = ipaaca.OutputBuffer('IpaacaPing')
+		self.ob.register_handler(self.iu_event_handler)
+	
+	def iu_event_handler(self, iu, event_type, local):
+		recv_t = time.time()
+		if event_type=='UPDATED':
+			print('OK')
+			send_t = float(iu.payload['sender_local_t'])
+			receiver_recv_t = float(iu.payload['receiver_local_t'])
+			round_trip_t = recv_t - send_t
+			locally_estimated_receiver_recv_t = (recv_t + send_t) / 2
+			estimated_clock_skew = receiver_recv_t - locally_estimated_receiver_recv_t
+			self.times.append(estimated_clock_skew)
+			average_clock_difference = sum(self.times) / len(self.times)
+			print('Received ping reply')
+			print('  round trip time [ms]: %0.3f'%(1000.0 * round_trip_t))
+			print('  estimated system clock difference [s]: %0.3f'%(average_clock_difference))
+
+	def send_ping(self):
+		t = time.time()
+		iu = ipaaca.IU('ipaacaPing')
+		iu.payload['sender_local_t'] = t
+		self.ob.add(iu)
+
+
+ps = PingSender()
+while True:
+	ps.send_ping()
+	time.sleep(1)
+
+
