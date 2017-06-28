@@ -88,11 +88,7 @@ public class IUConverter implements Converter<ByteBuffer>
             links.add(LinkSet.newBuilder().setType(entry.getKey()).addAllTargets(entry.getValue()).build());
         }
 
-        IU.AccessMode accessMode = iua.getAccessMode();  //IU.AccessMode.PUSH;
-        //if(obj instanceof RemoteMessageIU || obj instanceof LocalMessageIU)
-        //{
-        //    accessMode = IU.AccessMode.MESSAGE;
-        //}
+        IU.AccessMode accessMode = iua.getAccessMode();
         IU iu = IU.newBuilder().setUid(iua.getUid()).setRevision((int) iua.getRevision()).setCategory(iua.getCategory())
                 .setOwnerName(iua.getOwnerName()).setCommitted(iua.isCommitted()).setAccessMode(accessMode)
                 .setReadOnly(iua.isReadOnly()).setPayloadType("STR").addAllPayload(payloadItems).addAllLinks(links).build();
