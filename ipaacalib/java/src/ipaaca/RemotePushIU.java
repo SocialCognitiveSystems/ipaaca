@@ -33,6 +33,7 @@
 package ipaaca;
 
 import ipaaca.protobuf.Ipaaca;
+import ipaaca.protobuf.Ipaaca.IU;
 import ipaaca.protobuf.Ipaaca.IUCommission;
 import ipaaca.protobuf.Ipaaca.IULinkUpdate;
 import ipaaca.protobuf.Ipaaca.IUPayloadUpdate;
@@ -65,6 +66,11 @@ public class RemotePushIU extends AbstractIU
 {
     private final static Logger logger = LoggerFactory.getLogger(RemotePushIU.class.getName());
     private InputBuffer inputBuffer;
+
+    public IU.AccessMode getAccessMode()
+    {
+        return IU.AccessMode.PUSH;
+    }
 
     public InputBuffer getInputBuffer()
     {

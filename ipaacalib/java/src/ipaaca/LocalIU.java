@@ -32,6 +32,7 @@
 
 package ipaaca;
 
+import ipaaca.protobuf.Ipaaca.IU;
 import ipaaca.protobuf.Ipaaca.IULinkUpdate;
 import ipaaca.protobuf.Ipaaca.IUPayloadUpdate;
 import ipaaca.protobuf.Ipaaca.IUPayloadUpdate.Builder;
@@ -50,6 +51,11 @@ import com.google.common.collect.SetMultimap;
 
 public class LocalIU extends AbstractIU
 {
+    
+    public IU.AccessMode getAccessMode()
+    {
+        return IU.AccessMode.PUSH;
+    }
 
     private OutputBuffer outputBuffer;
 

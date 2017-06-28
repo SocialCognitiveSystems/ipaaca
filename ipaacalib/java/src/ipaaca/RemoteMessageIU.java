@@ -32,6 +32,7 @@
 
 package ipaaca;
 
+import ipaaca.protobuf.Ipaaca.IU;
 import ipaaca.protobuf.Ipaaca.PayloadItem;
 
 import java.util.List;
@@ -44,6 +45,11 @@ import com.google.common.collect.SetMultimap;
 @Slf4j
 public class RemoteMessageIU extends AbstractIU
 {
+
+    public IU.AccessMode getAccessMode()
+    {
+        return IU.AccessMode.MESSAGE;
+    }
 
     public RemoteMessageIU(String uid)
     {

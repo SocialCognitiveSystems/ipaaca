@@ -32,6 +32,7 @@
 
 package ipaaca;
 
+import ipaaca.protobuf.Ipaaca.IU;
 
 /**
  * Local IU of Message sub-type. Can be handled like a normal IU, but on the remote side it is only existent during the handler calls.
@@ -48,6 +49,11 @@ public class LocalMessageIU extends LocalIU
     public LocalMessageIU(String category)
     {
         super(category);
+    }
+
+    public IU.AccessMode getAccessMode()
+    {
+        return IU.AccessMode.MESSAGE;
     }
 
 }

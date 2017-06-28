@@ -32,6 +32,7 @@
 
 package ipaaca;
 
+import ipaaca.protobuf.Ipaaca.IU;
 import ipaaca.protobuf.Ipaaca.PayloadItem;
 
 import java.util.ArrayList;
@@ -62,6 +63,8 @@ public abstract class AbstractIU
     protected long revision;
     private boolean readOnly = false;
 
+    public abstract IU.AccessMode getAccessMode();
+    
     protected SetMultimap<String, String> links = HashMultimap.create();
     private final SetMultimap<String, String> EMPTYLINKS = HashMultimap.create();
 
