@@ -54,6 +54,7 @@ def enum(*sequential, **named):
 	"""
 	enums = dict(zip(sequential, range(len(sequential))), **named)
 	enums['_choices'] = enums.keys()
+	enums['_values'] = enums.values()  # RY e.g. see if raw int is valid
 	return type('Enum', (object,), enums)
 
 

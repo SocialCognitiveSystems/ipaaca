@@ -42,18 +42,39 @@ import traceback
 import uuid
 
 import ipaaca
+import ipaaca.misc
 
 
 __all__ = [
 	'logger_send_ipaaca_logs',
 	'logger_set_log_filename',
 	'logger_set_module_name',
+	'logger_set_log_level',
 	'LOG_DEBUG',
 	'LOG_INFO',
 	'LOG_WARN',
 	'LOG_WARNING',
 	'LOG_ERROR',
 ]
+
+
+LogLevel = ipaaca.misc.enum(
+	DEBUG = 0,
+	INFO = 1,
+	WARN = 2,
+	ERROR = 3,
+	SILENT = 4,
+)
+LOG_LEVEL_FROM_STRING_DICT = {
+	'DEBUG': LogLevel.DEBUG,
+	'INFO': LogLevel.INFO,
+	'WARN': LogLevel.WARN,
+	'WARNING': LogLevel.WARN,
+	'ERROR': LogLevel.ERROR,
+	'NONE': LogLevel.SILENT,
+	'SILENT': LogLevel.SILENT,
+}
+CURRENT_LOG_LEVEL = LogLevel.DEBUG
 
 LOGGER_LOCK = threading.RLock()
 
@@ -98,6 +119,15 @@ def logger_send_ipaaca_logs(flag=True):
 	with LOGGER_LOCK:
 		SEND_IPAACA_LOGS = flag
 
+def logger_set_log_level(level=LogLevel.DEBUG):
+	global CURRENT_LOG_LEVEL
+	with LOGGER_LOCK:
+		if level in LogLevel._values:
+			CURRENT_LOG_LEVEL = level
+		elif isinstance(level, basestring) and level.upper() in LOG_LEVEL_FROM_STRING_DICT:
+			CURRENT_LOG_LEVEL = LOG_LEVEL_FROM_STRING_DICT[level.upper()]
+		else:
+			pass # leave previous setting untouched
 
 def LOG_IPAACA(lvl, text, now=0.0, fn='???', thread='???'):
 	global OUTPUT_BUFFER
@@ -134,6 +164,7 @@ def LOG_CONSOLE(lvlstr, msg, fn_markup='[38;5;142m', msg_markup='', now=0.0, fn
 
 
 def LOG_ERROR(msg, now=None):
+	if CURRENT_LOG_LEVEL > LogLevel.ERROR: return
 	now = time.time() if now is None else now
 	f = sys._getframe(1)
 	classprefix = (f.f_locals['self'].__class__.__name__+'.') if 'self' in f.f_locals else ''
@@ -145,6 +176,7 @@ def LOG_ERROR(msg, now=None):
 
 
 def LOG_WARN(msg, now=None):
+	if CURRENT_LOG_LEVEL > LogLevel.WARN: return
 	now = time.time() if now is None else now
 	f = sys._getframe(1)
 	classprefix = (f.f_locals['self'].__class__.__name__+'.') if 'self' in f.f_locals else ''
@@ -159,6 +191,7 @@ LOG_WARNING = LOG_WARN
 
 
 def LOG_INFO(msg, now=None):
+	if CURRENT_LOG_LEVEL > LogLevel.INFO: return
 	now = time.time() if now is None else now
 	f = sys._getframe(1)
 	classprefix = (f.f_locals['self'].__class__.__name__+'.') if 'self' in f.f_locals else ''
@@ -170,6 +203,7 @@ def LOG_INFO(msg, now=None):
 
 
 def LOG_DEBUG(msg, now=None):
+	if CURRENT_LOG_LEVEL > LogLevel.DEBUG: return
 	now = time.time() if now is None else now
 	f = sys._getframe(1)
 	classprefix = (f.f_locals['self'].__class__.__name__+'.') if 'self' in f.f_locals else ''
