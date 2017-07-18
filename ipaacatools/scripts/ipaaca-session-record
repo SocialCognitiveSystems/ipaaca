@@ -124,7 +124,7 @@ parser = ipaaca.IpaacaArgumentParser(description='Ipaaca IU Session Recorder -- 
 parser.add_argument(
 	'-o', '--output-file',
 	dest='output_file',
-	default='default.ipaacasession',
+	default=['default.ipaacasession'],
 	metavar='OUTPUT-FILE',
 	nargs=1,
 	help="set the channels to listen on (otherwise 'default')")
@@ -172,7 +172,7 @@ if __name__ == '__main__':
 	arguments = parser.parse_args()
 	buffers = {}
 
-	log_file = None if (arguments.output_file[0]=='-') else open(arguments.output_file, 'w')
+	log_file = None if (arguments.output_file[0]=='-') else open(arguments.output_file[0], 'w')
 	
 	# Create one input buffer for each channel we are listening on
 	for channel in arguments.channels:
