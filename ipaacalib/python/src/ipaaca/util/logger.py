@@ -328,13 +328,13 @@ class LoggerComponent(object):
 						except:
 							print('Failed to write to logfile!')
 				elif iu.category == 'logcontrol':
-					cmd = iu.payload['cmd']
+					cmd = iu.payload['cmd'] if 'cmd' in iu.payload else 'undef'
 					if cmd == 'open_log_file':
 						filename = iu.payload['filename'] if 'filename' in iu.payload else ''
 						if 'existing' in iu.payload:
 							log_mode_ = iu.payload['existing'].lower()
 							if log_mode_ not in LOG_MODES:
-								LOG_WARN(u'Value of "existing" should be "append", timestamp, or  "overwrite", continuing with mode {mode}'.format(mode=self.log_mode))
+								LOG_WARN(u'Value of "existing" should be "append", "timestamp", or "overwrite", continuing with mode {mode}'.format(mode=self.log_mode))
 							else:
 								self.log_mode = log_mode_
 						self.open_logfile(filename)
