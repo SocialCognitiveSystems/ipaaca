@@ -6,7 +6,7 @@
    <dependencies>
       <dependency org="slf4j"   name="slf4j-api"              rev="latest.release"  />
       <dependency org="google"  name="guava"                  rev="latest.release"  />
-      <dependency org="google"  name="protobuf-java"          rev="latest.release"  />
+      <dependency org="google"  name="protobuf-java"          rev="2.6.1"  />
       <dependency org="rsb"     name="rsb"                    rev="latest.release"  />
       <dependency org="lombok"  name="lombok"                 rev="latest.release"  />
       <dependency org="apache"  name="commons-lang"           rev="latest.release"  />
